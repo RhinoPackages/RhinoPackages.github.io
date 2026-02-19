@@ -66,8 +66,6 @@ jobs:
       - name: Build with Next.js
         working-directory: ./RhinoPackages.Web
         run: npx next build
-        env:
-          NEXT_PUBLIC_BASE_PATH: "/RhinoPackages"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

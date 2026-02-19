@@ -73,8 +73,7 @@ export function useApi() {
     (async () => {
       setStatus(Status.loading());
       try {
-        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-        const url = `${basePath}/data.json`;
+        const url = `/data.json`;
         const response = await fetch(url);
         if (!response.ok) {
           const text = await response.text();
