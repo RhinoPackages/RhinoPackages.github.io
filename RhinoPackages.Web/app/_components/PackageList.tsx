@@ -29,7 +29,7 @@ export default function PackageList() {
               : `Showing page ${controls.page + 1}`}
           </p>
         </div>
-        <div className="flex divide-x divide-gray-200 text-sm dark:divide-zinc-800">
+        <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
           <div className="flex flex-col pr-4">
             <span className="text-gray-500 dark:text-zinc-400">Total Packages</span>
             <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalPackages.toLocaleString() ?? "-"}</span>
