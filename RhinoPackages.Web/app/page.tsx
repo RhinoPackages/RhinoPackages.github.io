@@ -34,7 +34,7 @@ function ToggleMenu() {
         <Icon className="h-8 w-8 text-gray-400" />
       </button>
       {open && (
-        <div className="absolute -left-1 -top-1 z-10 border bg-white px-8 pt-10 shadow">
+        <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 pt-10 shadow dark:border-zinc-800 dark:bg-zinc-950">
           <Sidebar />
         </div>
       )}
