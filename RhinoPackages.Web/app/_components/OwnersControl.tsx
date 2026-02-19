@@ -19,6 +19,7 @@ export default function OwnersControl() {
       <div className="relative">
         <Combobox.Input
           className="w-full rounded-md border-0 bg-white py-2 pl-3 pr-10 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+          placeholder="Search for author..."
           displayValue={(person: Owner) => person.name}
           onFocus={() => setFilteredOwners(owners)}
           onChange={(event) => {
