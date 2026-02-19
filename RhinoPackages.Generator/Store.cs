@@ -1,16 +1,16 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Azure.Storage.Blobs;
+using System.IO;
 
 namespace RhinoPackages.Api;
 
-record Package(string Id, string Version, DateTime Updated, string Authors, int Downloads, string? IconUrl,
+public record Package(string Id, string Version, DateTime Updated, string Authors, int Downloads, string? IconUrl,
     string Description, string Keywords, bool Prerelease, string? HomepageUrl, Filters Filters, List<Owner> Owners);
 
-record Owner(int Id, string Name);
+public record Owner(int Id, string Name);
 
 [Flags]
-enum Filters
+public enum Filters
 {
     None = 0,
     Windows = 1,
@@ -22,13 +22,14 @@ enum Filters
     Rhino8 = 64
 }
 
-class Store(ILogger<EndPoints> logger)
+public class Store(ILogger<Store> logger)
 {
-    const string _dataFile = "data.json";
+    const string _dataFile = "../RhinoPackages.Web/public/data.json";
 
     readonly static JsonSerializerOptions _options = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
     };
 
     public async Task SavePackages(bool clear)
@@ -57,40 +58,46 @@ class Store(ILogger<EndPoints> logger)
                     break;
                 case Update.Update:
                     var index = packages.FindIndex(p => p.Id == package.Id);
-                    packages[index] = package;
+                    if (index >= 0)
+                    {
+                        packages[index] = package;
+                    }
+                    else
+                    {
+                        packages.Add(package);
+                    }
                     break;
             }
         }
 
         logger.LogInformation("Saving packages...");
+        
+        var directory = Path.GetDirectoryName(_dataFile);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
 
-        var blob = GetBlob();
-        using var stream = await blob.OpenWriteAsync(true);
+        using var stream = File.Create(_dataFile);
         await JsonSerializer.SerializeAsync(stream, packages, _options);
-    }
-
-    static BlobClient GetBlob()
-    {
-        string connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage")
-            ?? throw new("Connection string not found.");
-
-        BlobServiceClient client = new(connectionString);
-
-        var container = client.GetBlobContainerClient("packages");
-        return container.GetBlobClient(_dataFile);
+        logger.LogInformation("Saved successfully to {file}", _dataFile);
     }
 
     static async Task<Package[]> LoadPackages()
     {
-        var blob = GetBlob();
-
-        if (!(await blob.ExistsAsync()))
+        if (!File.Exists(_dataFile))
             return [];
 
-        var data = await blob.DownloadStreamingAsync();
-        using var stream = data.Value.Content;
-
-        return await JsonSerializer.DeserializeAsync<Package[]>(stream, _options)
-            ?? throw new("Could not deserialize packages.");
+        using var stream = File.OpenRead(_dataFile);
+        try 
+        {
+            var packages = await JsonSerializer.DeserializeAsync<Package[]>(stream, _options);
+            return packages ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
     }
 }
+

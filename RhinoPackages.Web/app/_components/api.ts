@@ -73,7 +73,8 @@ export function useApi() {
     (async () => {
       setStatus(Status.loading());
       try {
-        const url = "https://rhinopackages.blob.core.windows.net/packages/data.json";
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+        const url = `${basePath}/data.json`;
         const response = await fetch(url);
         if (!response.ok) {
           const text = await response.text();

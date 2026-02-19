@@ -3,18 +3,44 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RhinoPackages.Api", "api\RhinoPackages.Api.csproj", "{9F0A6259-B590-4A03-A615-1E5C1BB7D99E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RhinoPackages.Tests", "RhinoPackages.Tests\RhinoPackages.Tests.csproj", "{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RhinoPackages.Generator", "RhinoPackages.Generator\RhinoPackages.Generator.csproj", "{B823C306-37CF-47EB-9A5D-C532102D2991}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9F0A6259-B590-4A03-A615-1E5C1BB7D99E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9F0A6259-B590-4A03-A615-1E5C1BB7D99E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9F0A6259-B590-4A03-A615-1E5C1BB7D99E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9F0A6259-B590-4A03-A615-1E5C1BB7D99E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Debug|x64.Build.0 = Debug|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Debug|x86.Build.0 = Debug|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Release|x64.ActiveCfg = Release|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Release|x64.Build.0 = Release|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Release|x86.ActiveCfg = Release|Any CPU
+		{1D06F93A-3CC4-49DD-ABF9-E98F292D012C}.Release|x86.Build.0 = Release|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Debug|x64.Build.0 = Debug|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Debug|x86.Build.0 = Debug|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Release|x64.ActiveCfg = Release|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Release|x64.Build.0 = Release|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Release|x86.ActiveCfg = Release|Any CPU
+		{B823C306-37CF-47EB-9A5D-C532102D2991}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,28 +6,37 @@ using Microsoft.Extensions.Logging;
 
 namespace RhinoPackages.Api;
 
-record EntryYak(string Authors, int DownloadCount, string Name, string Version);
-record PackageYak(string CreatedAt, string? Description, DistributionYak[] Distributions, string? HomepageUrl, string[]? Keywords, bool Prerelease);
-record DistributionYak(string Filename, string Platform, string RhinoVersion, string Url);
-record OwnerYak(int Id, string Name);
+public record EntryYak(string Authors, int DownloadCount, string Name, string Version);
+public record PackageYak(string CreatedAt, string? Description, DistributionYak[] Distributions, string? HomepageUrl, string[]? Keywords, bool Prerelease);
+public record DistributionYak(string Filename, string Platform, string RhinoVersion, string Url);
+public record OwnerYak(int Id, string Name);
 
-enum Update { None, New, Update }
+public enum Update { None, New, Update }
 
-class Seeder(ILogger logger, IEnumerable<Package> packages)
+public class Seeder
 {
     readonly static JsonSerializerOptions _options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
-    readonly HttpClient _client = new();
+    readonly HttpClient _client;
+    readonly ILogger _logger;
+    readonly IEnumerable<Package> _packages;
+
+    public Seeder(ILogger logger, IEnumerable<Package> packages, HttpClient? client = null)
+    {
+        _logger = logger;
+        _packages = packages;
+        _client = client ?? new HttpClient();
+    }
 
     public async Task<IList<(Update Update, Package Package)>> Run()
     {
-        logger.LogInformation("Processing packages:");
+        _logger.LogInformation("Processing packages:");
 
         var entries = await Get<EntryYak[]>("packages");
-        var packagesMap = packages.ToDictionary(package => package.Id);
+        var packagesMap = _packages.ToDictionary(package => package.Id);
 
         var updates = new (Update Update, Package Package)[entries.Length];
 
@@ -62,7 +71,7 @@ class Seeder(ILogger logger, IEnumerable<Package> packages)
                 updates[index] = (Update.New, await MakePackage(entry));
             }
 
-            logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
+            _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
         });
 
         return updates.Where(p => p.Update != Update.None).ToList();

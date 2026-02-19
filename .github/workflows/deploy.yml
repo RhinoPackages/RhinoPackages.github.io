@@ -1,33 +1,79 @@
-name: Azure Static Web Apps CI/CD
+name: Publish to GitHub Pages
 
 on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight to update packages
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  build_and_deploy:
+  update-data:
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          submodules: true
-          lfs: false
-      - uses: azure/static-web-apps-deploy@latest
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore RhinoPackages.Generator/RhinoPackages.Generator.csproj
+
+      - name: Run Backend Generator
+        run: dotnet run --project RhinoPackages.Generator/RhinoPackages.Generator.csproj
+
+      - name: Commit and Push data.json
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add RhinoPackages.Web/public/data.json
+          git commit -m "chore: update package data" || echo "No changes to commit"
+          git push
+
+  build-and-deploy:
+    needs: update-data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.STATIC_SITE_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/web"
-          api_location: ""
-          output_location: "/out"
+          ref: main # Ensure we get the latest commit with data.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: RhinoPackages.Web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./RhinoPackages.Web
+        run: npm install
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build with Next.js
+        working-directory: ./RhinoPackages.Web
+        run: npx next build
         env:
-          IS_STATIC_EXPORT: true
-      - run: dotnet build -c Release api/RhinoPackages.Api.csproj
-      - uses: Azure/functions-action@v1
-        id: fa
+          NEXT_PUBLIC_BASE_PATH: "/RhinoPackages"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          app-name: "rhinopackages"
-          package: "artifacts/bin/RhinoPackages.Api/release"
-          publish-profile: ${{ secrets.FUNCTIONAPP_PROFILE }}
+          path: ./web/out
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

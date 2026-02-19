@@ -29,15 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </a>
               <span className="text-gray-600"> Packages</span>
             </h1>
-            <a href="https://www.buymeacoffee.com/visose" target="_blank">
-              <Image
-                src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-                alt="Buy Me A Coffee"
-                width={545}
-                height={153}
-                className="w-[7rem]"
-              />
-            </a>
           </div>
           <Suspense
             fallback={

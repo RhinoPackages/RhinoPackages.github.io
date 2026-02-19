@@ -128,7 +128,9 @@ function filter(packages: Package[], params: Params) {
   return packages.slice(page * pageResults, page * pageResults + pageResults);
 }
 
-function toParams(searchParams: URLSearchParams): Params {
+import { ReadonlyURLSearchParams } from "next/navigation";
+
+function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Params {
   function toInt<T>(param: string, defaultValue: T) {
     let result = parseInt(searchParams.get(param) ?? "") || defaultValue;
     if ((result as number) < 0) result = defaultValue;
