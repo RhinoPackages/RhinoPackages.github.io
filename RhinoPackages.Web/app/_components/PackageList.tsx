@@ -167,7 +167,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
           </div>
         </div>
       </div>
-      <div className="flex items-start gap-8">
+      <div className="mt-3 flex items-start gap-8">
         <p className="break-long-words flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
           {pkg.description}
         </p>
@@ -180,7 +180,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
         </a>
       </div>
       {(tags && tags.length > 0 && tags[0] !== "") && (
-        <div className="mt-5 flex flex-wrap place-items-center items-start gap-2">
+        <div className="mt-4 flex flex-wrap place-items-center items-start gap-2">
           {tags.map((tag) => (
             <span
               key={tag}
