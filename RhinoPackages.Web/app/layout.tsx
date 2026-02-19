@@ -12,9 +12,67 @@ import Image from "next/image";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rhino Packages",
+  title: {
+    default: "Rhino Packages — Browse & Install Rhino 3D Plugins",
+    template: "%s | Rhino Packages",
+  },
   description:
-    "This website gives you a bit more info about Rhino 3D packages than what is currently available using the _PackageManager command.",
+    "Browse, search, and install Rhino 3D and Grasshopper plugins. Discover trending packages, filter by platform, version, and type. The most comprehensive Rhino package directory.",
+  keywords: [
+    "Rhino 3D",
+    "Grasshopper",
+    "Rhino plugins",
+    "Grasshopper plugins",
+    "Rhino packages",
+    "Yak package manager",
+    "Rhino 8",
+    "Rhino 7",
+    "computational design",
+    "parametric design",
+    "3D modeling plugins",
+    "AEC software",
+  ],
+  authors: [{ name: "RhinoPackages" }],
+  creator: "RhinoPackages",
+  metadataBase: new URL("https://rhinopackages.github.io"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://rhinopackages.github.io",
+    siteName: "Rhino Packages",
+    title: "Rhino Packages — Browse & Install Rhino 3D Plugins",
+    description:
+      "Browse, search, and install Rhino 3D and Grasshopper plugins. Discover trending packages, filter by platform, version, and type.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Rhino Packages Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Rhino Packages — Browse & Install Rhino 3D Plugins",
+    description:
+      "Browse, search, and install Rhino 3D and Grasshopper plugins. The most comprehensive Rhino package directory.",
+    images: ["/logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
