@@ -70,3 +70,20 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./RhinoPackages.Web/out
 
+      - name: Zip Exported Site
+        working-directory: ./RhinoPackages.Web
+        run: zip -r ../site-export.zip out/
+
+      - name: Generate Version Tag
+        id: version
+        run: echo "TAG_NAME=v$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "site-export.zip"
+          tag: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          body: "Automatic deployment release of the static site."
+          token: ${{ secrets.GITHUB_TOKEN }}
+

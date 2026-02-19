@@ -5,8 +5,6 @@
 
 [![License](https://img.shields.io/github/license/RhinoPackages/RhinoPackages?style=flat-square)](../LICENSE)
 [![Repo stars](https://img.shields.io/github/stars/RhinoPackages/RhinoPackages?style=flat-square)](https://github.com/RhinoPackages/RhinoPackages)
-[![Discussions](https://img.shields.io/github/discussions/RhinoPackages/RhinoPackages?style=flat-square)](https://github.com/RhinoPackages/RhinoPackages/discussions)
-[![Sponsor](https://img.shields.io/badge/sponsor-gray?style=flat-square&logo=GitHub-Sponsors)](https://github.com/sponsors/RhinoPackages)
 
 </div>
 
