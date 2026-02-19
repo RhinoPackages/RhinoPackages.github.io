@@ -114,7 +114,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </Suspense>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
-              Site Generated: {new Date().toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}
+              <p>Site Generated: {new Date().toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}</p>
+              {process.env.NEXT_PUBLIC_VERSION && (
+                <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>
+              )}
             </footer>
           </main>
         </ThemeProvider>
