@@ -62,7 +62,7 @@ function CheckBox({ title, icon, filter }: CheckProps) {
   };
 
   return (
-    <Switch.Group as="div" className="flex">
+    <Switch.Group as="div" className="mb-2 flex">
       <Switch.Label as="label" className="flex w-28 cursor-pointer items-center gap-2">
         <Image
           className={`inline h-[1.2rem] w-[1.2rem] opacity-80 ${isSvg ? "dark:invert" : ""}`}
