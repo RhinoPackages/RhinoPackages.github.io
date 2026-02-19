@@ -9,7 +9,7 @@ import Sidebar from "./_components/Sidebar";
 export default function Page() {
   return (
     <PackageProvider>
-      <div className="hidden items-start divide-x md:flex">
+      <div className="hidden items-start divide-x divide-gray-200 dark:divide-zinc-800 md:flex">
         <div className="pr-6 pt-6">
           <Sidebar />
         </div>

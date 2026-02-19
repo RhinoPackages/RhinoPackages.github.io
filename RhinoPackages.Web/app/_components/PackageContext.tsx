@@ -5,6 +5,7 @@ import { Filters, Owner, Package, Status, has, pageResults, useApi } from "./api
 export enum Sort {
   Downloads,
   Date,
+  Trending,
 }
 
 export interface Params {
@@ -19,7 +20,7 @@ export const defaultParams: Params = {
   owner: undefined,
   search: "",
   filters: Filters.None,
-  sort: Sort.Downloads,
+  sort: Sort.Trending,
   page: 0,
 };
 
@@ -28,6 +29,11 @@ interface PackageContext {
   owners: Owner[];
   status: Status;
   controls: Params;
+  stats: {
+    totalPackages: number;
+    totalDownloads: number;
+    recentUpdates: number;
+  };
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -80,6 +86,23 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
     return owners.sort((a, b) => a.id - b.id);
   }, [cache]);
 
+  const stats = useMemo(() => {
+    let totalDownloads = 0;
+    let recentUpdates = 0;
+    const now = Date.now();
+    for (const pkg of cache ?? []) {
+      totalDownloads += pkg.downloads;
+      if ((now - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24) <= 30) {
+        recentUpdates++;
+      }
+    }
+    return {
+      totalPackages: cache?.length ?? 0,
+      totalDownloads,
+      recentUpdates,
+    };
+  }, [cache]);
+
   return (
     <PackageContext.Provider
       value={{
@@ -87,6 +110,7 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
         owners,
         status,
         controls,
+        stats,
         navigate,
         navigateFilter,
         setSearch,
@@ -121,6 +145,15 @@ function filter(packages: Package[], params: Params) {
 
   if (sort === Sort.Date) {
     packages = packages.sort((a, b) => (a.updated < b.updated ? 1 : -1));
+  } else if (sort === Sort.Trending) {
+    const now = Date.now();
+    const getScore = (p: Package) => {
+      // Calculate days since the package was last updated
+      const daysSinceUpdate = (now - new Date(p.updated).getTime()) / (1000 * 3600 * 24);
+      // HackerNews-style gravity algorithm for trending logic
+      return p.downloads / Math.pow(Math.max(1, daysSinceUpdate), 1.5);
+    };
+    packages = packages.sort((a, b) => (getScore(a) < getScore(b) ? 1 : -1));
   } else {
     packages = packages.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
@@ -143,7 +176,7 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
   if (search.length < 3) search = "";
 
   const filters = toInt("filters", Filters.None);
-  const sort = toInt("sort", Sort.Downloads);
+  const sort = toInt("sort", Sort.Trending);
   const page = toInt("page", 0);
 
   return {

@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Image from "next/image";
 import { Switch } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
@@ -13,7 +13,7 @@ export default function Sidebar() {
   return (
     <form
       action={() => navigate({})}
-      className="flex w-[10rem] flex-shrink-0 flex-col items-end gap-2"
+      className="sticky top-6 flex w-[12rem] flex-shrink-0 flex-col items-end gap-2"
     >
       <SearchBar />
       <OwnersControl />
@@ -31,20 +31,20 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={() => navigate(defaultParams)}
-        className="mt-6 flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 active:bg-gray-200"
+        className="mt-6 flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 active:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
       >
         Reset filters
       </button>
       <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
         {status.isLoading && <Spinner />}
-        {status.isError && <p className="text-center text-red-500">{status.message}</p>}
+        {status.isError && <p className="text-center text-red-500 dark:text-red-400">{status.message}</p>}
       </div>
     </form>
   );
 }
 
 function Spacer() {
-  return <hr className="my-4 h-px w-full bg-gray-200" />;
+  return <hr className="my-4 h-px w-full border-none bg-gray-200 dark:bg-zinc-800" />;
 }
 
 interface CheckProps {
@@ -55,6 +55,7 @@ interface CheckProps {
 
 function CheckBox({ title, icon, filter }: CheckProps) {
   const { navigateFilter, controls } = usePackageContext();
+  const isSvg = icon.endsWith(".svg");
 
   const has = (constant: Filters) => {
     return constant === (controls.filters & constant);
@@ -62,15 +63,15 @@ function CheckBox({ title, icon, filter }: CheckProps) {
 
   return (
     <Switch.Group as="div" className="flex">
-      <Switch.Label as="label" className="flex w-28 items-center gap-1">
+      <Switch.Label as="label" className="flex w-28 cursor-pointer items-center gap-2">
         <Image
-          className="inline h-[1.2rem] w-[1.2rem]"
+          className={`inline h-[1.2rem] w-[1.2rem] opacity-80 ${isSvg ? "dark:invert" : ""}`}
           src={icon}
           width={32}
           height={32}
           alt={title}
         />
-        <span className="text-right text-sm text-gray-900">{title}</span>
+        <span className="text-right text-sm text-gray-900 select-none dark:text-zinc-300">{title}</span>
       </Switch.Label>
       <Switch
         as={Fragment}
@@ -80,15 +81,13 @@ function CheckBox({ title, icon, filter }: CheckProps) {
         {({ checked }) => (
           <button
             type="button"
-            className={`${
-              checked ? "bg-gray-900" : "bg-gray-200"
-            } relative inline-flex h-5 w-11 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2`}
+            className={`${checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
+              } relative inline-flex h-5 w-11 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950`}
           >
             <span
               aria-hidden="true"
-              className={`${
-                checked ? "translate-x-6" : "translate-x-0"
-              } pointer-events-none absolute inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-100 ease-in-out`}
+              className={`${checked ? "translate-x-6" : "translate-x-0"
+                } pointer-events-none absolute inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
             />
           </button>
         )}
@@ -98,22 +97,31 @@ function CheckBox({ title, icon, filter }: CheckProps) {
 }
 
 function SearchBar() {
-  const { controls, setSearch } = usePackageContext();
+  const { controls, navigate } = usePackageContext();
+  const [localSearch, setLocalSearch] = useState(controls.search);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (localSearch !== controls.search) {
+        navigate({ search: localSearch });
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [localSearch, controls.search, navigate]);
+
+  useEffect(() => {
+    setLocalSearch(controls.search);
+  }, [controls.search]);
 
   return (
-    <div className="flex rounded-md">
+    <div className="flex w-full rounded-md shadow-sm">
       <input
         type="text"
-        value={controls.search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full rounded-l-md border-0 px-3 py-1.5 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-400"
+        placeholder="Search packages..."
+        value={localSearch}
+        onChange={(e) => setLocalSearch(e.target.value)}
+        className="w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
-      <button
-        type="submit"
-        className="relative -ml-px rounded-r-md px-3 ring-1 ring-inset ring-gray-300 hover:bg-gray-100"
-      >
-        <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
-      </button>
     </div>
   );
 }
@@ -122,14 +130,15 @@ function Sort() {
   const { navigate, controls } = usePackageContext();
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="mt-1 flex w-full flex-col">
       <select
-        className=" rounded-md border-0 py-1.5 pl-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-400"
+        className="rounded-md border-0 bg-white py-2 pl-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
         value={controls.sort}
         onChange={(e) => navigate({ sort: Number(e.target.value) })}
       >
         <option value={0}>Downloads</option>
-        <option value={1}>Last updated</option>
+        <option value={1}>Latest updates</option>
+        <option value={2}>Trending</option>
       </select>
     </div>
   );

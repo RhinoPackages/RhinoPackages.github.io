@@ -18,7 +18,7 @@ export default function OwnersControl() {
     <Combobox as="div" value={selected} onChange={(selected) => navigate({ owner: selected.id })}>
       <div className="relative">
         <Combobox.Input
-          className="w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-400"
+          className="w-full rounded-md border-0 bg-white py-2 pl-3 pr-10 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
           displayValue={(person: Owner) => person.name}
           onFocus={() => setFilteredOwners(owners)}
           onChange={(event) => {
@@ -35,15 +35,15 @@ export default function OwnersControl() {
         </Combobox.Button>
 
         {filteredOwners.length > 0 && (
-          <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5">
+          <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-zinc-800 dark:ring-white/10">
             {filteredOwners.map((person) => (
               <Combobox.Option
                 key={person.id}
                 value={person}
                 className={({ selected, active }) =>
-                  `truncate py-2 pl-3
-                    ${active ? "bg-gray-400 text-white" : "text-gray-900"}
-                    ${selected ? "font-semibold" : "font-normal"}`
+                  `truncate py-2 pl-3 cursor-pointer
+                    ${active ? "bg-brand-500 text-white dark:bg-brand-600" : "text-gray-900 dark:text-zinc-300"}
+                    ${selected ? "font-semibold text-brand-700 dark:text-brand-400" : "font-normal"}`
                 }
               >
                 {person.name}
