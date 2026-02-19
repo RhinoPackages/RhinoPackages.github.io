@@ -60,19 +60,13 @@ jobs:
         working-directory: ./RhinoPackages.Web
         run: npm install
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
       - name: Build with Next.js
         working-directory: ./RhinoPackages.Web
         run: npx next build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./web/out
-
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./RhinoPackages.Web/out
 
