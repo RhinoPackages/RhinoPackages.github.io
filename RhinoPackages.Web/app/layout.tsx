@@ -31,11 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex flex-grow items-center justify-between border-b border-gray-200 pb-3 dark:border-zinc-800">
               <div className="flex items-center gap-3">
                 <Image
-                  src="/logo.png"
+                  src="https://yak.rhino3d.com/favicon.ico"
                   alt="RhinoPackages Logo"
                   width={32}
                   height={32}
-                  className="rounded-md shadow-sm"
                 />
                 <h1 className="flex items-center gap-1 text-xl tracking-wider pt-1">
                   <span className="font-bold text-gray-900 dark:text-white">
