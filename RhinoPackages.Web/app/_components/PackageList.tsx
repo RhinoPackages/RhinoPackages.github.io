@@ -93,7 +93,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
   const downloads = pkg.downloads.toLocaleString();
 
   return (
-    <li className="group flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80">
+    <li className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80 md:p-6">
       <div className="mb-4 flex flex-col md:flex-row">
         <div className="flex gap-x-4">
           <Image
@@ -108,7 +108,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
               <a
                 href={url}
                 target="_blank"
-                className="whitespace-nowrap text-lg font-bold text-gray-900 decoration-brand-500 decoration-2 transition-colors hover:underline dark:text-zinc-100"
+                className="text-lg font-bold text-gray-900 decoration-brand-500 decoration-2 transition-colors hover:underline dark:text-zinc-100"
               >
                 {pkg.id}
               </a>
@@ -136,7 +136,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
           </div>
         </div>
         <div className="flex w-full flex-shrink-0 flex-grow justify-between md:w-auto md:justify-end">
-          <div className="items-top mt-1 flex gap-4">
+          <div className="items-top mt-1 flex flex-wrap gap-4">
             <div className="flex gap-1">
               <Icon isEnabled={has(Filters.Windows)} src="/icons/win.svg" alt="Windows" />
               <Icon isEnabled={has(Filters.Mac)} src="/icons/mac.svg" alt="Mac" />

@@ -77,12 +77,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
+    <html lang="en" className="antialiased overflow-x-hidden" suppressHydrationWarning>
       <head>
         <Telemetry />
       </head>
       <body
-        className={`${inter.className} min-h-screen bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300`}
+        className={`${inter.className} min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="mx-auto max-w-6xl px-4 pb-10 pt-2">
