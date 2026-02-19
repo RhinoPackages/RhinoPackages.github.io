@@ -29,7 +29,8 @@ jobs:
         run: dotnet restore RhinoPackages.Generator/RhinoPackages.Generator.csproj
 
       - name: Run Backend Generator
-        run: dotnet run --project RhinoPackages.Generator/RhinoPackages.Generator.csproj
+        working-directory: ./RhinoPackages.Generator
+        run: dotnet run
 
       - name: Commit and Push data.json
         run: |

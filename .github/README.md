@@ -1,12 +1,12 @@
 <div align="center">
 
 **RHINO PACKAGES**</br>
-**[https://www.rhinopackages.com/](https://www.rhinopackages.com/)**
+**[https://RhinoPackages.github.io/RhinoPackages](https://RhinoPackages.github.io/RhinoPackages)**
 
-[![License](https://img.shields.io/github/license/visose/rhinopackages?style=flat-square)](../LICENSE)
-[![Repo stars](https://img.shields.io/github/stars/visose/rhinopackages?style=flat-square)](https://github.com/visose/rhinopackages)
-[![Discussions](https://img.shields.io/github/discussions/visose/rhinopackages?style=flat-square)](https://github.com/visose/rhinopackages/discussions)
-[![Sponsor](https://img.shields.io/badge/sponsor-gray?style=flat-square&logo=GitHub-Sponsors)](https://github.com/sponsors/visose)
+[![License](https://img.shields.io/github/license/RhinoPackages/RhinoPackages?style=flat-square)](../LICENSE)
+[![Repo stars](https://img.shields.io/github/stars/RhinoPackages/RhinoPackages?style=flat-square)](https://github.com/RhinoPackages/RhinoPackages)
+[![Discussions](https://img.shields.io/github/discussions/RhinoPackages/RhinoPackages?style=flat-square)](https://github.com/RhinoPackages/RhinoPackages/discussions)
+[![Sponsor](https://img.shields.io/badge/sponsor-gray?style=flat-square&logo=GitHub-Sponsors)](https://github.com/sponsors/RhinoPackages)
 
 </div>
 
