@@ -13,7 +13,7 @@ export default function Sidebar() {
   return (
     <form
       action={() => navigate({})}
-      className="sticky top-6 flex w-[12rem] flex-shrink-0 flex-col items-end gap-2"
+      className="sticky top-6 flex w-[12rem] flex-shrink-0 flex-col items-end gap-3"
     >
       <SearchBar />
       <OwnersControl />
@@ -62,7 +62,7 @@ function CheckBox({ title, icon, filter }: CheckProps) {
   };
 
   return (
-    <Switch.Group as="div" className="mb-2 flex">
+    <Switch.Group as="div" className="flex">
       <Switch.Label as="label" className="flex w-28 cursor-pointer items-center gap-2">
         <Image
           className={`inline h-[1.2rem] w-[1.2rem] opacity-80 ${isSvg ? "dark:invert" : ""}`}
