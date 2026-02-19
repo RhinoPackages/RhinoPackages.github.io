@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="mx-auto max-w-6xl px-4 pb-10 pt-2">
             <div className="flex flex-grow items-center justify-between border-b border-gray-200 pb-3 dark:border-zinc-800">
-              <div className="flex items-center gap-3">
+              <a href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
                 <Image
                   src="/logo.png"
                   alt="RhinoPackages Logo"
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </span>
                   <span className="font-light text-gray-500 dark:text-zinc-400">Packages</span>
                 </h1>
-              </div>
+              </a>
               <ThemeToggle />
             </div>
             <Suspense
