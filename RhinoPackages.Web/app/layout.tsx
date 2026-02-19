@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   height={32}
                   className="rounded-md shadow-sm"
                 />
-                <h1 className="text-xl tracking-wider">
+                <h1 className="flex items-center gap-1 text-xl tracking-wider pt-1">
                   <span className="font-bold text-gray-900 dark:text-white">
                     Rhino
                   </span>
