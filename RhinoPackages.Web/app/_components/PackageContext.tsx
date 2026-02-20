@@ -14,6 +14,7 @@ export interface Params {
   filters: Filters;
   sort: Sort;
   page: number;
+  p?: string;
 }
 
 export const defaultParams: Params = {
@@ -22,6 +23,7 @@ export const defaultParams: Params = {
   filters: Filters.None,
   sort: Sort.Trending,
   page: 0,
+  p: undefined,
 };
 
 interface PackageContext {
@@ -183,12 +185,15 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
   const sort = toInt("sort", Sort.Trending);
   const page = toInt("page", 0);
 
+  const p = searchParams.get("p") || undefined;
+
   return {
     owner,
     search,
     filters,
     sort,
     page,
+    p,
   };
 }
 

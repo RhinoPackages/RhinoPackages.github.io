@@ -4,7 +4,7 @@ export const pageResults = 25;
 
 export interface Package {
   id: string;
-  version: number;
+  version: string;
   updated: string;
   authors: string;
   downloads: number;
@@ -15,6 +15,20 @@ export interface Package {
   homepageUrl?: string;
   filters: Filters;
   owners: Owner[];
+}
+
+export interface Distribution {
+  filename: string;
+  platform: string;
+  rhinoVersion: string;
+  url: string;
+}
+
+export interface YakVersionHistoryItem {
+  createdAt: string;
+  version: string;
+  distributions: Distribution[];
+  prerelease: boolean;
 }
 
 export enum Filters {
