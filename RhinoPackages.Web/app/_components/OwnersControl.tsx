@@ -9,22 +9,25 @@ export default function OwnersControl() {
   const [filteredOwners, setFilteredOwners] = useState(owners);
 
   const selected = useMemo(() => {
-    const all = { id: -1, name: "" };
-    if (!controls.owner) return all;
-    return owners.find((owner) => owner.id === controls.owner) ?? all;
+    if (!controls.owner) return null;
+    return owners.find((owner) => owner.id === controls.owner) ?? null;
   }, [controls.owner, owners]);
 
   return (
-    <Combobox as="div" value={selected} onChange={(selected) => navigate({ owner: selected.id })}>
+    <Combobox
+      as="div"
+      value={selected}
+      onChange={(value: Owner | null) => navigate({ owner: value?.id })}
+      nullable
+    >
       <div className="relative">
         <Combobox.Input
           className="w-full rounded-md border-0 bg-white py-2 pl-3 pr-10 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
           placeholder="Search for author..."
-          displayValue={(person: Owner) => person.name}
+          displayValue={(person: Owner | null) => person?.name ?? ""}
           onFocus={() => setFilteredOwners(owners)}
           onChange={(event) => {
             const query = event.target.value;
-            if (!query && controls.owner !== undefined) navigate({ owner: undefined });
             const filtered = owners.filter((owner) =>
               owner.name.toLowerCase().includes(query.toLowerCase()),
             );
