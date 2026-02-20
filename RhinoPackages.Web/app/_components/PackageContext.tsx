@@ -52,9 +52,13 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
   const [controls, setControls] = useState<Params>(defaultParams);
 
   const navigate = (value: { [Key in keyof Params]?: Params[Key] }) => {
-    const newParams = { ...controls, page: 0, ...value };
+    const newParams = { ...controls, ...value };
+    // Only reset page to 0 if we are NOT explicitly navigating to a new page
+    if (value.page === undefined) {
+      newParams.page = 0;
+    }
     setControls(newParams);
-    router.push(`/${toQuery(newParams)}`);
+    router.push(`/${toQuery(newParams)}`, { scroll: false });
   };
 
   const navigateFilter = (filter: Filters, value: boolean) => {
@@ -158,7 +162,7 @@ function filter(packages: Package[], params: Params) {
     packages = packages.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
 
-  return packages.slice(page * pageResults, page * pageResults + pageResults);
+  return packages.slice(0, (page + 1) * pageResults);
 }
 
 import { ReadonlyURLSearchParams } from "next/navigation";

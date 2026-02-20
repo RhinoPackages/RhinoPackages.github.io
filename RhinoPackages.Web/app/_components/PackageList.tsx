@@ -21,6 +21,13 @@ interface YakVersionDetails {
   };
 }
 
+interface YakVersionHistoryItem {
+  version: string;
+  prerelease: boolean;
+  created_at: string;
+  distributions: { platform: string; rhino_version: string }[];
+}
+
 export default function PackageList() {
   const { controls, packages, navigate, stats } = usePackageContext();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -69,28 +76,40 @@ export default function PackageList() {
           );
         })}
       </ul>
+
+      {/* Infinite Scroll Trigger */}
       {!disablePagination && (
-        <div className="mx-6 mt-10 mb-8 flex items-center justify-between border-t border-gray-200 pt-6 dark:border-zinc-800">
-          <button
-            disabled={controls.page === 0}
-            onClick={() => navigate({ page: controls.page - 1 })}
-            className="flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-800 disabled:opacity-25 disabled:hover:text-gray-500 dark:text-zinc-400 dark:hover:text-zinc-100 dark:disabled:hover:text-zinc-400"
-          >
-            <ArrowLongLeftIcon className="mt-[0.1rem] h-5 w-5" aria-hidden="true" />
-            Previous
-          </button>
-          <button
-            disabled={packages.length !== pageResults}
-            onClick={() => navigate({ page: controls.page + 1 })}
-            className="flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-800 disabled:opacity-25 disabled:hover:text-gray-500 dark:text-zinc-400 dark:hover:text-zinc-100 dark:disabled:hover:text-zinc-400"
-          >
-            Next
-            <ArrowLongRightIcon className="mt-[0.1rem] h-5 w-5" aria-hidden="true" />
-          </button>
-        </div>
+        <InfiniteScrollTrigger onIntersect={() => navigate({ page: controls.page + 1 })} />
       )}
     </div>
   );
+}
+
+function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
+  const [ref, setRef] = useState<HTMLDivElement | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { controls, packages } = usePackageContext();
+  const hasMore = packages.length >= (controls.page + 1) * pageResults;
+
+  useEffect(() => {
+    if (!ref || isLoading || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsLoading(true);
+          onIntersect();
+          // Wait longer before allowing next load to ensure DOM update
+          setTimeout(() => setIsLoading(false), 1500);
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' } // Load slightly before hitting bottom
+    );
+    observer.observe(ref);
+    return () => observer.disconnect();
+  }, [ref, onIntersect, isLoading, hasMore, controls.page]);
+
+  return <div ref={setRef} className="h-10 w-full" />;
 }
 
 function PackageCard({
@@ -105,17 +124,29 @@ function PackageCard({
   const { navigate } = usePackageContext();
   const [yakDetails, setYakDetails] = useState<YakVersionDetails | null>(null);
   const [yakLoading, setYakLoading] = useState(false);
+  const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
+  const [showPrereleases, setShowPrereleases] = useState(false);
 
   useEffect(() => {
     if (!isExpanded || yakDetails !== null) return;
     setYakLoading(true);
+
+    // Fetch details for the current version (downloads trend)
     fetch(`https://yak.rhino3d.com/versions/${pkg.id}/${pkg.version}`)
       .then((r) => r.json())
       .then((data) => {
         setYakDetails(data);
-        setYakLoading(false);
       })
-      .catch(() => setYakLoading(false));
+      .catch(() => { })
+      .finally(() => setYakLoading(false));
+
+    // Fetch the complete version history
+    fetch(`https://yak.rhino3d.com/versions/${pkg.id}`)
+      .then((r) => r.json())
+      .then((data: YakVersionHistoryItem[]) => {
+        setVersionHistory(data);
+      })
+      .catch(() => { });
   }, [isExpanded, pkg.id, pkg.version, yakDetails]);
 
   function has(constant: Filters) {
@@ -342,6 +373,82 @@ function PackageCard({
                 </a>
               )}
             </div>
+
+            {/* Version History Table */}
+            {versionHistory && versionHistory.length > 0 && (
+              <div className="mt-6 border-t border-gray-200 pt-4 dark:border-zinc-700">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Version History</span>
+                  <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-400">
+                    <input
+                      type="checkbox"
+                      checked={showPrereleases}
+                      onChange={(e) => setShowPrereleases(e.target.checked)}
+                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-600 dark:border-zinc-600 dark:bg-zinc-800 dark:checked:bg-brand-500"
+                    />
+                    Show pre-releases
+                  </label>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
+                    <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+                      <tr>
+                        <th className="rounded-tl-md px-4 py-2">Date</th>
+                        <th className="px-4 py-2">Version</th>
+                        <th className="px-4 py-2">Platforms</th>
+                        <th className="rounded-tr-md px-4 py-2 text-right">Install</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
+                      {versionHistory
+                        .filter((v) => showPrereleases || !v.prerelease)
+                        .map((v) => {
+                          const vDate = new Date(v.created_at).toLocaleDateString();
+                          const platforms = Array.from(new Set(v.distributions.map((d) => d.platform)));
+                          const rhinoVersions = Array.from(new Set(v.distributions.map((d) => d.rhino_version.replace("rh", "Rhino ").replace("_", "."))));
+
+                          return (
+                            <tr key={v.version} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
+                              <td className="whitespace-nowrap px-4 py-2 text-xs">{vDate}</td>
+                              <td className="px-4 py-2 font-mono text-xs">
+                                {v.version}
+                                {v.prerelease && (
+                                  <span className="ml-2 rounded-full bg-brand-50 px-1.5 py-0.5 text-[0.6rem] font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
+                                    Pre-release
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-2">
+                                <div className="flex flex-wrap gap-1">
+                                  {platforms.map((p) => (
+                                    <span key={p} className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                      {p === 'mac' ? 'Mac' : 'Windows'}
+                                    </span>
+                                  ))}
+                                  {rhinoVersions.map((rv) => (
+                                    <span key={rv} className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                      {rv}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="px-4 py-2 text-right">
+                                <a
+                                  href={`rhino://package/search?name=${pkg.id}&version=${v.version}`}
+                                  className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40"
+                                >
+                                  <ArrowDownTrayIcon className="h-3 w-3" />
+                                  Install
+                                </a>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
