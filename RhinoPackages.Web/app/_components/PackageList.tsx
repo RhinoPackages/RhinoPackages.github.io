@@ -94,7 +94,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
 
   return (
     <li className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80 md:p-6">
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:gap-0">
+      <div className="mb-2 flex flex-col gap-2 md:flex-row md:gap-0">
         <div className="flex gap-x-4">
           <Image
             className="h-[2.5rem] w-[2.5rem]"
@@ -167,7 +167,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
           </div>
         </div>
       </div>
-      <div className="mt-3 flex items-start gap-8">
+      <div className="mt-2 flex items-start gap-4 md:gap-6">
         <p className="break-long-words flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
           {pkg.description}
         </p>
