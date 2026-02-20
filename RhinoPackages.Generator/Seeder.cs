@@ -10,6 +10,7 @@ public record EntryYak(string Authors, int DownloadCount, string Name, string Ve
 public record PackageYak(string CreatedAt, string? Description, DistributionYak[] Distributions, string? HomepageUrl, string[]? Keywords, bool Prerelease);
 public record DistributionYak(string Filename, string Platform, string RhinoVersion, string Url);
 public record OwnerYak(int Id, string Name);
+public record YakVersionHistoryItem(string CreatedAt, string Version, DistributionYak[] Distributions, bool Prerelease);
 
 public enum Update { None, New, Update }
 
@@ -72,6 +73,17 @@ public class Seeder
             }
 
             _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
+
+            // Fetch and save version history for all packages
+            try
+            {
+                var history = await Get<YakVersionHistoryItem[]>($"versions/{entry.Name}");
+                await SaveVersionHistory(entry.Name, history);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Failed to fetch version history for {Name}: {Message}", entry.Name, ex.Message);
+            }
         });
 
         return updates.Where(p => p.Update != Update.None).ToList();
@@ -180,5 +192,22 @@ public class Seeder
         var icon = specialIcons.FirstOrDefault(name.Contains) ?? "default";
 
         return $"/icons/special/{icon}.png";
+    }
+    async Task SaveVersionHistory(string name, YakVersionHistoryItem[] history)
+    {
+        var path = Path.Combine("../RhinoPackages.Web/public/data/versions", $"{name}.json");
+        var directory = Path.GetDirectoryName(path);
+        
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        using var stream = File.Create(path);
+        await JsonSerializer.SerializeAsync(stream, history, new JsonSerializerOptions 
+        { 
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false 
+        });
     }
 }

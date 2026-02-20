@@ -7,30 +7,16 @@ import {
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
   ChevronDownIcon,
+  LinkIcon,
   StarIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, Package } from "@/app/_components/api";
+import { pageResults, Filters, Package, YakVersionHistoryItem } from "@/app/_components/api";
 import { usePackageContext } from "./PackageContext";
-
-interface YakVersionDetails {
-  downloads: {
-    last_day: number;
-    last_week: number;
-    last_month: number;
-  };
-}
-
-interface YakVersionHistoryItem {
-  version: string;
-  prerelease: boolean;
-  created_at: string;
-  distributions: { platform: string; rhino_version: string }[];
-}
 
 export default function PackageList() {
   const { controls, packages, navigate, stats } = usePackageContext();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const expandedId = controls.p ?? null;
 
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
@@ -71,7 +57,7 @@ export default function PackageList() {
               key={pkg.id}
               pkg={pkg}
               isExpanded={expandedId === pkg.id}
-              onToggle={() => setExpandedId(expandedId === pkg.id ? null : pkg.id)}
+              onToggle={() => navigate({ p: expandedId === pkg.id ? undefined : pkg.id })}
             />
           );
         })}
@@ -122,32 +108,38 @@ function PackageCard({
   onToggle: () => void;
 }) {
   const { navigate } = usePackageContext();
-  const [yakDetails, setYakDetails] = useState<YakVersionDetails | null>(null);
-  const [yakLoading, setYakLoading] = useState(false);
   const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [showPrereleases, setShowPrereleases] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = new URL(window.location.href);
+    url.searchParams.set("p", pkg.id);
+    navigator.clipboard.writeText(url.toString());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
-    if (!isExpanded || yakDetails !== null) return;
-    setYakLoading(true);
+    if (!isExpanded || versionHistory !== null) return;
+    setHistoryLoading(true);
 
-    // Fetch details for the current version (downloads trend)
-    fetch(`https://yak.rhino3d.com/versions/${pkg.id}/${pkg.version}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setYakDetails(data);
+    // Fetch the complete version history from local static data
+    fetch(`./data/versions/${pkg.id}.json`)
+      .then((r) => {
+        if (!r.ok) throw new Error("History not found");
+        return r.json();
       })
-      .catch(() => { })
-      .finally(() => setYakLoading(false));
-
-    // Fetch the complete version history
-    fetch(`https://yak.rhino3d.com/versions/${pkg.id}`)
-      .then((r) => r.json())
       .then((data: YakVersionHistoryItem[]) => {
         setVersionHistory(data);
       })
-      .catch(() => { });
-  }, [isExpanded, pkg.id, pkg.version, yakDetails]);
+      .catch((err) => {
+        console.warn(`Could not load history for ${pkg.id}:`, err);
+      })
+      .finally(() => setHistoryLoading(false));
+  }, [isExpanded, pkg.id, versionHistory]);
 
   function has(constant: Filters) {
     return constant === (pkg.filters & constant);
@@ -246,9 +238,21 @@ function PackageCard({
               <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" />
               <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">{date}</p>
             </div>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              title="Copy Link"
+              className={`mt-0.5 flex items-center gap-1 transition-all ${copied
+                ? "text-green-600 dark:text-green-400"
+                : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                }`}
+            >
+              <LinkIcon className="h-3.5 w-3.5" />
+              {copied && <span className="text-[10px] font-bold uppercase">Copied!</span>}
+            </button>
           </div>
           <ChevronDownIcon
-            className={`ml-3 mt-1 h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
+            className={`ml-4 mt-1 h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
               }`}
           />
         </div>
@@ -297,16 +301,6 @@ function PackageCard({
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Total Downloads</span>
                 <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">{downloads}</span>
                 <div className="mt-1 flex flex-col gap-1">
-                  {yakLoading && (
-                    <span className="text-[0.65rem] text-gray-400 dark:text-zinc-600 animate-pulse">Loading trends…</span>
-                  )}
-                  {yakDetails && (
-                    <>
-                      <TrendRow label="Last 24h" value={yakDetails.downloads.last_day} />
-                      <TrendRow label="Last 7 days" value={yakDetails.downloads.last_week} />
-                      <TrendRow label="Last 30 days" value={yakDetails.downloads.last_month} />
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -403,9 +397,9 @@ function PackageCard({
                       {versionHistory
                         .filter((v) => showPrereleases || !v.prerelease)
                         .map((v) => {
-                          const vDate = new Date(v.created_at).toLocaleDateString();
+                          const vDate = new Date(v.createdAt).toLocaleDateString();
                           const platforms = Array.from(new Set(v.distributions.map((d) => d.platform)));
-                          const rhinoVersions = Array.from(new Set(v.distributions.map((d) => d.rhino_version.replace("rh", "Rhino ").replace("_", "."))));
+                          const rhinoVersions = Array.from(new Set(v.distributions.map((d) => d.rhinoVersion.replace("rh", "Rhino ").replace("_", "."))));
 
                           return (
                             <tr key={v.version} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
@@ -496,12 +490,4 @@ function getRelativeTime(date: Date): string {
   return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? "s" : ""} ago`;
 }
 
-function TrendRow({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-[0.65rem] text-gray-400 dark:text-zinc-500">{label}</span>
-      <span className="text-[0.65rem] font-semibold text-gray-700 dark:text-zinc-300">{value.toLocaleString()}</span>
-    </div>
-  );
-}
 
