@@ -402,16 +402,25 @@ function PackageCard({
                       {versionRows
                         .map((row) => {
                           const vDate = new Date(row.createdAt).toLocaleDateString();
-                          const platforms = Array.from(new Set(row.distributions.map((d) => d.platform)));
-                          const rhinoVersions = Array.from(new Set(row.distributions.map((d) => d.rhinoVersion))).map((raw) => {
+                          const platforms = Array.from(
+                            new Set(
+                              row.distributions
+                                .map((d) => d?.platform)
+                                .filter((p): p is string => typeof p === "string" && p.length > 0)
+                            )
+                          );
+                          const rhinoVersions = Array.from(
+                            new Set(
+                              row.distributions
+                                .map((d) => d?.rhinoVersion)
+                                .filter((rv): rv is string => typeof rv === "string" && rv.length > 0)
+                            )
+                          ).map((raw) => {
                             const versionLabel = raw.replace(/^rh/, "").replace("_", ".");
-                            const exactInstallVersion = row.installVersionByRhino.get(raw);
                             return {
                               raw,
                               label: `Rhino ${versionLabel}`,
-                              url: exactInstallVersion
-                                ? `rhino://package/search?name=${pkg.id}&version=${encodeURIComponent(exactInstallVersion)}`
-                                : `rhino://package/search?name=${pkg.id}`,
+                              url: `https://rhinoversions.github.io/?v=${encodeURIComponent(versionLabel)}`,
                             };
                           });
 
@@ -437,9 +446,13 @@ function PackageCard({
                                     <a
                                       key={rv.raw}
                                       href={rv.url}
-                                      className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 underline decoration-dotted underline-offset-2 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title={`Open ${rv.label} on RhinoVersions`}
+                                      className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[0.65rem] font-semibold text-blue-700 underline decoration-solid underline-offset-2 transition-colors hover:bg-blue-100 hover:text-blue-800 dark:border-blue-700/50 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:hover:text-blue-200"
                                     >
                                       {rv.label}
+                                      <span aria-hidden="true" className="text-[0.6rem]">↗</span>
                                     </a>
                                   ))}
                                 </div>
