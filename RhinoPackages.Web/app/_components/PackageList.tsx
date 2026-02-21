@@ -29,9 +29,11 @@ export default function PackageList() {
             Packages Directory
           </h2>
           <p className="text-sm text-gray-500 dark:text-zinc-400">
-            {packages.length === 0
-              ? "No packages found matching your criteria."
-              : `Showing page ${controls.page + 1}`}
+            {status.isLoading
+              ? "Loading packages..."
+              : packages.length === 0
+                ? "No packages found matching your criteria."
+                : `Showing page ${controls.page + 1}`}
           </p>
         </div>
         <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
@@ -399,7 +401,14 @@ function PackageCard({
                         .map((v) => {
                           const vDate = new Date(v.createdAt).toLocaleDateString();
                           const platforms = Array.from(new Set(v.distributions.map((d) => d.platform)));
-                          const rhinoVersions = Array.from(new Set(v.distributions.map((d) => d.rhinoVersion.replace("rh", "Rhino ").replace("_", "."))));
+                          const rhinoVersions = Array.from(new Set(v.distributions.map((d) => d.rhinoVersion))).map((raw) => {
+                            const versionLabel = raw.replace(/^rh/, "").replace("_", ".");
+                            return {
+                              raw,
+                              label: `Rhino ${versionLabel}`,
+                              url: `https://rhinoversions.github.io/?v=${encodeURIComponent(versionLabel)}`,
+                            };
+                          });
 
                           return (
                             <tr key={v.version} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
@@ -420,9 +429,15 @@ function PackageCard({
                                     </span>
                                   ))}
                                   {rhinoVersions.map((rv) => (
-                                    <span key={rv} className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                      {rv}
-                                    </span>
+                                    <a
+                                      key={rv.raw}
+                                      href={rv.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 underline decoration-dotted underline-offset-2 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                                    >
+                                      {rv.label}
+                                    </a>
                                   ))}
                                 </div>
                               </td>
@@ -489,5 +504,4 @@ function getRelativeTime(date: Date): string {
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? "s" : ""} ago`;
   return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? "s" : ""} ago`;
 }
-
 
