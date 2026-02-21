@@ -89,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex flex-grow items-center justify-between border-b border-gray-200 pb-3 dark:border-zinc-800">
               <a href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
                 <Image
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="RhinoPackages Logo"
                   width={36}
                   height={36}

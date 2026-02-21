@@ -1,4 +1,4 @@
-<img src="RhinoPackages.Web/public/logo.png" alt="RhinoPackages Logo" width="128" />
+<img src="Resources/Logo.svg" alt="RhinoPackages Logo" width="128" />
 
 # RhinoPackages
 
