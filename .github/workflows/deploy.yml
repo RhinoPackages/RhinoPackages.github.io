@@ -26,7 +26,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore RhinoPackages.Generator/RhinoPackages.Generator.csproj
+        run: dotnet restore RhinoPackages.sln
+
+      - name: Run backend unit tests
+        run: dotnet test RhinoPackages.Tests/RhinoPackages.Tests.csproj --configuration Release --no-restore
 
       - name: Run Backend Generator
         working-directory: ./RhinoPackages.Generator

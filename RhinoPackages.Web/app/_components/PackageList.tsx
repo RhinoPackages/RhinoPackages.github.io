@@ -420,7 +420,7 @@ function PackageCard({
                             return {
                               raw,
                               label: `Rhino ${versionLabel}`,
-                              url: `https://rhinoversions.github.io/?v=${encodeURIComponent(versionLabel)}`,
+                              url: `https://rhinoversions.github.io/?version=${encodeURIComponent(versionLabel)}&locale=en-us`,
                             };
                           });
 
