@@ -11,7 +11,7 @@ import {
   StarIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, Package, YakVersionHistoryItem } from "@/app/_components/api";
+import { pageResults, Filters, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
 import { usePackageContext } from "./PackageContext";
 
 export default function PackageList() {
@@ -160,6 +160,9 @@ function PackageCard({
 
   // Relative time for expanded view
   const relativeTime = getRelativeTime(new Date(pkg.updated));
+  const versionRows = versionHistory
+    ? groupVersionHistory(versionHistory.filter((v) => showPrereleases || !v.prerelease))
+    : [];
 
   return (
     <li
@@ -396,26 +399,28 @@ function PackageCard({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
-                      {versionHistory
-                        .filter((v) => showPrereleases || !v.prerelease)
-                        .map((v) => {
-                          const vDate = new Date(v.createdAt).toLocaleDateString();
-                          const platforms = Array.from(new Set(v.distributions.map((d) => d.platform)));
-                          const rhinoVersions = Array.from(new Set(v.distributions.map((d) => d.rhinoVersion))).map((raw) => {
+                      {versionRows
+                        .map((row) => {
+                          const vDate = new Date(row.createdAt).toLocaleDateString();
+                          const platforms = Array.from(new Set(row.distributions.map((d) => d.platform)));
+                          const rhinoVersions = Array.from(new Set(row.distributions.map((d) => d.rhinoVersion))).map((raw) => {
                             const versionLabel = raw.replace(/^rh/, "").replace("_", ".");
+                            const exactInstallVersion = row.installVersionByRhino.get(raw);
                             return {
                               raw,
                               label: `Rhino ${versionLabel}`,
-                              url: `https://rhinoversions.github.io/?v=${encodeURIComponent(versionLabel)}`,
+                              url: exactInstallVersion
+                                ? `rhino://package/search?name=${pkg.id}&version=${encodeURIComponent(exactInstallVersion)}`
+                                : `rhino://package/search?name=${pkg.id}`,
                             };
                           });
 
                           return (
-                            <tr key={v.version} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
+                            <tr key={`${row.version}-${row.createdAt}`} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
                               <td className="whitespace-nowrap px-4 py-2 text-xs">{vDate}</td>
                               <td className="px-4 py-2 font-mono text-xs">
-                                {v.version}
-                                {v.prerelease && (
+                                {row.version}
+                                {row.prerelease && (
                                   <span className="ml-2 rounded-full bg-brand-50 px-1.5 py-0.5 text-[0.6rem] font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
                                     Pre-release
                                   </span>
@@ -432,8 +437,6 @@ function PackageCard({
                                     <a
                                       key={rv.raw}
                                       href={rv.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
                                       className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 underline decoration-dotted underline-offset-2 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
                                     >
                                       {rv.label}
@@ -443,7 +446,7 @@ function PackageCard({
                               </td>
                               <td className="px-4 py-2 text-right">
                                 <a
-                                  href={`rhino://package/search?name=${pkg.id}&version=${v.version}`}
+                                  href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
                                   className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40"
                                 >
                                   <ArrowDownTrayIcon className="h-3 w-3" />
@@ -492,6 +495,101 @@ function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: s
   );
 }
 
+type GroupedVersionHistoryRow = {
+  createdAt: string;
+  version: string;
+  installVersion: string | null;
+  installVersionByRhino: Map<string, string>;
+  distributions: Distribution[];
+  prerelease: boolean;
+};
+
+function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHistoryRow[] {
+  const grouped = new Map<string, GroupedVersionHistoryRow & { versions: Set<string> }>();
+
+  for (const item of items) {
+    const normalized = normalizeVersionForGrouping(item);
+    const key = `${normalized.baseVersion}__${item.prerelease ? "pre" : "stable"}`;
+    const existing = grouped.get(key);
+
+    if (!existing) {
+      grouped.set(key, {
+        createdAt: item.createdAt,
+        version: normalized.baseVersion,
+        installVersion: item.version,
+        installVersionByRhino: new Map<string, string>(),
+        distributions: [...item.distributions],
+        prerelease: item.prerelease,
+        versions: new Set([item.version]),
+      });
+      for (const dist of item.distributions) {
+        grouped.get(key)!.installVersionByRhino.set(dist.rhinoVersion, item.version);
+      }
+      continue;
+    }
+
+    if (new Date(item.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
+      existing.createdAt = item.createdAt;
+    }
+
+    for (const dist of item.distributions) {
+      if (!existing.distributions.some((d) => d.url === dist.url)) {
+        existing.distributions.push(dist);
+      }
+      const current = existing.installVersionByRhino.get(dist.rhinoVersion);
+      if (!current || compareNumericVersions(item.version, current) > 0) {
+        existing.installVersionByRhino.set(dist.rhinoVersion, item.version);
+      }
+    }
+
+    existing.versions.add(item.version);
+  }
+
+  return Array.from(grouped.values())
+    .map((row) => ({
+      createdAt: row.createdAt,
+      version: row.version,
+      installVersion: row.versions.size === 1 ? row.installVersion : null,
+      installVersionByRhino: row.installVersionByRhino,
+      distributions: row.distributions,
+      prerelease: row.prerelease,
+    }))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+function normalizeVersionForGrouping(item: YakVersionHistoryItem): { baseVersion: string } {
+  const majors = Array.from(
+    new Set(
+      item.distributions
+        .map((d) => {
+          const match = d.rhinoVersion.match(/^rh(\d+)_/);
+          return match ? Number(match[1]) : null;
+        })
+        .filter((v): v is number => v !== null)
+    )
+  );
+
+  const parts = item.version.split(".");
+  const lastPart = Number(parts[parts.length - 1]);
+  const canCollapse = parts.length > 1 && Number.isInteger(lastPart) && majors.length === 1 && lastPart === majors[0];
+
+  return { baseVersion: canCollapse ? parts.slice(0, -1).join(".") : item.version };
+}
+
+function compareNumericVersions(a: string, b: string): number {
+  const aParts = a.split(".").map((p) => Number(p));
+  const bParts = b.split(".").map((p) => Number(p));
+  const len = Math.max(aParts.length, bParts.length);
+
+  for (let i = 0; i < len; i++) {
+    const av = Number.isFinite(aParts[i]) ? aParts[i] : 0;
+    const bv = Number.isFinite(bParts[i]) ? bParts[i] : 0;
+    if (av !== bv) return av - bv;
+  }
+
+  return 0;
+}
+
 function getRelativeTime(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -504,4 +602,3 @@ function getRelativeTime(date: Date): string {
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? "s" : ""} ago`;
   return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? "s" : ""} ago`;
 }
-
