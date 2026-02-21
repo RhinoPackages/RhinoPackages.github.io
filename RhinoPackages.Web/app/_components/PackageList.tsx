@@ -15,7 +15,7 @@ import { pageResults, Filters, Package, Distribution, YakVersionHistoryItem } fr
 import { usePackageContext } from "./PackageContext";
 
 export default function PackageList() {
-  const { controls, packages, navigate, stats } = usePackageContext();
+  const { controls, packages, navigate, stats, status } = usePackageContext();
   const expandedId = controls.p ?? null;
 
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
