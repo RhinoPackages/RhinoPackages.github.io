@@ -9,11 +9,11 @@ import Sidebar from "./_components/Sidebar";
 export default function Page() {
   return (
     <PackageProvider>
-      <div className="hidden items-start divide-x divide-gray-200 dark:divide-zinc-800 md:flex">
+      <div className="hidden w-full items-start divide-x divide-gray-200 dark:divide-zinc-800 md:flex">
         <div className="pr-6 pt-6">
           <Sidebar />
         </div>
-        <div className="pl-6">
+        <div className="min-w-0 flex-1 pl-6">
           <PackageList />
         </div>
       </div>
@@ -29,8 +29,8 @@ function ToggleMenu() {
   const Icon = open ? XMarkIcon : Bars3Icon;
 
   return (
-    <div className="relative mt-4 flex flex-col items-start">
-      <button onClick={() => setOpen(!open)} className="z-20">
+    <div className="relative mt-4 flex w-full flex-col">
+      <button onClick={() => setOpen(!open)} className="z-20 self-start">
         <Icon className="h-8 w-8 text-gray-400" />
       </button>
       {open && (

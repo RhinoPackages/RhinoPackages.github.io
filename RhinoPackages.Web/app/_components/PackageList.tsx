@@ -21,7 +21,7 @@ export default function PackageList() {
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 w-full flex-col">
       {/* Stats Banner / Header */}
       <div className="mt-4 mb-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center">
         <div>
@@ -175,7 +175,7 @@ function PackageCard({
         className="mb-2 flex cursor-pointer flex-col gap-2 md:flex-row md:gap-0"
         onClick={onToggle}
       >
-        <div className="flex flex-grow gap-x-4">
+        <div className="flex min-w-0 flex-grow gap-x-4">
           <Image
             className="h-[2.5rem] w-[2.5rem]"
             src={pkg.iconUrl}
@@ -183,9 +183,9 @@ function PackageCard({
             height={40}
             alt="Package icon"
           />
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900 dark:text-zinc-100">
+              <span className="break-long-words text-lg font-bold text-gray-900 dark:text-zinc-100">
                 {pkg.id}
               </span>
               {pkg.prerelease && (
@@ -196,7 +196,7 @@ function PackageCard({
               <p className="whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-zinc-400">v{pkg.version}</p>
             </div>
             <div className="mt-1 flex items-center">
-              <div className="flex flex-wrap items-center gap-x-1 whitespace-nowrap">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-1">
                 <UserIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" />
                 {pkg.owners.map((owner, i) => (
                   <button
@@ -262,8 +262,8 @@ function PackageCard({
           />
         </div>
       </div>
-      <div className="mt-2 flex items-start gap-4 md:gap-6">
-        <p className="break-long-words flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
+      <div className="mt-2 flex min-w-0 items-start gap-4 md:gap-6">
+        <p className="break-long-words min-w-0 flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
           {pkg.description}
         </p>
         <a

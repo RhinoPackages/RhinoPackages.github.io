@@ -7,7 +7,6 @@ body {
 }
 
 .break-long-words {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
