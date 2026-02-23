@@ -126,13 +126,17 @@ function SearchBar() {
   }, [controls.search]);
 
   return (
-    <div className="flex w-full rounded-md shadow-sm">
+    <div className="relative flex w-full rounded-md shadow-sm">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+      </div>
       <input
         type="text"
+        aria-label="Search packages"
         placeholder="Search packages..."
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
-        className="w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-2 pl-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
     </div>
   );
@@ -144,6 +148,7 @@ function Sort() {
   return (
     <div className="mt-1 flex w-full flex-col">
       <select
+        aria-label="Sort packages by"
         className="rounded-md border-0 bg-white py-2 pl-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
         value={controls.sort}
         onChange={(e) => navigate({ sort: Number(e.target.value) })}
