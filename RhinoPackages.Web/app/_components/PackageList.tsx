@@ -184,7 +184,7 @@ function PackageCard({
             alt="Package icon"
           />
           <div className="flex min-w-0 flex-col">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <span className="break-long-words text-lg font-bold text-gray-900 dark:text-zinc-100">
                 {pkg.id}
               </span>
@@ -193,7 +193,9 @@ function PackageCard({
                   wip
                 </span>
               )}
-              <p className="whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-zinc-400">v{pkg.version}</p>
+              <p className="max-w-full break-all text-xs font-semibold text-gray-500 dark:text-zinc-400 md:whitespace-nowrap md:break-normal">
+                v{pkg.version}
+              </p>
             </div>
             <div className="mt-1 flex items-center">
               <div className="flex min-w-0 flex-wrap items-center gap-x-1">

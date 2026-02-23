@@ -6,6 +6,7 @@ import "./globals.css";
 import Spinner from "./_components/Spinner";
 import { ThemeProvider } from "./_components/ThemeProvider";
 import { ThemeToggle } from "./_components/ThemeToggle";
+import ContributorsBubbles from "./_components/ContributorsBubbles";
 
 import Image from "next/image";
 
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {process.env.NEXT_PUBLIC_VERSION && (
                 <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>
               )}
+              <ContributorsBubbles />
             </footer>
           </main>
         </ThemeProvider>
