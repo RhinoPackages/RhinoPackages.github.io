@@ -1,4 +1,5 @@
 User-Agent: *
 Allow: /
 
+Host: https://rhinopackages.github.io
 Sitemap: https://rhinopackages.github.io/sitemap.xml
