@@ -56,6 +56,16 @@ async function getContributors(): Promise<GitHubContributor[]> {
   return Array.from(unique.values()).sort((a, b) => b.contributions - a.contributions);
 }
 
+function getSizedAvatarUrl(url: string, size: number) {
+  try {
+    const avatar = new URL(url);
+    avatar.searchParams.set("s", String(size));
+    return avatar.toString();
+  } catch {
+    return url;
+  }
+}
+
 export default async function ContributorsBubbles() {
   const contributors = await getContributors();
 
@@ -80,7 +90,7 @@ export default async function ContributorsBubbles() {
               className="block transition-transform hover:scale-105"
             >
               <Image
-                src={contributor.avatar_url}
+                src={getSizedAvatarUrl(contributor.avatar_url, 56)}
                 alt={`${contributor.login} avatar`}
                 width={28}
                 height={28}

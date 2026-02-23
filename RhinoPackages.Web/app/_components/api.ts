@@ -12,7 +12,7 @@ export interface Package {
   description: string;
   keywords: string;
   prerelease: boolean;
-  homepageUrl?: string;
+  homepageUrl?: string | null;
   filters: Filters;
   owners: Owner[];
 }
@@ -79,11 +79,15 @@ export function has(constant: Filters, pkg: Package) {
   return constant === (pkg.filters & constant);
 }
 
-export function useApi() {
-  const [cache, setCache] = useState<Package[]>([]);
+export function useApi(initialCache: Package[] = []) {
+  const [cache, setCache] = useState<Package[]>(initialCache);
   const [status, setStatus] = useState<Status>(Status.idle());
 
   useEffect(() => {
+    if (initialCache.length > 0) {
+      return;
+    }
+
     (async () => {
       setStatus(Status.loading());
       try {
@@ -101,7 +105,7 @@ export function useApi() {
         setStatus(new Status(message));
       }
     })();
-  }, []);
+  }, [initialCache.length]);
 
   return { cache, status };
 }

@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import Spinner from "./_components/Spinner";
@@ -10,7 +9,44 @@ import ContributorsBubbles from "./_components/ContributorsBubbles";
 
 import Image from "next/image";
 
-const inter = Inter({ subsets: ["latin"] });
+const siteUrl = "https://rhinopackages.github.io";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      name: "Rhino Packages",
+      url: `${siteUrl}/`,
+      description:
+        "Browse, search, and install Rhino 3D and Grasshopper plugins. Discover trending packages, filter by platform, version, and type.",
+      inLanguage: "en-US",
+      publisher: {
+        "@id": `${siteUrl}/#organization`,
+      },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${siteUrl}/?search={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: "RhinoPackages",
+      url: `${siteUrl}/`,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/logo.png`,
+      },
+      sameAs: ["https://github.com/RhinoPackages/RhinoPackages.github.io"],
+    },
+  ],
+};
 
 export const metadata: Metadata = {
   title: {
@@ -35,14 +71,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "RhinoPackages" }],
   creator: "RhinoPackages",
-  metadataBase: new URL("https://rhinopackages.github.io"),
-  alternates: {
-    canonical: "/",
-  },
+  applicationName: "Rhino Packages",
+  metadataBase: new URL(siteUrl),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://rhinopackages.github.io",
+    url: siteUrl,
     siteName: "Rhino Packages",
     title: "Rhino Packages — Browse & Install Rhino 3D Plugins",
     description:
@@ -81,9 +115,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="antialiased overflow-x-hidden" suppressHydrationWarning>
       <head>
         <Telemetry />
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body
-        className={`${inter.className} min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300`}
+        className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300"
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="mx-auto max-w-6xl px-4 pb-10 pt-2">
@@ -131,17 +170,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 function Telemetry() {
   return (
     <>
-      <Script
-        id="analytics01"
-        async
-        src="https://www.googletagmanager.com/gtag/js?id=G-2K0DM9L0LH"
-      />
-      <Script id="analytics02">
+      <Script id="analytics-lazy-loader" strategy="afterInteractive">
         {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-2K0DM9L0LH');
+            (function () {
+              if (window.__rpAnalyticsLoaded) return;
+              function loadAnalytics() {
+                if (window.__rpAnalyticsLoaded) return;
+                window.__rpAnalyticsLoaded = true;
+
+                var script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://www.googletagmanager.com/gtag/js?id=G-2K0DM9L0LH';
+                document.head.appendChild(script);
+
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', 'G-2K0DM9L0LH');
+              }
+
+              ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (eventName) {
+                window.addEventListener(eventName, loadAnalytics, { once: true, passive: true });
+              });
+              setTimeout(loadAnalytics, 8000);
+            })();
           `}
       </Script>
     </>

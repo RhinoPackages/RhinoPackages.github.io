@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filters, Owner, Package, Status, has, pageResults, useApi } from "./api";
 
@@ -47,11 +47,18 @@ export function usePackageContext() {
   return useContext(PackageContext);
 }
 
-export function PackageProvider({ children }: { children: React.ReactNode }) {
+export function PackageProvider({
+  children,
+  initialCache = [],
+}: {
+  children: React.ReactNode;
+  initialCache?: Package[];
+}) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { cache, status } = useApi();
+  const { cache, status } = useApi(initialCache);
   const [controls, setControls] = useState<Params>(defaultParams);
+  const params = useMemo(() => toParams(searchParams), [searchParams]);
 
   const navigate = (value: { [Key in keyof Params]?: Params[Key] }) => {
     const newParams = { ...controls, ...value };
@@ -72,11 +79,13 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
     setControls({ ...controls, search: text });
   };
 
-  const packages = useMemo(() => {
-    const params = toParams(searchParams);
+  useEffect(() => {
     setControls(params);
+  }, [params]);
+
+  const packages = useMemo(() => {
     return filter(cache ?? [], params);
-  }, [cache, searchParams]);
+  }, [cache, params]);
 
   const owners = useMemo(() => {
     const set = new Set<number>();
@@ -129,14 +138,15 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
 
 function filter(packages: Package[], params: Params) {
   const { owner, search, filters, sort, page } = params;
+  let filtered = [...packages];
 
   if (owner !== undefined) {
-    packages = packages.filter((p) => p.owners.map((o) => o.id).includes(owner));
+    filtered = filtered.filter((p) => p.owners.map((o) => o.id).includes(owner));
   }
 
   if (search) {
     const lower = search.toLowerCase();
-    packages = packages.filter((p) => {
+    filtered = filtered.filter((p) => {
       return (
         p.id.toLowerCase().includes(lower) ||
         p.keywords.toLowerCase().includes(lower) ||
@@ -146,11 +156,11 @@ function filter(packages: Package[], params: Params) {
   }
 
   if (filters !== Filters.None) {
-    packages = packages.filter((pkg) => has(filters, pkg));
+    filtered = filtered.filter((pkg) => has(filters, pkg));
   }
 
   if (sort === Sort.Date) {
-    packages = packages.sort((a, b) => (a.updated < b.updated ? 1 : -1));
+    filtered = filtered.sort((a, b) => (a.updated < b.updated ? 1 : -1));
   } else if (sort === Sort.Trending) {
     const now = Date.now();
     const getScore = (p: Package) => {
@@ -159,12 +169,12 @@ function filter(packages: Package[], params: Params) {
       // HackerNews-style gravity algorithm for trending logic
       return p.downloads / Math.pow(Math.max(1, daysSinceUpdate), 1.5);
     };
-    packages = packages.sort((a, b) => (getScore(a) < getScore(b) ? 1 : -1));
+    filtered = filtered.sort((a, b) => (getScore(a) < getScore(b) ? 1 : -1));
   } else {
-    packages = packages.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
+    filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
 
-  return packages.slice(0, (page + 1) * pageResults);
+  return filtered.slice(0, (page + 1) * pageResults);
 }
 
 import { ReadonlyURLSearchParams } from "next/navigation";
