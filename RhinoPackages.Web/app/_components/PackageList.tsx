@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   ArrowDownTrayIcon,
@@ -12,7 +12,7 @@ import {
   UserIcon,
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
-import { usePackageContext, Params } from "./PackageContext";
+import { usePackageContext } from "./PackageContext";
 
 export default function PackageList() {
   const { controls, packages, navigate, stats, status } = usePackageContext();
@@ -59,7 +59,7 @@ export default function PackageList() {
               key={pkg.id}
               pkg={pkg}
               isExpanded={expandedId === pkg.id}
-              navigate={navigate}
+              onToggle={() => navigate({ p: expandedId === pkg.id ? undefined : pkg.id })}
             />
           );
         })}
@@ -100,21 +100,20 @@ function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
   return <div ref={setRef} className="h-10 w-full" />;
 }
 
-const PackageCard = memo(function PackageCard({
+function PackageCard({
   pkg,
   isExpanded,
-  navigate,
+  onToggle,
 }: {
   pkg: Package;
   isExpanded: boolean;
-  navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
+  onToggle: () => void;
 }) {
+  const { navigate } = usePackageContext();
   const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showPrereleases, setShowPrereleases] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id });
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -494,7 +493,7 @@ const PackageCard = memo(function PackageCard({
       </div>
     </li>
   );
-});
+}
 
 function Badge({ label, active }: { label: string; active: boolean }) {
   return (
