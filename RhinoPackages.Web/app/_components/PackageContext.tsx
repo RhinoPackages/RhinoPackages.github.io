@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filters, Owner, Package, Status, has, pageResults, useApi } from "./api";
 
@@ -60,15 +60,24 @@ export function PackageProvider({
   const [controls, setControls] = useState<Params>(defaultParams);
   const params = useMemo(() => toParams(searchParams), [searchParams]);
 
-  const navigate = (value: { [Key in keyof Params]?: Params[Key] }) => {
-    const newParams = { ...controls, ...value };
-    // Only reset page to 0 if we are NOT explicitly navigating to a new page
-    if (value.page === undefined) {
-      newParams.page = 0;
-    }
-    setControls(newParams);
-    router.push(`/${toQuery(newParams)}`, { scroll: false });
-  };
+  const controlsRef = useRef(controls);
+  useEffect(() => {
+    controlsRef.current = controls;
+  }, [controls]);
+
+  const navigate = useCallback(
+    (value: { [Key in keyof Params]?: Params[Key] }) => {
+      const currentControls = controlsRef.current;
+      const newParams = { ...currentControls, ...value };
+      // Only reset page to 0 if we are NOT explicitly navigating to a new page
+      if (value.page === undefined) {
+        newParams.page = 0;
+      }
+      setControls(newParams);
+      router.push(`/${toQuery(newParams)}`, { scroll: false });
+    },
+    [router],
+  );
 
   const navigateFilter = (filter: Filters, value: boolean) => {
     const filters = value ? controls.filters | filter : controls.filters & ~filter;
