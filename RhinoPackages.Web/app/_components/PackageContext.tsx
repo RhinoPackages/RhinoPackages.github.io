@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filters, Owner, Package, Status, has, pageResults, useApi } from "./api";
 
@@ -57,34 +57,49 @@ export function PackageProvider({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { cache, status } = useApi(initialCache);
-  const [controls, setControls] = useState<Params>(defaultParams);
   const params = useMemo(() => toParams(searchParams), [searchParams]);
-
-  const navigate = (value: { [Key in keyof Params]?: Params[Key] }) => {
-    const newParams = { ...controls, ...value };
-    const shouldResetPage =
-      value.page === undefined && Object.keys(value).some((key) => key !== "p");
-
-    // Keep the current page when only toggling expanded package (p).
-    if (shouldResetPage) {
-      newParams.page = 0;
-    }
-    setControls(newParams);
-    router.push(`/${toQuery(newParams)}`, { scroll: false });
-  };
-
-  const navigateFilter = (filter: Filters, value: boolean) => {
-    const filters = value ? controls.filters | filter : controls.filters & ~filter;
-    navigate({ filters });
-  };
-
-  const setSearch = (text: string) => {
-    setControls({ ...controls, search: text });
-  };
+  const [controls, setControls] = useState<Params>(params);
+  const controlsRef = useRef<Params>(params);
 
   useEffect(() => {
+    controlsRef.current = params;
     setControls(params);
   }, [params]);
+
+  const navigate = useCallback(
+    (value: { [Key in keyof Params]?: Params[Key] }) => {
+      const currentControls = controlsRef.current;
+      const newParams = { ...currentControls, ...value };
+      const shouldResetPage =
+        value.page === undefined && Object.keys(value).some((key) => key !== "p");
+
+      // Keep the current page when only toggling expanded package (p).
+      if (shouldResetPage) {
+        newParams.page = 0;
+      }
+
+      controlsRef.current = newParams;
+      setControls(newParams);
+      router.push(`/${toQuery(newParams)}`, { scroll: false });
+    },
+    [router],
+  );
+
+  const navigateFilter = useCallback(
+    (filter: Filters, value: boolean) => {
+      const currentFilters = controlsRef.current.filters;
+      const filters = value ? currentFilters | filter : currentFilters & ~filter;
+      navigate({ filters });
+    },
+    [navigate],
+  );
+
+  const setSearch = useCallback(
+    (text: string) => {
+      navigate({ search: text });
+    },
+    [navigate],
+  );
 
   const packages = useMemo(() => {
     return filter(cache ?? [], params);
