@@ -162,7 +162,7 @@ function filter(packages: Package[], params: Params) {
     filtered = filtered.filter((p) => p.owners.map((o) => o.id).includes(owner));
   }
 
-  if (search) {
+  if (search.length >= 3) {
     const lower = search.toLowerCase();
     filtered = filtered.filter((p) => {
       return (
@@ -209,8 +209,7 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
 
   const owner = toInt("owner", NaN) || undefined;
 
-  let search = searchParams.get("search") ?? "";
-  if (search.length < 3) search = "";
+  const search = searchParams.get("search") ?? "";
 
   const filters = toInt("filters", Filters.None);
   const sort = toInt("sort", Sort.Trending);
