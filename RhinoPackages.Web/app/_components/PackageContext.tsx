@@ -62,8 +62,11 @@ export function PackageProvider({
 
   const navigate = (value: { [Key in keyof Params]?: Params[Key] }) => {
     const newParams = { ...controls, ...value };
-    // Only reset page to 0 if we are NOT explicitly navigating to a new page
-    if (value.page === undefined) {
+    const shouldResetPage =
+      value.page === undefined && Object.keys(value).some((key) => key !== "p");
+
+    // Keep the current page when only toggling expanded package (p).
+    if (shouldResetPage) {
       newParams.page = 0;
     }
     setControls(newParams);
