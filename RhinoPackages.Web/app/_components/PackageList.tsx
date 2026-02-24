@@ -249,6 +249,7 @@ function PackageCard({
               type="button"
               onClick={handleCopyLink}
               title="Copy Link"
+              aria-label="Copy link to package"
               className={`mt-0.5 flex items-center gap-1 transition-all ${copied
                 ? "text-green-600 dark:text-green-400"
                 : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
@@ -258,10 +259,21 @@ function PackageCard({
               {copied && <span className="text-[10px] font-bold uppercase">Copied!</span>}
             </button>
           </div>
-          <ChevronDownIcon
-            className={`ml-4 mt-1 h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
-              }`}
-          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? "Collapse package details" : "Expand package details"}
+            className="ml-4 flex-shrink-0 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:bg-zinc-800"
+          >
+            <ChevronDownIcon
+              className={`h-5 w-5 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
+                }`}
+            />
+          </button>
         </div>
       </div>
       <div className="mt-2 flex min-w-0 items-start gap-4 md:gap-6">
