@@ -41,20 +41,20 @@ jobs:
       - name: Detect data changes
         id: detect-changes
         run: |
-          if git diff --quiet -- RhinoPackages.Web/public/data.json; then
+          if git diff --quiet -- RhinoPackages.Web/public/data.json RhinoPackages.Web/public/data/versions; then
             echo "data_changed=false" >> "$GITHUB_OUTPUT"
-            echo "No changes detected in data.json"
+            echo "No changes detected in generated API data files"
           else
             echo "data_changed=true" >> "$GITHUB_OUTPUT"
-            echo "Changes detected in data.json"
+            echo "Changes detected in generated API data files"
           fi
 
-      - name: Commit and Push data.json
+      - name: Commit and Push generated API data files
         if: steps.detect-changes.outputs.data_changed == 'true'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add RhinoPackages.Web/public/data.json
+          git add -A RhinoPackages.Web/public/data.json RhinoPackages.Web/public/data/versions
           git commit -m "chore: update package data"
           git push
 
@@ -62,11 +62,46 @@ jobs:
     needs: update-data
     if: (github.event_name != 'push' || github.actor != 'github-actions[bot]') && (github.event_name != 'schedule' || needs.update-data.outputs.data_changed == 'true')
     runs-on: ubuntu-latest
+    outputs:
+      structural_changed: ${{ steps.detect-structural-changes.outputs.structural_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: main # Ensure we get the latest commit with data.json
+
+      - name: Detect structural changes for release
+        id: detect-structural-changes
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
+          elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            changed_files="$(git diff --name-only HEAD~1 HEAD)"
+          else
+            changed_files="$(git ls-tree -r --name-only HEAD)"
+          fi
+
+          echo "Changed files:"
+          echo "$changed_files"
+
+          structural_changed="false"
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+
+            if [[ "$file" == "RhinoPackages.Web/public/data.json" ]]; then
+              continue
+            fi
+
+            if [[ "$file" == RhinoPackages.Web/public/data/versions/*.json ]]; then
+              continue
+            fi
+
+            structural_changed="true"
+            break
+          done <<< "$changed_files"
+
+          echo "structural_changed=$structural_changed" >> "$GITHUB_OUTPUT"
+          echo "Structural changes detected: $structural_changed"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -101,6 +136,7 @@ jobs:
 
 
       - name: Create GitHub Release
+        if: steps.detect-structural-changes.outputs.structural_changed == 'true'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "site-export.zip"
