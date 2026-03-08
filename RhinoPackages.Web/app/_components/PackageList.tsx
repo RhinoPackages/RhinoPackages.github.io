@@ -100,6 +100,43 @@ function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
   return <div ref={setRef} className="h-10 w-full" />;
 }
 
+function parseHomepageAction(homepageUrl: Package["homepageUrl"]) {
+  const raw = typeof homepageUrl === "string" ? homepageUrl.trim() : "";
+  if (!raw) {
+    return { websiteHref: undefined, emailHref: undefined };
+  }
+
+  const trimmedForEmail = raw.replace(/[;,.!?]+$/, "").trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (emailPattern.test(trimmedForEmail)) {
+    return { websiteHref: undefined, emailHref: `mailto:${trimmedForEmail}` };
+  }
+
+  const trimmedForWebsite = raw.replace(/[;\s]+$/, "").trim();
+  if (!trimmedForWebsite) {
+    return { websiteHref: undefined, emailHref: undefined };
+  }
+
+  if (/^https?:\/\//i.test(trimmedForWebsite)) {
+    try {
+      const parsed = new URL(trimmedForWebsite);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return { websiteHref: trimmedForWebsite, emailHref: undefined };
+      }
+    } catch {
+      return { websiteHref: undefined, emailHref: undefined };
+    }
+    return { websiteHref: undefined, emailHref: undefined };
+  }
+
+  const domainLikePattern = /^(localhost|([a-z0-9-]+\.)+[a-z]{2,})(:\d+)?(\/.*)?$/i;
+  if (domainLikePattern.test(trimmedForWebsite)) {
+    return { websiteHref: `https://${trimmedForWebsite}`, emailHref: undefined };
+  }
+
+  return { websiteHref: undefined, emailHref: undefined };
+}
+
 const PackageCard = memo(function PackageCard({
   pkg,
   isExpanded,
@@ -147,11 +184,7 @@ const PackageCard = memo(function PackageCard({
     return constant === (pkg.filters & constant);
   }
 
-  let url = !pkg.homepageUrl ? "#" : pkg.homepageUrl;
-
-  if (!url.startsWith("http")) {
-    url = "//" + url;
-  }
+  const { websiteHref, emailHref } = parseHomepageAction(pkg.homepageUrl);
 
   const link = `rhino://package/search?name=${pkg.id}`;
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
@@ -374,15 +407,24 @@ const PackageCard = memo(function PackageCard({
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 Install in Rhino
               </a>
-              {pkg.homepageUrl && pkg.homepageUrl !== "#" && (
+              {websiteHref && (
                 <a
-                  href={url}
+                  href={websiteHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Homepage
+                  Website
+                </a>
+              )}
+              {emailHref && (
+                <a
+                  href={emailHref}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
+                >
+                  <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                  Email
                 </a>
               )}
             </div>
