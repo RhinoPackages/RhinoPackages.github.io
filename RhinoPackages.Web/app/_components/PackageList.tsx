@@ -147,11 +147,15 @@ const PackageCard = memo(function PackageCard({
     return constant === (pkg.filters & constant);
   }
 
-  let url = !pkg.homepageUrl ? "#" : pkg.homepageUrl;
-
-  if (!url.startsWith("http")) {
-    url = "//" + url;
-  }
+  const rawHomepageUrl = pkg.homepageUrl?.trim() ?? "";
+  const hasSecondaryAction = rawHomepageUrl.length > 0 && rawHomepageUrl !== "#";
+  const isEmailAction = rawHomepageUrl.toLowerCase().startsWith("mailto:");
+  const secondaryActionLabel = isEmailAction ? "Email" : "Website";
+  const url = isEmailAction
+    ? rawHomepageUrl
+    : rawHomepageUrl.startsWith("http")
+      ? rawHomepageUrl
+      : `//${rawHomepageUrl}`;
 
   const link = `rhino://package/search?name=${pkg.id}`;
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
@@ -374,15 +378,15 @@ const PackageCard = memo(function PackageCard({
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 Install in Rhino
               </a>
-              {pkg.homepageUrl && pkg.homepageUrl !== "#" && (
+              {hasSecondaryAction && (
                 <a
                   href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target={isEmailAction ? undefined : "_blank"}
+                  rel={isEmailAction ? undefined : "noopener noreferrer"}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Website
+                  {secondaryActionLabel}
                 </a>
               )}
             </div>
