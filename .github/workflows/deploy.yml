@@ -69,12 +69,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main # Ensure we get the latest commit with data.json
+          fetch-depth: 0 # Required so github.event.before exists for git diff
 
       - name: Detect structural changes for release
         id: detect-structural-changes
         run: |
           if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
+            if git cat-file -e "${{ github.event.before }}^{commit}" 2>/dev/null; then
+              changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
+            elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+              echo "Commit ${{ github.event.before }} is unavailable locally; falling back to HEAD~1..HEAD"
+              changed_files="$(git diff --name-only HEAD~1 HEAD)"
+            else
+              echo "Commit ${{ github.event.before }} is unavailable and HEAD~1 is missing; using repository tree"
+              changed_files="$(git ls-tree -r --name-only HEAD)"
+            fi
           elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
             changed_files="$(git diff --name-only HEAD~1 HEAD)"
           else
