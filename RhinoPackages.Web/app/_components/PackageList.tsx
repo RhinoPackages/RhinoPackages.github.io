@@ -382,7 +382,7 @@ const PackageCard = memo(function PackageCard({
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Homepage
+                  Website
                 </a>
               )}
             </div>
