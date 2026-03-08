@@ -100,7 +100,7 @@ function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
   return <div ref={setRef} className="h-10 w-full" />;
 }
 
-function parseHomepageAction(homepageUrl: Package["homepageUrl"]) {
+function parseWebsiteAction(homepageUrl: Package["homepageUrl"]) {
   const raw = typeof homepageUrl === "string" ? homepageUrl.trim() : "";
   if (!raw) {
     return { websiteHref: undefined, emailHref: undefined };
@@ -184,7 +184,7 @@ const PackageCard = memo(function PackageCard({
     return constant === (pkg.filters & constant);
   }
 
-  const { websiteHref, emailHref } = parseHomepageAction(pkg.homepageUrl);
+  const { websiteHref, emailHref } = parseWebsiteAction(pkg.homepageUrl);
 
   const link = `rhino://package/search?name=${pkg.id}`;
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
