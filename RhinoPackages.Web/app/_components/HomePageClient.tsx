@@ -31,7 +31,13 @@ function ToggleMenu() {
 
   return (
     <div className="relative mt-4 flex w-full flex-col">
-      <button onClick={() => setOpen(!open)} className="z-20 self-start">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label={open ? "Close filters" : "Open filters"}
+        className="z-20 self-start rounded-md p-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:bg-zinc-800"
+      >
         <Icon className="h-8 w-8 text-gray-400" />
       </button>
       {open && (
