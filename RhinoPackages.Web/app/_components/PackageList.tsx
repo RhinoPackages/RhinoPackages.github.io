@@ -8,11 +8,12 @@ import {
   CalendarIcon,
   ChevronDownIcon,
   LinkIcon,
+  MagnifyingGlassIcon,
   StarIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
-import { Params, usePackageContext } from "./PackageContext";
+import { Params, usePackageContext, defaultParams } from "./PackageContext";
 
 export default function PackageList() {
   const { controls, packages, navigate, stats, status } = usePackageContext();
@@ -52,18 +53,37 @@ export default function PackageList() {
         </div>
       </div>
 
-      <ul role="list" className="flex flex-grow flex-col gap-5">
-        {packages.map((pkg) => {
-          return (
-            <PackageCard
-              key={pkg.id}
-              pkg={pkg}
-              isExpanded={expandedId === pkg.id}
-              navigate={navigate}
-            />
-          );
-        })}
-      </ul>
+      {packages.length === 0 && !status.isLoading && status.isIdle ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+          <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
+          <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">No packages found</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+            Try adjusting your search or filters to find what you&apos;re looking for.
+          </p>
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => navigate(defaultParams)}
+              className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
+            >
+              Clear all filters
+            </button>
+          </div>
+        </div>
+      ) : (
+        <ul role="list" className="flex flex-grow flex-col gap-5">
+          {packages.map((pkg) => {
+            return (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                isExpanded={expandedId === pkg.id}
+                navigate={navigate}
+              />
+            );
+          })}
+        </ul>
+      )}
 
       {/* Infinite Scroll Trigger */}
       {!disablePagination && (
