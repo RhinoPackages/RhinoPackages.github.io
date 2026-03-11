@@ -335,6 +335,7 @@ const PackageCard = memo(function PackageCard({
         </p>
         <a
           href={link}
+          aria-label={`Install ${pkg.id}`}
           className="hidden items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 md:flex"
         >
           <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" />
@@ -422,6 +423,7 @@ const PackageCard = memo(function PackageCard({
             <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4 dark:border-zinc-700">
               <a
                 href={link}
+                aria-label={`Install ${pkg.id} in Rhino`}
                 className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-500"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" />
@@ -432,6 +434,7 @@ const PackageCard = memo(function PackageCard({
                   href={websiteHref}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Visit ${pkg.id} website`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -441,6 +444,7 @@ const PackageCard = memo(function PackageCard({
               {emailHref && (
                 <a
                   href={emailHref}
+                  aria-label={`Email ${pkg.id} author`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -536,6 +540,7 @@ const PackageCard = memo(function PackageCard({
                               <td className="px-4 py-2 text-right">
                                 <a
                                   href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
+                                  aria-label={`Install ${pkg.id} version ${row.installVersion}`}
                                   className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40"
                                 >
                                   <ArrowDownTrayIcon className="h-3 w-3" />
