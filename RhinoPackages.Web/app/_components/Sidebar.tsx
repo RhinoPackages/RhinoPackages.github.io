@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from "react";
 import Image from "next/image";
 import { Switch } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Filters } from "@/app/_components/api";
 import { defaultParams, usePackageContext } from "./PackageContext";
 import Spinner from "./Spinner";
@@ -125,6 +126,11 @@ function SearchBar() {
     setLocalSearch(controls.search);
   }, [controls.search]);
 
+  const clearSearch = () => {
+    setLocalSearch("");
+    navigate({ search: "" });
+  };
+
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -136,8 +142,18 @@ function SearchBar() {
         placeholder="Search packages..."
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
-        className="w-full rounded-md border-0 bg-white py-2 pl-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
+      {localSearch && (
+        <button
+          type="button"
+          onClick={clearSearch}
+          aria-label="Clear search"
+          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:text-brand-500 dark:text-zinc-500 dark:hover:text-zinc-300"
+        >
+          <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }
