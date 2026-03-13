@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
 import { Params, usePackageContext, defaultParams } from "./PackageContext";
+import Spinner from "./Spinner";
 
 export default function PackageList() {
   const { controls, packages, navigate, stats, status } = usePackageContext();
@@ -196,6 +197,7 @@ const PackageCard = memo(function PackageCard({
       })
       .catch((err) => {
         console.warn(`Could not load history for ${pkg.id}:`, err);
+        setVersionHistory([]);
       })
       .finally(() => setHistoryLoading(false));
   }, [isExpanded, pkg.id, versionHistory]);
@@ -454,7 +456,15 @@ const PackageCard = memo(function PackageCard({
             </div>
 
             {/* Version History Table */}
-            {versionHistory && versionHistory.length > 0 && (
+            {historyLoading ? (
+              <div className="mt-6 flex justify-center py-6 border-t border-gray-200 dark:border-zinc-700">
+                <Spinner />
+              </div>
+            ) : versionHistory && versionHistory.length === 0 ? (
+              <div className="mt-6 border-t border-gray-200 pt-6 pb-2 text-center text-sm text-gray-500 dark:border-zinc-700 dark:text-zinc-400">
+                <p>No version history available.</p>
+              </div>
+            ) : versionHistory && versionHistory.length > 0 ? (
               <div className="mt-6 border-t border-gray-200 pt-4 dark:border-zinc-700">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Version History</span>
@@ -554,7 +564,7 @@ const PackageCard = memo(function PackageCard({
                   </table>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
