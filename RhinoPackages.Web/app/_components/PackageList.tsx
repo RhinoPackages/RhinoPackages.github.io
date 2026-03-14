@@ -262,7 +262,7 @@ const PackageCard = memo(function PackageCard({
                       navigate({ owner: owner.id });
                     }}
                     key={owner.id}
-                    className="text-xs text-gray-600 transition-colors hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
+                    className="text-xs text-gray-600 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 rounded-sm"
                   >
                     {owner.name}{i < pkg.owners.length - 1 ? "," : ""}
                   </button>
@@ -305,7 +305,7 @@ const PackageCard = memo(function PackageCard({
               onClick={handleCopyLink}
               title="Copy Link"
               aria-label="Copy link to package"
-              className={`mt-0.5 flex items-center gap-1 transition-all ${copied
+              className={`mt-0.5 flex items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
                 ? "text-green-600 dark:text-green-400"
                 : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                 }`}
@@ -322,7 +322,7 @@ const PackageCard = memo(function PackageCard({
             }}
             aria-expanded={isExpanded}
             aria-label={isExpanded ? "Collapse package details" : "Expand package details"}
-            className="ml-4 flex-shrink-0 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:bg-zinc-800"
+            className="ml-4 flex-shrink-0 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
           >
             <ChevronDownIcon
               className={`h-5 w-5 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
@@ -354,7 +354,7 @@ const PackageCard = memo(function PackageCard({
                 e.stopPropagation();
                 navigate({ search: tag });
               }}
-              className="cursor-pointer rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 transition-colors hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 group-hover:bg-brand-50 group-hover:text-brand-700 group-hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-300"
+              className="cursor-pointer rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 transition-colors hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group-hover:bg-brand-50 group-hover:text-brand-700 group-hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300 dark:focus-visible:ring-brand-400 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-300"
             >
               {tag}
             </button>

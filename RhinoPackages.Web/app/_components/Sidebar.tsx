@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Switch } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
@@ -112,6 +112,7 @@ function CheckBox({ title, icon, filter }: CheckProps) {
 function SearchBar() {
   const { controls, navigate } = usePackageContext();
   const [localSearch, setLocalSearch] = useState(controls.search);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -126,6 +127,27 @@ function SearchBar() {
     setLocalSearch(controls.search);
   }, [controls.search]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in another input
+      if (
+        e.key === "/" &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)
+      ) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+
+      // Blur on Escape if we're focused
+      if (e.key === "Escape" && document.activeElement === inputRef.current) {
+        inputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const clearSearch = () => {
     setLocalSearch("");
     navigate({ search: "" });
@@ -137,13 +159,21 @@ function SearchBar() {
         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
       </div>
       <input
+        ref={inputRef}
         type="text"
-        aria-label="Search packages"
+        aria-label="Search packages (Press / to focus)"
         placeholder="Search packages..."
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
         className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
+      {!localSearch && (
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500 sm:inline-block">
+            /
+          </kbd>
+        </div>
+      )}
       {localSearch && (
         <button
           type="button"
