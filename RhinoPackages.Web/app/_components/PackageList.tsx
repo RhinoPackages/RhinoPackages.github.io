@@ -227,8 +227,17 @@ const PackageCard = memo(function PackageCard({
         } p-4`}
     >
       <div
-        className="mb-2 flex cursor-pointer flex-col gap-2 md:flex-row md:gap-0"
+        className="mb-2 flex cursor-pointer flex-col gap-2 rounded-lg transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 md:flex-row md:gap-0 dark:focus-visible:ring-brand-400"
         onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
       >
         <div className="flex min-w-0 flex-grow gap-x-4">
           <Image
