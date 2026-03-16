@@ -94,6 +94,7 @@ function CheckBox({ title, icon, filter }: CheckProps) {
         {({ checked }) => (
           <button
             type="button"
+            aria-label={title}
             className={`${checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
               } relative inline-flex h-5 w-11 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950`}
           >
