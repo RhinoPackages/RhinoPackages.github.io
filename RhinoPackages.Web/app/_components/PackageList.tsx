@@ -245,7 +245,7 @@ const PackageCard = memo(function PackageCard({
             src={pkg.iconUrl}
             width={40}
             height={40}
-            alt="Package icon"
+            alt={`Icon for ${pkg.id} package`}
           />
           <div className="flex min-w-0 flex-col">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
