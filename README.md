@@ -50,6 +50,10 @@ cd RhinoPackages.Tests
 dotnet test
 ```
 
+## Attribution
+
+This project was inspired by [RhinoPackager](https://github.com/visose/RhinoPackager) by [@visose](https://github.com/visose).
+
 ## License
 
 [MIT](LICENSE)
