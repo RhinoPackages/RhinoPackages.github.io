@@ -262,8 +262,9 @@ const PackageCard = memo(function PackageCard({
               </p>
             </div>
             <div className="mt-1 flex items-center">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-1">
-                <UserIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" />
+              <div className="flex min-w-0 flex-wrap items-center gap-x-1" title="Authors">
+                <UserIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
+                <span className="sr-only">Authors: </span>
                 {pkg.owners.map((owner, i) => (
                   <button
                     onClick={(e) => {
@@ -271,6 +272,7 @@ const PackageCard = memo(function PackageCard({
                       navigate({ owner: owner.id });
                     }}
                     key={owner.id}
+                    title={`Filter by author: ${owner.name}`}
                     className="text-xs text-gray-600 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 rounded-sm"
                   >
                     {owner.name}{i < pkg.owners.length - 1 ? "," : ""}
@@ -301,13 +303,19 @@ const PackageCard = memo(function PackageCard({
             </div>
           </div>
           <div className="ml-4 flex flex-col items-end justify-start gap-1">
-            <div className="flex items-center gap-1">
-              <StarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" />
-              <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">{downloads}</p>
+            <div className="flex items-center gap-1" title="Total downloads">
+              <StarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
+              <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
+                <span className="sr-only">Downloads: </span>
+                {downloads}
+              </p>
             </div>
-            <div className="flex items-center gap-1">
-              <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" />
-              <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">{date}</p>
+            <div className="flex items-center gap-1" title="Last updated">
+              <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
+              <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
+                <span className="sr-only">Last updated: </span>
+                {date}
+              </p>
             </div>
             <button
               type="button"
@@ -355,10 +363,12 @@ const PackageCard = memo(function PackageCard({
       </div>
       {(tags && tags.length > 0 && tags[0] !== "") && (
         <div className="mt-4 flex flex-wrap place-items-center items-start gap-2">
+          <span className="sr-only">Keywords: </span>
           {tags.map((tag) => (
             <button
               key={tag}
               type="button"
+              title={`Filter by keyword: ${tag}`}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate({ search: tag });
@@ -596,6 +606,7 @@ function Badge({ label, active }: { label: string; active: boolean }) {
 
 function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: string }) {
   const isSvg = src.endsWith(".svg");
+  const title = isEnabled ? `Supported on ${alt}` : `Not supported on ${alt}`;
   return (
     <Image
       className={`h-[1.2rem] w-[1.2rem] ${isSvg ? "dark:invert" : "dark:brightness-110"}${isEnabled ? "" : " opacity-25"
@@ -604,6 +615,7 @@ function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: s
       width={32}
       height={32}
       alt={alt}
+      title={title}
     />
   );
 }
