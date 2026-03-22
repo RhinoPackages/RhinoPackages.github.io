@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   schedule:
     - cron: '0 0 * * *' # Run daily at midnight to update packages
   workflow_dispatch:
@@ -52,7 +58,7 @@ jobs:
           fi
 
       - name: Commit and Push generated API data files
-        if: steps.detect-changes.outputs.data_changed == 'true'
+        if: steps.detect-changes.outputs.data_changed == 'true' && github.event_name != 'pull_request'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -70,7 +76,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main # Ensure we get the latest commit with data.json
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }} # Use PR head for pull requests, main otherwise
           fetch-depth: 0 # Required so github.event.before exists for git diff
 
       - name: Detect structural changes for release
@@ -136,6 +142,7 @@ jobs:
         run: npx next build
 
       - name: Deploy to GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -147,7 +154,7 @@ jobs:
 
 
       - name: Create GitHub Release
-        if: steps.detect-structural-changes.outputs.structural_changed == 'true'
+        if: github.event_name != 'pull_request' && steps.detect-structural-changes.outputs.structural_changed == 'true'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "site-export.zip"
