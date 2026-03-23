@@ -87,7 +87,7 @@ export default async function ContributorsBubbles() {
               rel="noopener noreferrer"
               title={`${contributor.login} (${contributor.contributions} contributions)`}
               aria-label={`GitHub profile of ${contributor.login}`}
-              className="block transition-transform hover:scale-105"
+              className="block rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-brand-400 dark:focus-visible:ring-offset-zinc-950"
             >
               <Image
                 src={getSizedAvatarUrl(contributor.avatar_url, 56)}
