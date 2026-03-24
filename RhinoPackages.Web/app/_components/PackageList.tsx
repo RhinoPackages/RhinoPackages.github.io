@@ -231,8 +231,10 @@ const PackageCard = memo(function PackageCard({
         onClick={onToggle}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onToggle();
+            if (e.target === e.currentTarget) {
+              e.preventDefault();
+              onToggle();
+            }
           }
         }}
         role="button"
@@ -273,6 +275,7 @@ const PackageCard = memo(function PackageCard({
                     }}
                     key={owner.id}
                     title={`Filter by author: ${owner.name}`}
+                    aria-label={`Filter by author: ${owner.name}`}
                     className="text-xs text-gray-600 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 rounded-sm"
                   >
                     {owner.name}{i < pkg.owners.length - 1 ? "," : ""}
@@ -369,6 +372,7 @@ const PackageCard = memo(function PackageCard({
               key={tag}
               type="button"
               title={`Filter by keyword: ${tag}`}
+              aria-label={`Filter by keyword: ${tag}`}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate({ search: tag });
