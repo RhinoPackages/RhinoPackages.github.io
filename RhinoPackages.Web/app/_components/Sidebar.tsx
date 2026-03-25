@@ -82,7 +82,8 @@ function CheckBox({ title, icon, filter }: CheckProps) {
           src={icon}
           width={32}
           height={32}
-          alt={title}
+          alt=""
+          aria-hidden="true"
         />
         <span className="text-right text-sm text-gray-900 select-none dark:text-zinc-300">{title}</span>
       </Switch.Label>
