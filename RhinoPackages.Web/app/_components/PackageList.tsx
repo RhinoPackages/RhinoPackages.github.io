@@ -603,7 +603,8 @@ function Badge({ label, active }: { label: string; active: boolean }) {
         : "bg-gray-50 text-gray-500 ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-500 dark:ring-zinc-700/50"
         }`}
     >
-      {active ? "✓ " : ""}{label}
+      <span className="sr-only">{active ? `Supported: ${label}` : `Not supported: ${label}`}</span>
+      <span aria-hidden="true">{active ? "✓ " : ""}{label}</span>
     </span>
   );
 }
@@ -618,7 +619,7 @@ function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: s
       src={src}
       width={32}
       height={32}
-      alt={alt}
+      alt={isEnabled ? `Supported on ${alt}` : `Not supported on ${alt}`}
       title={title}
     />
   );
