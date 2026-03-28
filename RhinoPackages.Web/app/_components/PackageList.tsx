@@ -325,6 +325,7 @@ const PackageCard = memo(function PackageCard({
               onClick={handleCopyLink}
               title="Copy Link"
               aria-label="Copy link to package"
+              aria-live="polite"
               className={`mt-0.5 flex items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
                 ? "text-green-600 dark:text-green-400"
                 : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
@@ -358,7 +359,7 @@ const PackageCard = memo(function PackageCard({
         <a
           href={link}
           aria-label={`Install ${pkg.id}`}
-          className="hidden items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 md:flex"
+          className="hidden items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:flex"
         >
           <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" />
           Install
@@ -449,7 +450,7 @@ const PackageCard = memo(function PackageCard({
               <a
                 href={link}
                 aria-label={`Install ${pkg.id} in Rhino`}
-                className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-500"
+                className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 active:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 Install in Rhino
@@ -460,7 +461,7 @@ const PackageCard = memo(function PackageCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Visit ${pkg.id} website`}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                   Website
@@ -470,7 +471,7 @@ const PackageCard = memo(function PackageCard({
                 <a
                   href={emailHref}
                   aria-label={`Email ${pkg.id} author`}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                   Email
@@ -562,7 +563,7 @@ const PackageCard = memo(function PackageCard({
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       title={`Open ${rv.label} on RhinoVersions`}
-                                      className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[0.65rem] font-semibold text-blue-700 underline decoration-solid underline-offset-2 transition-colors hover:bg-blue-100 hover:text-blue-800 dark:border-blue-700/50 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:hover:text-blue-200"
+                                      className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[0.65rem] font-semibold text-blue-700 underline decoration-solid underline-offset-2 transition-colors hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-700/50 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:hover:text-blue-200 dark:focus-visible:ring-blue-400"
                                     >
                                       {rv.label}
                                       <span aria-hidden="true" className="text-[0.6rem]">↗</span>
@@ -574,7 +575,7 @@ const PackageCard = memo(function PackageCard({
                                 <a
                                   href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
                                   aria-label={`Install ${pkg.id} version ${row.installVersion}`}
-                                  className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40"
+                                  className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
                                 >
                                   <ArrowDownTrayIcon className="h-3 w-3" />
                                   Install
