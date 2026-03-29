@@ -255,8 +255,12 @@ const PackageCard = memo(function PackageCard({
                 {pkg.id}
               </span>
               {pkg.prerelease && (
-                <span className="rounded-full bg-yellow-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20">
-                  wip
+                <span
+                  title="Work in progress (Pre-release)"
+                  className="rounded-full bg-yellow-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20"
+                >
+                  <span aria-hidden="true">wip</span>
+                  <span className="sr-only">Pre-release</span>
                 </span>
               )}
               <p className="max-w-full break-all text-xs font-semibold text-gray-500 dark:text-zinc-400 md:whitespace-nowrap md:break-normal">
@@ -331,7 +335,7 @@ const PackageCard = memo(function PackageCard({
                 : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                 }`}
             >
-              <LinkIcon className="h-3.5 w-3.5" />
+              <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
               {copied && <span className="text-[10px] font-bold uppercase">Copied!</span>}
             </button>
           </div>
@@ -361,7 +365,7 @@ const PackageCard = memo(function PackageCard({
           aria-label={`Install ${pkg.id}`}
           className="hidden items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:flex"
         >
-          <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" />
+          <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
           Install
         </a>
       </div>
@@ -452,7 +456,7 @@ const PackageCard = memo(function PackageCard({
                 aria-label={`Install ${pkg.id} in Rhino`}
                 className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 active:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
               >
-                <ArrowDownTrayIcon className="h-4 w-4" />
+                <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
                 Install in Rhino
               </a>
               {websiteHref && (
@@ -463,7 +467,7 @@ const PackageCard = memo(function PackageCard({
                   aria-label={`Visit ${pkg.id} website`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
-                  <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                  <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
                   Website
                 </a>
               )}
@@ -473,7 +477,7 @@ const PackageCard = memo(function PackageCard({
                   aria-label={`Email ${pkg.id} author`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
-                  <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                  <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
                   Email
                 </a>
               )}
@@ -577,7 +581,7 @@ const PackageCard = memo(function PackageCard({
                                   aria-label={`Install ${pkg.id} version ${row.installVersion}`}
                                   className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
                                 >
-                                  <ArrowDownTrayIcon className="h-3 w-3" />
+                                  <ArrowDownTrayIcon className="h-3 w-3" aria-hidden="true" />
                                   Install
                                 </a>
                               </td>

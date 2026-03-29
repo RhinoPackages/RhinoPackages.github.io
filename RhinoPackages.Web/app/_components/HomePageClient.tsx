@@ -38,7 +38,7 @@ function ToggleMenu() {
         aria-label={open ? "Close filters" : "Open filters"}
         className="z-20 self-start rounded-md p-1 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
       >
-        <Icon className="h-8 w-8 text-gray-400" />
+        <Icon className="h-8 w-8 text-gray-400" aria-hidden="true" />
       </button>
       {open && (
         <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 pt-10 shadow dark:border-zinc-800 dark:bg-zinc-950">
