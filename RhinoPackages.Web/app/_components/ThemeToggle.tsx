@@ -31,11 +31,11 @@ export function ThemeToggle() {
             title={`Theme: ${theme}`}
         >
             {theme === "system" ? (
-                <ComputerDesktopIcon className="h-5 w-5" />
+                <ComputerDesktopIcon className="h-5 w-5" aria-hidden="true" />
             ) : theme === "dark" ? (
-                <MoonIcon className="h-5 w-5" />
+                <MoonIcon className="h-5 w-5" aria-hidden="true" />
             ) : (
-                <SunIcon className="h-5 w-5" />
+                <SunIcon className="h-5 w-5" aria-hidden="true" />
             )}
         </button>
     );
