@@ -9,7 +9,13 @@ import Spinner from "./Spinner";
 import OwnersControl from "./OwnersControl";
 
 export default function Sidebar() {
-  const { navigate, status } = usePackageContext();
+  const { navigate, status, controls } = usePackageContext();
+
+  const hasFilters =
+    controls.filters !== defaultParams.filters ||
+    controls.search !== defaultParams.search ||
+    controls.owner !== defaultParams.owner ||
+    controls.sort !== defaultParams.sort;
 
   return (
     <form
@@ -31,8 +37,15 @@ export default function Sidebar() {
       <CheckBox title="Grasshopper" icon="/icons/gha.png" filter={Filters.Grasshopper} />
       <button
         type="button"
+        disabled={!hasFilters}
+        aria-disabled={!hasFilters}
+        title={!hasFilters ? "No filters active" : "Reset all filters"}
         onClick={() => navigate(defaultParams)}
-        className="mt-6 flex w-full items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400"
+        className={`mt-6 flex w-full items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:focus-visible:ring-brand-400 ${
+          !hasFilters
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-gray-50 active:bg-gray-200 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
+        }`}
       >
         Reset filters
       </button>
