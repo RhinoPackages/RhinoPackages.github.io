@@ -50,7 +50,7 @@ const structuredData = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Rhino Packages — Browse & Install Rhino 3D Plugins",
+    default: "Rhino Packages — Browse & Install Plugins",
     template: "%s | Rhino Packages",
   },
   description:
