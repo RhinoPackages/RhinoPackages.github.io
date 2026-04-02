@@ -30,7 +30,7 @@ export default function PackageList() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
             Packages Directory
           </h2>
-          <p className="text-sm text-gray-500 dark:text-zinc-400">
+          <p className="text-sm text-gray-500 dark:text-zinc-400" aria-live="polite" aria-atomic="true">
             {status.isLoading
               ? "Loading packages..."
               : packages.length === 0

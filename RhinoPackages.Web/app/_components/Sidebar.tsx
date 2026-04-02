@@ -63,7 +63,7 @@ export default function Sidebar() {
       </a>
       <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
         {status.isLoading && <Spinner />}
-        {status.isError && <p className="text-center text-red-500 dark:text-red-400">{status.message}</p>}
+        {status.isError && <p role="alert" aria-live="assertive" className="text-center text-red-500 dark:text-red-400">{status.message}</p>}
       </div>
     </form>
   );
@@ -193,6 +193,7 @@ function SearchBar() {
         <button
           type="button"
           onClick={clearSearch}
+          title="Clear search"
           aria-label="Clear search"
           className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:text-brand-500 dark:text-zinc-500 dark:hover:text-zinc-300"
         >
