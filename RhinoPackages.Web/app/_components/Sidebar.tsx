@@ -195,7 +195,7 @@ function SearchBar() {
           onClick={clearSearch}
           title="Clear search"
           aria-label="Clear search"
-          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:text-brand-500 dark:text-zinc-500 dark:hover:text-zinc-300"
+          className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
         >
           <XMarkIcon className="h-5 w-5" aria-hidden="true" />
         </button>
