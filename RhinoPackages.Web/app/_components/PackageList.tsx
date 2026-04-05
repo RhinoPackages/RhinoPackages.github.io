@@ -350,6 +350,7 @@ const PackageCard = memo(function PackageCard({
             className="ml-4 flex-shrink-0 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
           >
             <ChevronDownIcon
+              aria-hidden="true"
               className={`h-5 w-5 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
                 }`}
             />
