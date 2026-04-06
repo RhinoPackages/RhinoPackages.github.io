@@ -8,11 +8,11 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   const stats = useMemo(() => getStats(cache), [cache]);
 
   return (
-    <dl className="flex flex-col divide-y divide-gray-100">
+    <dl className="flex flex-col divide-y divide-gray-100 dark:divide-zinc-800">
       {Object.entries(stats).map(([key, value]) => (
         <div key={key} className="grid grid-cols-2 gap-4 py-2">
-          <dt className="text-right text-sm font-medium text-gray-900">{key}</dt>
-          <dd className="text-sm text-gray-700">{value}</dd>
+          <dt className="text-right text-sm font-medium text-gray-900 dark:text-zinc-100">{key}</dt>
+          <dd className="text-sm text-gray-700 dark:text-zinc-300">{value}</dd>
         </div>
       ))}
     </dl>
