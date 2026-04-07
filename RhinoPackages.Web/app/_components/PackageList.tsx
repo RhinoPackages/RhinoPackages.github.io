@@ -347,6 +347,7 @@ const PackageCard = memo(function PackageCard({
             }}
             aria-expanded={isExpanded}
             aria-label={isExpanded ? "Collapse package details" : "Expand package details"}
+            title={isExpanded ? "Collapse package details" : "Expand package details"}
             className="ml-4 flex-shrink-0 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
           >
             <ChevronDownIcon
