@@ -540,6 +540,7 @@ const PackageCard = memo(function PackageCard({
                             return {
                               raw,
                               label: `Rhino ${versionLabel}`,
+                              shortLabel: `R${versionLabel}`,
                               url: `https://rhinoversions.github.io/?version=${encodeURIComponent(versionLabel)}&locale=en-us`,
                             };
                           });
@@ -571,7 +572,8 @@ const PackageCard = memo(function PackageCard({
                                       title={`Open ${rv.label} on RhinoVersions`}
                                       className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[0.65rem] font-semibold text-blue-700 underline decoration-solid underline-offset-2 transition-colors hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-700/50 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:hover:text-blue-200 dark:focus-visible:ring-blue-400"
                                     >
-                                      {rv.label}
+                                      <span className="hidden sm:inline">{rv.label}</span>
+                                      <span className="sm:hidden">{rv.shortLabel}</span>
                                       <span aria-hidden="true" className="text-[0.6rem]">↗</span>
                                     </a>
                                   ))}
