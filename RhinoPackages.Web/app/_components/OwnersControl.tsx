@@ -43,9 +43,13 @@ export default function OwnersControl() {
           <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
         </Combobox.Button>
 
-        {filteredOwners.length > 0 && (
-          <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-zinc-800 dark:ring-white/10">
-            {filteredOwners.map((person) => (
+        <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-zinc-800 dark:ring-white/10">
+          {filteredOwners.length === 0 ? (
+            <div className="relative cursor-default select-none px-3 py-2 text-gray-500 dark:text-zinc-400">
+              No authors found.
+            </div>
+          ) : (
+            filteredOwners.map((person) => (
               <Combobox.Option
                 key={person.id}
                 value={person}
@@ -57,9 +61,9 @@ export default function OwnersControl() {
               >
                 {person.name}
               </Combobox.Option>
-            ))}
-          </Combobox.Options>
-        )}
+            ))
+          )}
+        </Combobox.Options>
       </div>
     </Combobox>
   );
