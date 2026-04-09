@@ -118,7 +118,16 @@ function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
     return () => observer.disconnect();
   }, [ref, onIntersect, isLoading, hasMore, controls.page]);
 
-  return <div ref={setRef} className="h-10 w-full" />;
+  return (
+    <div
+      ref={setRef}
+      className="flex h-10 w-full items-center justify-center my-4"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {isLoading && <Spinner />}
+    </div>
+  );
 }
 
 function parseWebsiteAction(homepageUrl: Package["homepageUrl"]) {
