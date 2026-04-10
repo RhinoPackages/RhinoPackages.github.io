@@ -36,7 +36,8 @@ function ToggleMenu() {
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label={open ? "Close filters" : "Open filters"}
-        className="z-20 self-start rounded-md p-1 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
+        title={open ? "Close filters" : "Open filters"}
+        className="z-20 self-start rounded-md p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
       >
         <Icon className="h-8 w-8 text-gray-400" aria-hidden="true" />
       </button>

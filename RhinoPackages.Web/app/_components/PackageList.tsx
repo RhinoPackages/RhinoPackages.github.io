@@ -65,7 +65,7 @@ export default function PackageList() {
             <button
               type="button"
               onClick={() => navigate(defaultParams)}
-              className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
+              className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
             >
               Clear all filters
             </button>
@@ -357,7 +357,7 @@ const PackageCard = memo(function PackageCard({
             aria-expanded={isExpanded}
             aria-label={isExpanded ? "Collapse package details" : "Expand package details"}
             title={isExpanded ? "Collapse package details" : "Expand package details"}
-            className="ml-4 flex-shrink-0 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
+            className="ml-4 flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
           >
             <ChevronDownIcon
               aria-hidden="true"
@@ -475,7 +475,7 @@ const PackageCard = memo(function PackageCard({
                   href={websiteHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Visit ${pkg.id} website`}
+                  aria-label={`Visit ${pkg.id} website (opens in a new tab)`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
@@ -584,6 +584,7 @@ const PackageCard = memo(function PackageCard({
                                       <span className="hidden sm:inline">{rv.label}</span>
                                       <span className="sm:hidden">{rv.shortLabel}</span>
                                       <span aria-hidden="true" className="text-[0.6rem]">↗</span>
+                                      <span className="sr-only"> (opens in a new tab)</span>
                                     </a>
                                   ))}
                                 </div>
