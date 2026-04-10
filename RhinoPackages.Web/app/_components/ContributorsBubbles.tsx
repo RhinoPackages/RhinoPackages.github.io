@@ -86,7 +86,7 @@ export default async function ContributorsBubbles() {
               target="_blank"
               rel="noopener noreferrer"
               title={`${contributor.login} (${contributor.contributions} contributions)`}
-              aria-label={`GitHub profile of ${contributor.login}`}
+              aria-label={`GitHub profile of ${contributor.login} (opens in a new tab)`}
               className="block rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-brand-400 dark:focus-visible:ring-offset-zinc-950"
             >
               <Image
