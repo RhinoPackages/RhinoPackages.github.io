@@ -167,6 +167,7 @@ function SearchBar() {
   const clearSearch = () => {
     setLocalSearch("");
     navigate({ search: "" });
+    inputRef.current?.focus();
   };
 
   return (
