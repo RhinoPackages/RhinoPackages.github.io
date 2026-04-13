@@ -10,3 +10,6 @@
 ## 2024-10-24 - Screen Readers Require Explicit "Opens in New Tab" Context
 **Learning:** Providing a visual indicator like `target="_blank"` or an `↗` icon is insufficient for screen readers to recognize that a link navigates away from the current page. Without explicit text context, screen reader users may unintentionally lose their place in the application or become disoriented by unexpected tab behavior.
 **Action:** Always append ` (opens in a new tab)` directly to the `aria-label` or include it within a visually hidden `<span className="sr-only">` block for external links.
+## 2024-05-18 - Conditional Button Unmounting Causes Focus Loss
+**Learning:** When a button is conditionally rendered and unmounted (such as a "Clear search" button that disappears when the search input is empty), the keyboard focus drops back to the document body when the button is activated. This severely impacts keyboard accessibility, as users lose their place in the UI and must tab back through the entire page.
+**Action:** When implementing interactive elements that unmount themselves upon activation, explicitly restore keyboard focus to a logical adjacent element (like the search input) before the element is removed from the DOM.
