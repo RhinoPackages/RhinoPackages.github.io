@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { useMemo, useState, useRef } from "react";
+import { ChevronUpDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Combobox } from "@headlessui/react";
 import { Owner } from "./api";
 import { usePackageContext } from "./PackageContext";
@@ -7,6 +7,7 @@ import { usePackageContext } from "./PackageContext";
 export default function OwnersControl() {
   const { controls, owners, navigate } = usePackageContext();
   const [filteredOwners, setFilteredOwners] = useState(owners);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = useMemo(() => {
     if (!controls.owner) return null;
@@ -22,7 +23,8 @@ export default function OwnersControl() {
     >
       <div className="relative">
         <Combobox.Input
-          className="w-full rounded-md border-0 bg-white py-2 pl-3 pr-10 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+          ref={inputRef}
+          className="w-full rounded-md border-0 bg-white py-2 pl-3 pr-14 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
           aria-label="Filter by author"
           placeholder="Search for author..."
           displayValue={(person: Owner | null) => person?.name ?? ""}
@@ -35,6 +37,22 @@ export default function OwnersControl() {
             setFilteredOwners(filtered);
           }}
         />
+        {selected && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate({ owner: undefined });
+              setFilteredOwners(owners);
+              inputRef.current?.focus();
+            }}
+            title="Clear author filter"
+            aria-label="Clear author filter"
+            className="absolute inset-y-1 right-8 flex items-center justify-center rounded-md px-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
+          >
+            <XMarkIcon className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
         <Combobox.Button
           className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400"
           title="Toggle authors list"
