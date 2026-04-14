@@ -404,7 +404,7 @@ const PackageCard = memo(function PackageCard({
 
       {/* Expanded Detail Panel */}
       <div
-        className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
           }`}
       >
         <div className="overflow-hidden">
