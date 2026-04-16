@@ -16,3 +16,7 @@
 ## 2024-05-30 - Hidden But Focusable Elements Cause Accessibility Traps
 **Learning:** Using CSS `opacity: 0` or `height: 0` (via Tailwind's `opacity-0` and `grid-rows-[0fr]`) visually hides content but leaves interactive elements within it (like links and buttons) completely accessible to keyboard and screen reader users. This creates "ghost" elements that users can tab to, causing confusion.
 **Action:** When visually hiding interactive panels, always include the `invisible` utility (and `visible` when expanded) alongside `transition-all`. `visibility: hidden` completely removes the element and its children from the keyboard focus order and accessibility tree. Tailwind's `transition-all` smartly delays the visibility change until the opacity transition finishes.
+
+## 2024-04-16 - Do not override visible text with aria-label
+**Learning:** When adding `aria-label` to links containing visible text (like logos or branded content), the `aria-label` completely overrides the accessible name. If the `aria-label` doesn't include the visible text (e.g., just "Go to homepage"), it breaks WCAG 2.5.3 (Label in Name), which can confuse users of voice control software who try to activate the link using its visible name.
+**Action:** Always ensure the `aria-label` includes the visible text if it exists (e.g., "Rhino Packages - Go to homepage" instead of just "Go to homepage").
