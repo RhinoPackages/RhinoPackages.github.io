@@ -124,6 +124,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300"
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-brand-600 focus:font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus:bg-zinc-900 dark:focus:text-brand-400"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="mx-auto max-w-6xl px-4 pb-10 pt-2">
             <div className="flex flex-grow items-center justify-between border-b border-gray-200 pb-3 dark:border-zinc-800">
@@ -144,15 +150,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </a>
               <ThemeToggle />
             </div>
-            <Suspense
-              fallback={
-                <div className="mt-10 flex justify-center">
-                  <Spinner />
-                </div>
-              }
-            >
-              {children}
-            </Suspense>
+            <div id="main-content" tabIndex={-1} className="outline-none">
+              <Suspense
+                fallback={
+                  <div className="mt-10 flex justify-center">
+                    <Spinner />
+                  </div>
+                }
+              >
+                {children}
+              </Suspense>
+            </div>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
               <p>Site Generated: {new Date().toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}</p>
               {process.env.NEXT_PUBLIC_VERSION && (
