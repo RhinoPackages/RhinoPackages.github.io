@@ -7,6 +7,7 @@ import {
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
   ChevronDownIcon,
+  CheckIcon,
   LinkIcon,
   MagnifyingGlassIcon,
   StarIcon,
@@ -336,15 +337,19 @@ const PackageCard = memo(function PackageCard({
             <button
               type="button"
               onClick={handleCopyLink}
-              title="Copy Link"
-              aria-label="Copy link to package"
+              title={copied ? "Copied to clipboard!" : "Copy Link"}
+              aria-label={copied ? "Link copied to clipboard!" : "Copy link to package"}
               aria-live="polite"
               className={`mt-0.5 flex items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
                 ? "text-green-600 dark:text-green-400"
                 : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                 }`}
             >
-              <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              {copied ? (
+                <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
               {copied && <span className="text-[10px] font-bold uppercase">Copied!</span>}
             </button>
           </div>
