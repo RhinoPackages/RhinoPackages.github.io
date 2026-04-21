@@ -24,3 +24,6 @@
 ## 2024-03-24 - Dynamic Action Feedback
 **Learning:** When providing visual feedback for user actions (e.g. a "Copied!" message or swapped icon), updating `aria-label` and `title` synchronously is critical to ensure sighted hover users and screen reader users get identical context.
 **Action:** For interactive states like "Copied", unconditionally bind `title` and `aria-label` to the state to maintain 1:1 parity with the visual state.
+## 2024-05-30 - Semantically Correct Icons Improve Predictability
+**Learning:** Using an icon that signifies "opening in a new tab" (like ArrowTopRightOnSquareIcon) for an email link (`mailto:`) causes confusion, as the action actually opens a local email client. This mismatch between visual expectation and actual behavior creates a minor friction point for users.
+**Action:** Always ensure icons used for actions accurately reflect the behavior. For example, use an EnvelopeIcon for `mailto:` links to set the correct expectation that an email client will be opened.

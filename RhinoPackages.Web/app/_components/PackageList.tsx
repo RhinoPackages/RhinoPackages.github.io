@@ -6,6 +6,7 @@ import {
   ArrowLongRightIcon,
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
+  EnvelopeIcon,
   ChevronDownIcon,
   CheckIcon,
   LinkIcon,
@@ -493,7 +494,7 @@ const PackageCard = memo(function PackageCard({
                   aria-label={`Email ${pkg.id} author`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
-                  <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
+                  <EnvelopeIcon className="h-4 w-4" aria-hidden="true" />
                   Email
                 </a>
               )}
