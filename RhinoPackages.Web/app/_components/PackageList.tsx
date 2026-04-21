@@ -501,7 +501,7 @@ const PackageCard = memo(function PackageCard({
 
             {/* Version History Table */}
             {historyLoading ? (
-              <div className="mt-6 flex justify-center py-6 border-t border-gray-200 dark:border-zinc-700">
+              <div className="mt-6 flex justify-center py-6 border-t border-gray-200 dark:border-zinc-700" aria-live="polite" aria-atomic="true">
                 <Spinner />
               </div>
             ) : versionHistory && versionHistory.length === 0 ? (
