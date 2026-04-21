@@ -1,0 +1,3 @@
+## 2026-04-21 - Enhance Version History Loading Accessibility
+**Learning:** When asynchronously loading sub-components like the version history table within an expanded item (e.g. `PackageCard`), simply displaying a `<Spinner />` is not sufficient for screen reader users. The loading container must be explicitly marked with `aria-live="polite"` and `aria-atomic="true"` to announce the loading state and subsequent completion. Without this, the expanded state is announced, but the delayed content injection is missed by assistive technologies.
+**Action:** Always wrap conditionally rendered async content spinners with an `aria-live="polite"` container to ensure state updates are announced.
