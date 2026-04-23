@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef } from "react";
-import { ChevronUpDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import { ChevronUpDownIcon, UserIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Combobox } from "@headlessui/react";
 import { Owner } from "./api";
 import { usePackageContext } from "./PackageContext";
@@ -21,10 +21,13 @@ export default function OwnersControl() {
       onChange={(value: Owner | null) => navigate({ owner: value?.id })}
       nullable
     >
-      <div className="relative">
+      <div className="relative flex w-full">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <UserIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </div>
         <Combobox.Input
           ref={inputRef}
-          className="w-full rounded-md border-0 bg-white py-2 pl-3 pr-14 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+          className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
           aria-label="Filter by author"
           placeholder="Search for author..."
           displayValue={(person: Owner | null) => person?.name ?? ""}
