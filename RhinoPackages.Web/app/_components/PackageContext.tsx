@@ -101,9 +101,19 @@ export function PackageProvider({
     [navigate],
   );
 
+  const trendingScores = useMemo(() => {
+    const scores = new Map<string, number>();
+    const now = Date.now();
+    for (const p of cache ?? []) {
+      const daysSinceUpdate = (now - new Date(p.updated).getTime()) / (1000 * 3600 * 24);
+      scores.set(p.id, p.downloads / Math.pow(Math.max(1, daysSinceUpdate), 1.5));
+    }
+    return scores;
+  }, [cache]);
+
   const packages = useMemo(() => {
-    return filter(cache ?? [], params);
-  }, [cache, params]);
+    return filter(cache ?? [], params, trendingScores);
+  }, [cache, params, trendingScores]);
 
   const owners = useMemo(() => {
     const set = new Set<number>();
@@ -154,7 +164,7 @@ export function PackageProvider({
   );
 }
 
-function filter(packages: Package[], params: Params) {
+function filter(packages: Package[], params: Params, trendingScores: Map<string, number>) {
   const { owner, search, filters, sort, page } = params;
   let filtered = [...packages];
 
@@ -180,17 +190,7 @@ function filter(packages: Package[], params: Params) {
   if (sort === Sort.Date) {
     filtered = filtered.sort((a, b) => (a.updated < b.updated ? 1 : -1));
   } else if (sort === Sort.Trending) {
-    const now = Date.now();
-    const scores = new Map<string, number>();
-
-    for (const p of filtered) {
-      // Calculate days since the package was last updated
-      const daysSinceUpdate = (now - new Date(p.updated).getTime()) / (1000 * 3600 * 24);
-      // HackerNews-style gravity algorithm for trending logic
-      scores.set(p.id, p.downloads / Math.pow(Math.max(1, daysSinceUpdate), 1.5));
-    }
-
-    filtered = filtered.sort((a, b) => (scores.get(a.id)! < scores.get(b.id)! ? 1 : -1));
+    filtered = filtered.sort((a, b) => (trendingScores.get(a.id)! < trendingScores.get(b.id)! ? 1 : -1));
   } else {
     filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
