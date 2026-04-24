@@ -84,6 +84,73 @@ public class SeederTests
     }
 
     [Fact]
+    public async Task Run_MissingIcon_ReturnsFallbackIconUrl()
+    {
+        var packageName = "NoIconPackage";
+        var packageVersion = "1.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+        var packageUrl = "https://files.example.test/no-icon-package.yak";
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Icon Tester", "download_count": 10, "name": "NoIconPackage", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}/{packageVersion}"] = Json("""
+                {
+                  "created_at": "2026-02-21T00:00:00Z",
+                  "description": "Test package without icon",
+                  "distributions": [
+                    {
+                      "filename": "NoIconPackage-1.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/no-icon-package.yak"
+                    }
+                  ],
+                  "homepage_url": "https://example.test",
+                  "keywords": ["test"],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"packages/{packageName}/owners"] = Json("""
+                [ { "id": 2, "name": "Owner Two" } ]
+                """),
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  {
+                    "created_at": "2026-02-21T00:00:00Z",
+                    "version": "1.0.0",
+                    "distributions": [
+                      {
+                        "filename": "NoIconPackage-1.0.0-rh8_0-win.yak",
+                        "platform": "win",
+                        "rhino_version": "rh8_0",
+                        "url": "https://files.example.test/no-icon-package.yak"
+                      }
+                    ],
+                    "prerelease": false
+                  }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}/{packageVersion}/_icon"] = new HttpResponseMessage(HttpStatusCode.NotFound),
+            [packageUrl] = ZipWithEntries("test.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, [], client);
+
+        var updates = await seeder.Run();
+
+        Assert.Single(updates);
+        Assert.Equal("/icons/special/default.png", updates[0].Package.IconUrl);
+    }
+
+    [Fact]
     public async Task Run_SameVersionAndDownloads_ReturnsNoUpdates()
     {
         var packageName = "NoChangePackage";
