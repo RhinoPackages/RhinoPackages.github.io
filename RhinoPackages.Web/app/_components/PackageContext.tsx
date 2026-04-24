@@ -159,7 +159,7 @@ function filter(packages: Package[], params: Params) {
   let filtered = [...packages];
 
   if (owner !== undefined) {
-    filtered = filtered.filter((p) => p.owners.map((o) => o.id).includes(owner));
+    filtered = filtered.filter((p) => p.owners.some((o) => o.id === owner));
   }
 
   if (search.length >= 3) {
