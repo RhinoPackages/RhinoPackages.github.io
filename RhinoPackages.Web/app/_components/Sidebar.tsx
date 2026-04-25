@@ -19,6 +19,7 @@ export default function Sidebar() {
 
   return (
     <form
+      role="search"
       action={() => navigate({})}
       className="sticky top-6 flex w-[12rem] flex-shrink-0 flex-col items-start gap-3"
     >
@@ -153,11 +154,6 @@ function SearchBar() {
         e.preventDefault();
         inputRef.current?.focus();
       }
-
-      // Blur on Escape if we're focused
-      if (e.key === "Escape" && document.activeElement === inputRef.current) {
-        inputRef.current?.blur();
-      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -182,6 +178,16 @@ function SearchBar() {
         placeholder="Search packages..."
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            if (localSearch) {
+              e.preventDefault();
+              clearSearch();
+            } else {
+              inputRef.current?.blur();
+            }
+          }
+        }}
         className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
       {!localSearch && (
