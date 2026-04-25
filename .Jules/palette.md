@@ -27,3 +27,7 @@
 ## 2024-05-30 - Semantically Correct Icons Improve Predictability
 **Learning:** Using an icon that signifies "opening in a new tab" (like ArrowTopRightOnSquareIcon) for an email link (`mailto:`) causes confusion, as the action actually opens a local email client. This mismatch between visual expectation and actual behavior creates a minor friction point for users.
 **Action:** Always ensure icons used for actions accurately reflect the behavior. For example, use an EnvelopeIcon for `mailto:` links to set the correct expectation that an email client will be opened.
+
+## 2024-04-25 - [Intelligent Clear for Search Inputs]
+**Learning:** For clearable search inputs, a more intuitive UX allows the `Escape` key to intelligently clear the input text first, and only blur the input on a subsequent `Escape` press. Additionally, the parent `<form>` containing the search elements should include `role="search"` to clearly convey semantic meaning to screen readers.
+**Action:** When implementing search components, attach the `Escape` key handler directly to the input's `onKeyDown` to check the input state, and ensure the wrapper has `role="search"`.
