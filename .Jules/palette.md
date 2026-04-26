@@ -31,10 +31,10 @@
 ## 2024-04-25 - [Intelligent Clear for Search Inputs]
 **Learning:** For clearable search inputs, a more intuitive UX allows the `Escape` key to intelligently clear the input text first, and only blur the input on a subsequent `Escape` press. Additionally, the parent `<form>` containing the search elements should include `role="search"` to clearly convey semantic meaning to screen readers.
 **Action:** When implementing search components, attach the `Escape` key handler directly to the input's `onKeyDown` to check the input state, and ensure the wrapper has `role="search"`.
+## 2025-04-26 - Add Esc shortcut hints for clear inputs
+**Learning:** Adding visible keyboard shortcuts (`<kbd>Esc</kbd>`) next to clear search inputs helps discoverability of implicit keyboard behaviors and improves UX for keyboard users. Adding it to the Owners filter also creates consistency.
+**Action:** When implementing clear inputs with keyboard shortcuts, always include a visual indicator like `<kbd>` to teach users about the shortcut.
+
 ## 2024-05-30 - Contextless ARIA Labels Break Screen Reader Predictability
 **Learning:** In lists of elements like packages or cards, generic ARIA labels like `aria-label="Expand package details"` or `aria-label="Copy link to package"` cause screen readers to announce repetitive, ambiguous actions when navigating. Users hear "Expand package details, button", "Expand package details, button" sequentially without knowing which specific item they are interacting with.
 **Action:** Always inject unique identifiers (such as the item's `id`, `name`, or title) into the `aria-label` or `title` attributes for interactive elements rendered within a list (e.g., `aria-label={\`Expand \${pkg.id} package details\`}`).
-
-## 2024-05-30 - Invisible Keyboard Shortcuts Reduce Usability
-**Learning:** While binding implicit keyboard shortcuts (like `Escape` to clear a search bar) improves power-user experience, these features remain completely invisible to standard users unless explicitly advertised in the UI.
-**Action:** Add visible `<kbd>` hints (e.g., `<kbd>Esc</kbd>`) next to the buttons or inside the placeholder text that trigger these shortcuts to improve discoverability and overall usability.

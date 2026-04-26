@@ -205,10 +205,10 @@ function SearchBar() {
           aria-label="Clear search (Esc)"
           className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
         >
-          <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500 sm:inline-block ml-1">
-            Esc
-          </kbd>
+          <span className="hidden items-center gap-1 sm:flex">
+            <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500">Esc</kbd>
+          </span>
+          <XMarkIcon className="h-5 w-5 sm:ml-1" aria-hidden="true" />
         </button>
       )}
     </div>
