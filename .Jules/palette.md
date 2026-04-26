@@ -31,3 +31,6 @@
 ## 2024-04-25 - [Intelligent Clear for Search Inputs]
 **Learning:** For clearable search inputs, a more intuitive UX allows the `Escape` key to intelligently clear the input text first, and only blur the input on a subsequent `Escape` press. Additionally, the parent `<form>` containing the search elements should include `role="search"` to clearly convey semantic meaning to screen readers.
 **Action:** When implementing search components, attach the `Escape` key handler directly to the input's `onKeyDown` to check the input state, and ensure the wrapper has `role="search"`.
+## 2025-04-26 - Add Esc shortcut hints for clear inputs
+**Learning:** Adding visible keyboard shortcuts (`<kbd>Esc</kbd>`) next to clear search inputs helps discoverability of implicit keyboard behaviors and improves UX for keyboard users. Adding it to the Owners filter also creates consistency.
+**Action:** When implementing clear inputs with keyboard shortcuts, always include a visual indicator like `<kbd>` to teach users about the shortcut.
