@@ -21,7 +21,7 @@ export default function Sidebar() {
     <form
       role="search"
       action={() => navigate({})}
-      className="sticky top-6 flex w-[12rem] flex-shrink-0 flex-col items-start gap-3"
+      className="sticky top-6 flex w-[14rem] flex-shrink-0 flex-col items-start gap-3"
     >
       <SearchBar />
       <OwnersControl />
