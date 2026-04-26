@@ -188,7 +188,7 @@ function SearchBar() {
             }
           }
         }}
-        className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
       {!localSearch && (
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -201,11 +201,14 @@ function SearchBar() {
         <button
           type="button"
           onClick={clearSearch}
-          title="Clear search"
-          aria-label="Clear search"
+          title="Clear search (Esc)"
+          aria-label="Clear search (Esc)"
           className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
         >
           <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500 sm:inline-block ml-1">
+            Esc
+          </kbd>
         </button>
       )}
     </div>
