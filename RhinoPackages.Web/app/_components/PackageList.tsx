@@ -251,6 +251,7 @@ const PackageCard = memo(function PackageCard({
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
+        aria-controls={`package-details-${pkg.id}`}
       >
         <div className="flex min-w-0 flex-grow gap-x-4">
           <Image
@@ -363,6 +364,7 @@ const PackageCard = memo(function PackageCard({
             aria-expanded={isExpanded}
             aria-label={isExpanded ? `Collapse ${pkg.id} details` : `Expand ${pkg.id} details`}
             title={isExpanded ? `Collapse ${pkg.id} details` : `Expand ${pkg.id} details`}
+            aria-controls={`package-details-${pkg.id}`}
             className="ml-4 flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
           >
             <ChevronDownIcon
@@ -410,6 +412,7 @@ const PackageCard = memo(function PackageCard({
 
       {/* Expanded Detail Panel */}
       <div
+        id={`package-details-${pkg.id}`}
         className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
           }`}
       >
