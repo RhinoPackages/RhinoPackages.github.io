@@ -251,6 +251,7 @@ const PackageCard = memo(function PackageCard({
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
+        aria-controls={`package-details-${pkg.id}`}
       >
         <div className="flex min-w-0 flex-grow gap-x-4">
           <Image
@@ -338,8 +339,8 @@ const PackageCard = memo(function PackageCard({
             <button
               type="button"
               onClick={handleCopyLink}
-              title={copied ? "Copied to clipboard!" : "Copy Link"}
-              aria-label={copied ? "Link copied to clipboard!" : "Copy link to package"}
+              title={copied ? "Copied to clipboard!" : `Copy link to ${pkg.id}`}
+              aria-label={copied ? "Link copied to clipboard!" : `Copy link to ${pkg.id}`}
               aria-live="polite"
               className={`mt-0.5 flex items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
                 ? "text-green-600 dark:text-green-400"
@@ -361,8 +362,9 @@ const PackageCard = memo(function PackageCard({
               onToggle();
             }}
             aria-expanded={isExpanded}
-            aria-label={isExpanded ? "Collapse package details" : "Expand package details"}
-            title={isExpanded ? "Collapse package details" : "Expand package details"}
+            aria-controls={`package-details-${pkg.id}`}
+            aria-label={isExpanded ? `Collapse details for ${pkg.id}` : `Expand details for ${pkg.id}`}
+            title={isExpanded ? `Collapse details for ${pkg.id}` : `Expand details for ${pkg.id}`}
             className="ml-4 flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
           >
             <ChevronDownIcon
@@ -410,6 +412,7 @@ const PackageCard = memo(function PackageCard({
 
       {/* Expanded Detail Panel */}
       <div
+        id={`package-details-${pkg.id}`}
         className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
           }`}
       >
