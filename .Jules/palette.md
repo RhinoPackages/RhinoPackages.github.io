@@ -34,3 +34,6 @@
 ## 2025-04-26 - Add Esc shortcut hints for clear inputs
 **Learning:** Adding visible keyboard shortcuts (`<kbd>Esc</kbd>`) next to clear search inputs helps discoverability of implicit keyboard behaviors and improves UX for keyboard users. Adding it to the Owners filter also creates consistency.
 **Action:** When implementing clear inputs with keyboard shortcuts, always include a visual indicator like `<kbd>` to teach users about the shortcut.
+## 2024-11-20 - Contextual Uniqueness for Screen Readers in Lists
+**Learning:** When rendering lists of items (like package cards), generic ARIA labels or titles on interactive elements (e.g., "Copy link to package" or "Expand package details") are highly problematic for screen reader users. When navigating through a list, these generic announcements become repetitive and provide no context about *which* specific item the button belongs to, forcing users to navigate backwards to find the item's name.
+**Action:** Always include the unique identifier or name of the item (e.g., `pkg.id`) within the `aria-label` or `title` of interactive elements inside lists to ensure specific, contextual announcements.
