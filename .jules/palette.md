@@ -1,3 +1,7 @@
 ## 2024-03-24 - Interactive Card Keyboard Bubbling Bug
 **Learning:** When making an entire card interactive with `role="button"` and `onKeyDown` handlers for Enter/Space, key presses on interactive children (like nested `<button>` tags) will bubble up to the parent card. If the parent's `onKeyDown` handler does not verify the target, focusing an inner child and pressing Enter/Space will trigger the wrapper's action (e.g., expanding the card) *in addition* to the child's action.
 **Action:** Always verify `e.target === e.currentTarget` in wrapper container `onKeyDown` handlers to prevent children from accidentally triggering parent actions.
+
+## 2024-04-29 - Functionally backing visual keyboard hints in Headless UI Comboboxes
+**Learning:** Adding a `<kbd>Esc</kbd>` visual hint to a clear button is great for UX, but it creates an explicit promise to the user. In `@headlessui/react` `<Combobox>` components, the default `Escape` behavior only closes the dropdown popover; it does not clear controlled values like selected options. If a visual hint implies it clears the input, it must be manually wired up.
+**Action:** Always verify that explicit keyboard shortcut hints are backed by actual `onKeyDown` event handlers. When using `<Combobox.Input>`, intercept the `Escape` key to manually clear the selected value, reset filtered options, and prevent the default event. Provide fallback logic to blur the input if the value is already empty.

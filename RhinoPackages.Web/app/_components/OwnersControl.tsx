@@ -39,6 +39,17 @@ export default function OwnersControl() {
             );
             setFilteredOwners(filtered);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              if (selected) {
+                e.preventDefault();
+                navigate({ owner: undefined });
+                setFilteredOwners(owners);
+              } else {
+                inputRef.current?.blur();
+              }
+            }
+          }}
         />
         {selected && (
           <button
