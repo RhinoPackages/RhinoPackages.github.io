@@ -35,9 +35,11 @@ export default function PackageList() {
           <p className="text-sm text-gray-500 dark:text-zinc-400" aria-live="polite" aria-atomic="true">
             {status.isLoading
               ? "Loading packages..."
-              : packages.length === 0
-                ? "No packages found matching your criteria."
-                : `Showing page ${controls.page + 1}`}
+              : status.isError
+                ? "Failed to load packages."
+                : packages.length === 0
+                  ? "No packages found matching your criteria."
+                  : `Showing page ${controls.page + 1}`}
           </p>
         </div>
         <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
@@ -56,7 +58,20 @@ export default function PackageList() {
         </div>
       </div>
 
-      {packages.length === 0 && !status.isLoading && status.isIdle ? (
+      {packages.length === 0 && status.isLoading ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-zinc-700 dark:bg-zinc-900/40" aria-live="polite" aria-busy="true">
+          <Spinner />
+          <p className="mt-4 text-sm font-medium text-gray-500 dark:text-zinc-400">Loading directory data...</p>
+        </div>
+      ) : packages.length === 0 && status.isError ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-300 bg-red-50 p-12 text-center dark:border-red-900/50 dark:bg-red-950/20" role="alert" aria-live="assertive">
+          <svg className="mx-auto h-12 w-12 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 className="mt-4 text-sm font-semibold text-red-800 dark:text-red-300">Error loading packages</h3>
+          <p className="mt-1 text-sm text-red-700 dark:text-red-400">{status.message}</p>
+        </div>
+      ) : packages.length === 0 && status.isIdle ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
           <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
           <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">No packages found</h3>
