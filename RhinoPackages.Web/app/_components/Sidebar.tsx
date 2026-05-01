@@ -63,10 +63,6 @@ export default function Sidebar() {
         Version Archive
         <span className="sr-only"> (opens in a new tab)</span>
       </a>
-      <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
-        {status.isLoading && <Spinner />}
-        {status.isError && <p role="alert" aria-live="assertive" className="text-center text-red-500 dark:text-red-400">{status.message}</p>}
-      </div>
     </form>
   );
 }

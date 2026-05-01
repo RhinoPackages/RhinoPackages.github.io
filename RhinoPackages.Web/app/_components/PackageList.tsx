@@ -29,9 +29,13 @@ export default function PackageList() {
       {/* Stats Banner / Header */}
       <div className="mt-4 mb-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
-            Packages Directory
-          </h2>
+          <div className="flex min-h-[2.5rem] items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
+              Packages Directory
+            </h2>
+            {status.isLoading && <Spinner />}
+            {status.isError && <p role="alert" aria-live="assertive" className="text-sm text-red-500 dark:text-red-400">{status.message}</p>}
+          </div>
           <p className="text-sm text-gray-500 dark:text-zinc-400" aria-live="polite" aria-atomic="true">
             {status.isLoading
               ? "Loading packages..."
