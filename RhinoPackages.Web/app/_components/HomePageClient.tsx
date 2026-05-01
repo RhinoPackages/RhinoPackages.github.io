@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/20/solid";
 import { PackageProvider } from "./PackageContext";
 import PackageList from "./PackageList";
@@ -29,6 +29,16 @@ function ToggleMenu() {
   const [open, setOpen] = useState(false);
   const Icon = open ? XMarkIcon : Bars3Icon;
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   return (
     <div className="relative mt-4 flex w-full flex-col">
       <button
@@ -42,9 +52,16 @@ function ToggleMenu() {
         <Icon className="h-8 w-8 text-gray-400" aria-hidden="true" />
       </button>
       {open && (
-        <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 pt-10 shadow dark:border-zinc-800 dark:bg-zinc-950">
-          <Sidebar />
-        </div>
+        <>
+          <div
+            className="fixed inset-0 z-[5] bg-black/20 backdrop-blur-sm transition-opacity"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 pt-10 shadow dark:border-zinc-800 dark:bg-zinc-950">
+            <Sidebar />
+          </div>
+        </>
       )}
       <PackageList />
     </div>
