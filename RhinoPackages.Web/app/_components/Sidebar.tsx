@@ -5,7 +5,6 @@ import { BarsArrowDownIcon, MagnifyingGlassIcon } from "@heroicons/react/24/soli
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Filters } from "@/app/_components/api";
 import { defaultParams, usePackageContext } from "./PackageContext";
-import Spinner from "./Spinner";
 import OwnersControl from "./OwnersControl";
 
 export default function Sidebar() {
@@ -63,10 +62,11 @@ export default function Sidebar() {
         Version Archive
         <span className="sr-only"> (opens in a new tab)</span>
       </a>
-      <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
-        {status.isLoading && <Spinner />}
-        {status.isError && <p role="alert" aria-live="assertive" className="text-center text-red-500 dark:text-red-400">{status.message}</p>}
-      </div>
+      {status.isError && (
+        <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
+          <p role="alert" aria-live="assertive" className="text-center text-red-500 dark:text-red-400">{status.message}</p>
+        </div>
+      )}
     </form>
   );
 }
