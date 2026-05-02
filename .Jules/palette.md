@@ -6,3 +6,7 @@
 ## 2024-05-01 - [Improve Mobile Menu UX and Accessibility]
 **Learning:** Custom overlay components like mobile dropdowns or bottom sheets that open over the main content should not rely solely on an explicit 'close' button. Providing a backdrop that users can click to dismiss, along with an `Escape` key listener, significantly improves accessibility and meets standard UX expectations for modals and popovers.
 **Action:** When building custom overlay UI elements (like mobile menus), always include a `fixed` backdrop overlay that triggers a close action `onClick`, and attach a `keydown` listener to the document to handle `Escape` key dismissal.
+
+## 2024-05-02 - [Fix Nested Interactive Elements in Cards]
+**Learning:** When building clickable card components that contain other interactive elements (like links, author buttons, or expand/collapse chevrons), adding `role="button"` and `tabIndex={0}` to the outer card wrapper creates an invalid DOM structure (nested interactive elements) which breaks screen reader navigation and keyboard focus behavior.
+**Action:** Remove `role="button"`, `tabIndex`, and global keyboard listeners from the outer card wrapper. Keep `onClick` on the wrapper for mouse users, but provide a semantic `<button>` inside the card (such as the card's title) with proper ARIA attributes to act as the primary accessible focus target for the card's main action.

@@ -259,20 +259,8 @@ const PackageCard = memo(function PackageCard({
         } p-4`}
     >
       <div
-        className="mb-2 flex cursor-pointer flex-col gap-2 rounded-lg transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 md:flex-row md:gap-0 dark:focus-visible:ring-brand-400"
+        className="mb-2 flex cursor-pointer flex-col gap-2 rounded-lg transition-shadow md:flex-row md:gap-0"
         onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            if (e.target === e.currentTarget) {
-              e.preventDefault();
-              onToggle();
-            }
-          }
-        }}
-        role="button"
-        tabIndex={0}
-        aria-expanded={isExpanded}
-        aria-controls={`package-details-${pkg.id}`}
       >
         <div className="flex min-w-0 flex-grow gap-x-4">
           <Image
@@ -284,9 +272,18 @@ const PackageCard = memo(function PackageCard({
           />
           <div className="flex min-w-0 flex-col">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <span className="break-long-words text-lg font-bold text-gray-900 dark:text-zinc-100">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggle();
+                }}
+                aria-expanded={isExpanded}
+                aria-controls={`package-details-${pkg.id}`}
+                className="break-long-words rounded-sm text-left text-lg font-bold text-gray-900 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
+              >
                 {pkg.id}
-              </span>
+              </button>
               {pkg.prerelease && (
                 <span
                   title="Work in progress (Pre-release)"
