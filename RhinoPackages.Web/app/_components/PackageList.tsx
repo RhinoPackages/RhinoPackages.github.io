@@ -80,9 +80,11 @@ export default function PackageList() {
       ) : packages.length === 0 && status.isIdle ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
           <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-          <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">No packages found</h3>
+          <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">
+            {controls.search ? `No results for "${controls.search}"` : "No packages found"}
+          </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-            Try adjusting your search or filters to find what you&apos;re looking for.
+            {controls.search ? "Check for typos or try adjusting your search and filters." : "Try adjusting your search or filters to find what you're looking for."}
           </p>
           <div className="mt-6">
             <button
