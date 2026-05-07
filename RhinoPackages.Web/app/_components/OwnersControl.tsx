@@ -7,6 +7,7 @@ import { usePackageContext } from "./PackageContext";
 export default function OwnersControl() {
   const { controls, owners, navigate } = usePackageContext();
   const [filteredOwners, setFilteredOwners] = useState(owners);
+  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = useMemo(() => {
@@ -33,9 +34,10 @@ export default function OwnersControl() {
           displayValue={(person: Owner | null) => person?.name ?? ""}
           onFocus={() => setFilteredOwners(owners)}
           onChange={(event) => {
-            const query = event.target.value;
+            const val = event.target.value;
+            setQuery(val);
             const filtered = owners.filter((owner) =>
-              owner.name.toLowerCase().includes(query.toLowerCase()),
+              owner.name.toLowerCase().includes(val.toLowerCase()),
             );
             setFilteredOwners(filtered);
           }}
@@ -46,6 +48,7 @@ export default function OwnersControl() {
                 e.preventDefault();
                 navigate({ owner: undefined });
                 setFilteredOwners(owners);
+                setQuery("");
                 if (inputRef.current) {
                   inputRef.current.value = "";
                 }
@@ -63,6 +66,7 @@ export default function OwnersControl() {
               e.preventDefault();
               navigate({ owner: undefined });
               setFilteredOwners(owners);
+              setQuery("");
               inputRef.current?.focus();
             }}
             title="Clear author filter"
@@ -86,7 +90,7 @@ export default function OwnersControl() {
         <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-zinc-800 dark:ring-white/10">
           {filteredOwners.length === 0 ? (
             <div className="relative cursor-default select-none px-3 py-2 text-gray-500 dark:text-zinc-400">
-              No authors found.
+              {query ? `No authors found for "${query}".` : "No authors found."}
             </div>
           ) : (
             filteredOwners.map((person) => (
