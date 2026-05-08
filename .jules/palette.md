@@ -11,3 +11,7 @@
 ## 2025-05-07 - Dynamic Empty State with Query
 **Learning:** Empty states without specific context leave the user guessing if their search failed or if the app is broken. Showing the user query inside the empty state builds confidence and improves micro-UX.
 **Action:** When a user queries a list and no results are found, conditionally display the exact search term back to them in the empty state (e.g., No results for "term") with helpful text about checking for typos.
+
+## 2026-05-08 - Explicit Async Empty States
+**Learning:** Failing to handle all async states (`isLoading`, `isError`, `isIdle`) in the main content area can lead to confusing blank screens during data fetching. The error state in peripheral components (like the sidebar) is not prominent enough for main content failures.
+**Action:** When a main list relies on asynchronous fetching, explicitly render full-sized loading and error empty states in the content area instead of leaving it blank.
