@@ -1,3 +1,6 @@
 ## 2026-04-21 - Enhance Version History Loading Accessibility
 **Learning:** When asynchronously loading sub-components like the version history table within an expanded item (e.g. `PackageCard`), simply displaying a `<Spinner />` is not sufficient for screen reader users. The loading container must be explicitly marked with `aria-live="polite"` and `aria-atomic="true"` to announce the loading state and subsequent completion. Without this, the expanded state is announced, but the delayed content injection is missed by assistive technologies.
 **Action:** Always wrap conditionally rendered async content spinners with an `aria-live="polite"` container to ensure state updates are announced.
+## 2026-05-09 - Added Label to Search Input
+**Learning:** The `SearchBar` input had an `aria-label` for screen readers, but was missing an explicit visually hidden `<label>`. In addition, `page.get_by_role('searchbox')` was previously unreliable in testing because `type="text"` doesn't automatically confer the `searchbox` role, but using `type="search"` introduces native browser clear inputs that conflict with our custom UI.
+**Action:** Adding an explicit `<label>` with `htmlFor` and adding `role="searchbox"` to `type="text"` inputs provides robust semantic meaning for both testing and assistive technologies without compromising visual design.

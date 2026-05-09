@@ -168,12 +168,17 @@ function SearchBar() {
 
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
+      <label htmlFor="search-packages" className="sr-only">
+        Search packages
+      </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
       </div>
       <input
+        id="search-packages"
         ref={inputRef}
         type="text"
+        role="searchbox"
         aria-label="Search packages (Press / to focus)"
         placeholder="Search packages..."
         value={localSearch}
