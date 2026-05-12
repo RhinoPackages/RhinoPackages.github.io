@@ -6,6 +6,7 @@ import Spinner from "./_components/Spinner";
 import { ThemeProvider } from "./_components/ThemeProvider";
 import { ThemeToggle } from "./_components/ThemeToggle";
 import ContributorsBubbles from "./_components/ContributorsBubbles";
+import ScrollToTop from "./_components/ScrollToTop";
 
 import Image from "next/image";
 
@@ -169,6 +170,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ContributorsBubbles />
             </footer>
           </main>
+          <ScrollToTop />
         </ThemeProvider>
       </body>
     </html>

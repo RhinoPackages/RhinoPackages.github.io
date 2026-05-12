@@ -15,3 +15,6 @@
 ## 2026-05-08 - Explicit Async Empty States
 **Learning:** Failing to handle all async states (`isLoading`, `isError`, `isIdle`) in the main content area can lead to confusing blank screens during data fetching. The error state in peripheral components (like the sidebar) is not prominent enough for main content failures.
 **Action:** When a main list relies on asynchronous fetching, explicitly render full-sized loading and error empty states in the content area instead of leaving it blank.
+## 2024-05-13 - Scroll to top for infinite lists
+**Learning:** For pages with infinite scrolling or very long lists (like the main package list), users can easily get lost or find it tedious to scroll back up to the top navigation/search bar.
+**Action:** Implement a floating "Scroll to Top" button that dynamically appears when the user scrolls down, using passive event listeners for performance and proper accessibility attributes for screen readers.
