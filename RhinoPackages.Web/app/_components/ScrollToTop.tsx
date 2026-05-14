@@ -26,6 +26,10 @@ export default function ScrollToTop() {
       top: 0,
       behavior: "smooth",
     });
+
+    // Proactively restore focus to main content to prevent focus drop
+    // when the scroll to top button becomes invisible and is removed from a11y tree.
+    document.getElementById("main-content")?.focus({ preventScroll: true });
   };
 
   return (
