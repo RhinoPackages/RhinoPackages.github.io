@@ -18,3 +18,7 @@
 ## 2024-05-13 - Scroll to top for infinite lists
 **Learning:** For pages with infinite scrolling or very long lists (like the main package list), users can easily get lost or find it tedious to scroll back up to the top navigation/search bar.
 **Action:** Implement a floating "Scroll to Top" button that dynamically appears when the user scrolls down, using passive event listeners for performance and proper accessibility attributes for screen readers.
+
+## 2026-05-17 - Adding Tooltips to Native Selects and Inputs
+**Learning:** While `aria-label` effectively conveys the purpose of an input or select element to screen reader users, sighted mouse users do not benefit from this invisible metadata. Elements lacking an explicit, visible label can leave users guessing their exact function, particularly native `<select>` dropdowns or text inputs with icons.
+**Action:** Consistently add `title` attributes matching the `aria-label` or visible label to native form controls (like `select`, `input`, and `Combobox.Input`) that lack dedicated, adjacent text labels, providing sighted users with helpful hover tooltips.

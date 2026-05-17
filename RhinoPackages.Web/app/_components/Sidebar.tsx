@@ -185,6 +185,7 @@ function SearchBar() {
         type="text"
         role="searchbox"
         aria-label="Search packages (Press / to focus)"
+        title="Search packages (Press / to focus)"
         placeholder="Search packages..."
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
@@ -235,6 +236,7 @@ function Sort() {
       </div>
       <select
         aria-label="Sort packages by"
+        title="Sort packages by"
         className="w-full rounded-md border-0 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
         value={controls.sort}
         onChange={(e) => navigate({ sort: Number(e.target.value) })}
