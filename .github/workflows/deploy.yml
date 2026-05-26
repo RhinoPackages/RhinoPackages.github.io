@@ -76,7 +76,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }} # Use PR head for pull requests, main otherwise
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref_name }} # Use PR head for pull requests, triggering ref otherwise
           fetch-depth: 0 # Required so github.event.before exists for git diff
 
       - name: Detect structural changes for release
