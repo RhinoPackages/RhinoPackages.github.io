@@ -22,3 +22,18 @@
 ## 2026-05-17 - Adding Tooltips to Native Selects and Inputs
 **Learning:** While `aria-label` effectively conveys the purpose of an input or select element to screen reader users, sighted mouse users do not benefit from this invisible metadata. Elements lacking an explicit, visible label can leave users guessing their exact function, particularly native `<select>` dropdowns or text inputs with icons.
 **Action:** Consistently add `title` attributes matching the `aria-label` or visible label to native form controls (like `select`, `input`, and `Combobox.Input`) that lack dedicated, adjacent text labels, providing sighted users with helpful hover tooltips.
+
+## 2024-04-29 - [Fix Escape key interaction in Headless UI Combobox]
+**Learning:** The `@headlessui/react` `<Combobox>` handles the `Escape` key by closing the popover or clearing the raw input text, but it does not clear the controlled `value` (e.g. the selected object). This creates an inconsistent experience where the user expects `Escape` to clear their selection, similar to a standard clearable search input.
+**Action:** When creating custom clearable fields inside `@headlessui/react` Combobox components, explicitly attach an `onKeyDown` handler to the `<Combobox.Input>` to listen for `Escape`. Implement a "smart escape" pattern: if a value is selected or text is present, `Escape` clears the value; if the input is empty and nothing is selected, a subsequent `Escape` blurs the input.
+
+## 2024-05-01 - [Improve Mobile Menu UX and Accessibility]
+**Learning:** Custom overlay components like mobile dropdowns or bottom sheets that open over the main content should not rely solely on an explicit 'close' button. Providing a backdrop that users can click to dismiss, along with an `Escape` key listener, significantly improves accessibility and meets standard UX expectations for modals and popovers.
+**Action:** When building custom overlay UI elements (like mobile menus), always include a `fixed` backdrop overlay that triggers a close action `onClick`, and attach a `keydown` listener to the document to handle `Escape` key dismissal.
+
+## 2024-05-02 - [Fix Nested Interactive Elements in Cards]
+**Learning:** When building clickable card components that contain other interactive elements (like links, author buttons, or expand/collapse chevrons), adding `role="button"` and `tabIndex={0}` to the outer card wrapper creates an invalid DOM structure (nested interactive elements) which breaks screen reader navigation and keyboard focus behavior.
+**Action:** Remove `role="button"`, `tabIndex`, and global keyboard listeners from the outer card wrapper. Keep `onClick` on the wrapper for mouse users, but provide a semantic `<button>` inside the card (such as the card's title) with proper ARIA attributes to act as the primary accessible focus target for the card's main action.
+## 2025-05-14 - Prevent Focus Drops on State Changes
+**Learning:** Components that trigger state changes making them inactive or invisible (like a "Reset" button disabling itself, or a "Scroll to Top" button becoming visually hidden via `invisible` utility) cause the active focus to completely drop to the document body when they are unmounted, hidden, or natively disabled. This disrupts the keyboard navigation flow.
+**Action:** Use `aria-disabled="true"` with early handler returns instead of the native `disabled` attribute to maintain semantic inactive state while preserving focus. For elements that genuinely disappear, proactively restore focus to a logically adjacent or primary element (like `document.getElementById('main-content')?.focus()`) before the element is removed from the accessibility tree.
