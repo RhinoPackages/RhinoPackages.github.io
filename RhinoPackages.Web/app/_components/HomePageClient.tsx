@@ -58,7 +58,7 @@ function ToggleMenu() {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 pt-10 shadow dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 py-10 shadow dark:border-zinc-800 dark:bg-zinc-950">
             <Sidebar />
           </div>
         </>
