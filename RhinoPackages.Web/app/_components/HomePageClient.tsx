@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/20/solid";
 import { PackageProvider } from "./PackageContext";
 import PackageList from "./PackageList";
@@ -27,12 +27,14 @@ export default function HomePageClient({ initialCache = [] }: { initialCache?: P
 
 function ToggleMenu() {
   const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const Icon = open ? XMarkIcon : Bars3Icon;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && open) {
         setOpen(false);
+        buttonRef.current?.focus();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -43,6 +45,7 @@ function ToggleMenu() {
     <div className="relative mt-4 flex w-full flex-col">
       <button
         type="button"
+        ref={buttonRef}
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label={open ? "Close filters" : "Open filters"}
@@ -55,7 +58,10 @@ function ToggleMenu() {
         <>
           <div
             className="fixed inset-0 z-[5] bg-black/20 backdrop-blur-sm transition-opacity"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              buttonRef.current?.focus();
+            }}
             aria-hidden="true"
           />
           <div className="absolute -left-1 -top-1 z-10 border border-gray-200 bg-white px-8 py-10 shadow dark:border-zinc-800 dark:bg-zinc-950">

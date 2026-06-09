@@ -156,8 +156,14 @@ function SearchBar() {
         e.key === "/" &&
         !["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)
       ) {
-        e.preventDefault();
-        inputRef.current?.focus();
+        if (
+          inputRef.current &&
+          inputRef.current.offsetWidth > 0 &&
+          window.getComputedStyle(inputRef.current).display !== 'none'
+        ) {
+          e.preventDefault();
+          inputRef.current.focus();
+        }
       }
     };
 
@@ -231,10 +237,14 @@ function Sort() {
 
   return (
     <div className="relative mt-1 flex w-full flex-col">
+      <label htmlFor="sort-packages" className="sr-only">
+        Sort packages by
+      </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
         <BarsArrowDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
       </div>
       <select
+        id="sort-packages"
         aria-label="Sort packages by"
         title="Sort packages by"
         className="w-full rounded-md border-0 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
