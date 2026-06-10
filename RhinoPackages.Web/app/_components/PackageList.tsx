@@ -25,6 +25,12 @@ export default function PackageList() {
 
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
+  const hasFilters =
+    controls.filters !== defaultParams.filters ||
+    controls.search !== defaultParams.search ||
+    controls.owner !== defaultParams.owner ||
+    controls.sort !== defaultParams.sort;
+
   return (
     <div className="flex min-w-0 w-full flex-col">
       {/* Stats Banner / Header */}
@@ -86,15 +92,17 @@ export default function PackageList() {
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
             {controls.search ? "Check for typos or try adjusting your search and filters." : "Try adjusting your search or filters to find what you're looking for."}
           </p>
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={() => navigate(defaultParams)}
-              className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
-            >
-              Clear all filters
-            </button>
-          </div>
+          {hasFilters && (
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => navigate(defaultParams)}
+                className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <ul role="list" className="flex flex-grow flex-col gap-5">
@@ -304,18 +312,20 @@ const PackageCard = memo(function PackageCard({
                 <UserIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
                 <span className="sr-only">Authors: </span>
                 {pkg.owners.map((owner, i) => (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate({ owner: owner.id });
-                    }}
-                    key={owner.id}
-                    title={`Filter by author: ${owner.name}`}
-                    aria-label={`Filter by author: ${owner.name}`}
-                    className="text-xs text-gray-600 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 rounded-sm"
-                  >
-                    {owner.name}{i < pkg.owners.length - 1 ? "," : ""}
-                  </button>
+                  <span key={owner.id} className="text-xs text-gray-600 dark:text-zinc-400">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate({ owner: owner.id });
+                      }}
+                      title={`Filter by author: ${owner.name}`}
+                      aria-label={`Filter by author: ${owner.name}`}
+                      className="transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 rounded-sm"
+                    >
+                      {owner.name}
+                    </button>
+                    {i < pkg.owners.length - 1 ? "," : ""}
+                  </span>
                 ))}
               </div>
             </div>
