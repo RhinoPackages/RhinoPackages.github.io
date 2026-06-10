@@ -37,3 +37,9 @@
 ## 2025-05-14 - Prevent Focus Drops on State Changes
 **Learning:** Components that trigger state changes making them inactive or invisible (like a "Reset" button disabling itself, or a "Scroll to Top" button becoming visually hidden via `invisible` utility) cause the active focus to completely drop to the document body when they are unmounted, hidden, or natively disabled. This disrupts the keyboard navigation flow.
 **Action:** Use `aria-disabled="true"` with early handler returns instead of the native `disabled` attribute to maintain semantic inactive state while preserving focus. For elements that genuinely disappear, proactively restore focus to a logically adjacent or primary element (like `document.getElementById('main-content')?.focus()`) before the element is removed from the accessibility tree.
+
+## 2024-06-10 - Fix Author Commas & Empty State Reset
+
+**Learning:** When generating a list of inline interactive elements (like a list of authors as links or buttons), placing the separating punctuation (e.g. commas) inside the button element expands the focus ring, hover state, and accessible name inappropriately. Furthermore, offering a "Clear filters" button when a dataset is natively empty (no filters applied) is a confusing, dead-end action.
+
+**Action:** Extract punctuation outside interactive elements, and conditionally render reset CTAs only when the state represents an actively filtered subset of data.
