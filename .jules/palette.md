@@ -43,3 +43,7 @@
 **Learning:** When generating a list of inline interactive elements (like a list of authors as links or buttons), placing the separating punctuation (e.g. commas) inside the button element expands the focus ring, hover state, and accessible name inappropriately. Furthermore, offering a "Clear filters" button when a dataset is natively empty (no filters applied) is a confusing, dead-end action.
 
 **Action:** Extract punctuation outside interactive elements, and conditionally render reset CTAs only when the state represents an actively filtered subset of data.
+
+## 2024-05-20 - Disable Spellcheck and Autocomplete on Custom Search Inputs
+**Learning:** Native browser features like spellcheck (red wavy underlines) and autocomplete (browser-provided dropdown histories) can interfere visually and functionally with custom search fields and comboboxes. This is particularly problematic for fields expecting proper nouns (like package names or author names), where almost every query will trigger a false positive spellcheck error.
+**Action:** Always add `spellCheck={false}` and `autoComplete="off"` to custom search text inputs and Headless UI Combobox inputs to prevent browser UI from clashing with the application's intended design and to avoid distracting the user with irrelevant spellcheck warnings for proper nouns.

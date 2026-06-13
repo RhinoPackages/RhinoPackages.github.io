@@ -190,6 +190,8 @@ function SearchBar() {
         ref={inputRef}
         type="text"
         role="searchbox"
+        spellCheck={false}
+        autoComplete="off"
         aria-label="Search packages (Press / to focus)"
         title="Search packages (Press / to focus)"
         placeholder="Search packages..."
