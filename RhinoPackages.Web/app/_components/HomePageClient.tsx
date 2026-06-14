@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/20/solid";
-import { PackageProvider } from "./PackageContext";
+import { PackageProvider, usePackageContext, defaultParams } from "./PackageContext";
 import PackageList from "./PackageList";
 import Sidebar from "./Sidebar";
 import type { Package } from "./api";
@@ -29,6 +29,13 @@ function ToggleMenu() {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const Icon = open ? XMarkIcon : Bars3Icon;
+  const { controls } = usePackageContext();
+
+  const hasFilters =
+    controls.filters !== defaultParams.filters ||
+    controls.search !== defaultParams.search ||
+    controls.owner !== defaultParams.owner ||
+    controls.sort !== defaultParams.sort;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,11 +55,14 @@ function ToggleMenu() {
         ref={buttonRef}
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        aria-label={open ? "Close filters" : "Open filters"}
-        title={open ? "Close filters" : "Open filters"}
-        className="z-20 self-start rounded-md p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
+        aria-label={open ? "Close filters" : (hasFilters ? "Open filters (active filters applied)" : "Open filters")}
+        title={open ? "Close filters" : (hasFilters ? "Open filters (active filters applied)" : "Open filters")}
+        className="z-20 relative self-start rounded-md p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
       >
         <Icon className="h-8 w-8 text-gray-400" aria-hidden="true" />
+        {!open && hasFilters && (
+          <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-brand-500 ring-2 ring-white dark:ring-zinc-950" />
+        )}
       </button>
       {open && (
         <>
