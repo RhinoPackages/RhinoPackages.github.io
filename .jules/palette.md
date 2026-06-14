@@ -47,3 +47,6 @@
 ## 2024-05-20 - Disable Spellcheck and Autocomplete on Custom Search Inputs
 **Learning:** Native browser features like spellcheck (red wavy underlines) and autocomplete (browser-provided dropdown histories) can interfere visually and functionally with custom search fields and comboboxes. This is particularly problematic for fields expecting proper nouns (like package names or author names), where almost every query will trigger a false positive spellcheck error.
 **Action:** Always add `spellCheck={false}` and `autoComplete="off"` to custom search text inputs and Headless UI Combobox inputs to prevent browser UI from clashing with the application's intended design and to avoid distracting the user with irrelevant spellcheck warnings for proper nouns.
+## 2024-05-18 - Improve Mobile Filter Discoverability
+**Learning:** Mobile users often forget or are unaware of active filters when the filter menu is closed, leading to confusion about why data is missing or restricted. Additionally, screen readers need to be explicitly informed of this background filter state.
+**Action:** When hiding a filter panel behind a mobile toggle (like a hamburger menu), add a visual indicator (such as a dot) to the toggle button and update its `aria-label` to announce "active filters applied" when filters differ from the default state.
