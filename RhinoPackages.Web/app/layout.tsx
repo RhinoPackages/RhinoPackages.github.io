@@ -19,9 +19,10 @@ const structuredData = {
       "@type": "WebSite",
       "@id": `${siteUrl}/#website`,
       name: "Rhino Packages",
+      alternateName: ["RhinoPackages", "Rhino Plugin Directory", "Grasshopper Plugin Directory"],
       url: `${siteUrl}/`,
       description:
-        "Browse, search, and install Rhino 3D and Grasshopper plugins. Discover trending packages, filter by platform, version, and type.",
+        "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse, search, and install over 1,000 packages from the Yak package manager. Filter by platform, Rhino version, and plugin type.",
       inLanguage: "en-US",
       publisher: {
         "@id": `${siteUrl}/#organization`,
@@ -46,6 +47,73 @@ const structuredData = {
       },
       sameAs: ["https://github.com/RhinoPackages/RhinoPackages.github.io"],
     },
+    {
+      "@type": "CollectionPage",
+      "@id": `${siteUrl}/#collection`,
+      name: "Rhino 3D and Grasshopper Plugin Directory",
+      description: "Complete catalog of Rhino 3D plugins and Grasshopper add-ons available through the Yak package manager, with version history, platform compatibility, and direct install links.",
+      url: `${siteUrl}/`,
+      isPartOf: { "@id": `${siteUrl}/#website` },
+      about: {
+        "@type": "SoftwareApplication",
+        name: "Rhinoceros 3D",
+        applicationCategory: "DesignApplication",
+        operatingSystem: "Windows, macOS",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is Rhino Packages?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Rhino Packages is the most comprehensive directory of Rhino 3D and Grasshopper plugins. It indexes over 1,000 packages from the Yak package manager with search, filtering, version history, and one-click install links.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do I install a Rhino plugin from this directory?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Click the 'Install' button on any package card. This opens a rhino:// protocol link that launches Rhino's built-in Package Manager and installs the plugin directly. You can also use the _PackageManager command inside Rhino.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What is the difference between a Rhino plugin and a Grasshopper plugin?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Rhino plugins (.rhp) add commands and features directly to Rhinoceros 3D. Grasshopper plugins (.gha) add components to Grasshopper, Rhino's visual programming environment for parametric and computational design. Many packages include both.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Which Rhino versions are supported?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Packages in this directory support Rhino 6, Rhino 7, and Rhino 8. You can filter by version to find plugins compatible with your installation. Most actively maintained plugins support Rhino 7 and 8.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Are these plugins available for Mac?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Many plugins support both Windows and macOS. Use the platform filter to find Mac-compatible packages. Platform support depends on the individual plugin author.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How often is the plugin directory updated?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "The directory is updated daily via automated GitHub Actions that sync with the official Yak package manager feed. New plugins and version updates appear within 24 hours of publication.",
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -55,20 +123,33 @@ export const metadata: Metadata = {
     template: "%s | Rhino Packages",
   },
   description:
-    "Browse, search, and install Rhino 3D and Grasshopper plugins. Discover trending packages, filter by platform, version, and type. The most comprehensive Rhino package directory.",
+    "Browse, search, and install over 1,000 Rhino 3D and Grasshopper plugins. The most comprehensive Rhino plugin directory — filter by platform, Rhino version, and type. Updated daily from the Yak package manager.",
   keywords: [
-    "Rhino 3D",
-    "Grasshopper",
-    "Rhino plugins",
+    "Rhino 3D plugins",
     "Grasshopper plugins",
     "Rhino packages",
+    "Grasshopper add-ons",
     "Yak package manager",
-    "Rhino 8",
-    "Rhino 7",
-    "computational design",
-    "parametric design",
+    "Rhino 8 plugins",
+    "Rhino 7 plugins",
+    "Rhino plugin download",
+    "Grasshopper components",
+    "Rhino extensions",
+    "computational design tools",
+    "parametric design plugins",
     "3D modeling plugins",
-    "AEC software",
+    "AEC software plugins",
+    "Rhino architecture plugins",
+    "Grasshopper scripts",
+    "Rhino plugin directory",
+    "Rhino add-ons",
+    "Rhinoceros 3D plugins",
+    "Rhino package manager",
+    "install Rhino plugin",
+    "best Rhino plugins",
+    "free Rhino plugins",
+    "Grasshopper definition",
+    "Rhino 3D tools",
   ],
   authors: [{ name: "RhinoPackages" }],
   creator: "RhinoPackages",
@@ -79,23 +160,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: "Rhino Packages",
-    title: "Rhino Packages — Browse & Install Rhino 3D Plugins",
+    title: "Rhino Packages — Browse & Install 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
-      "Browse, search, and install Rhino 3D and Grasshopper plugins. Discover trending packages, filter by platform, version, and type.",
+      "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse over 1,000 packages, filter by platform and version, install with one click.",
     images: [
       {
         url: "/logo.png",
         width: 512,
         height: 512,
-        alt: "Rhino Packages Logo",
+        alt: "Rhino Packages — Rhino 3D and Grasshopper Plugin Directory",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "Rhino Packages — Browse & Install Rhino 3D Plugins",
+    title: "Rhino Packages — 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
-      "Browse, search, and install Rhino 3D and Grasshopper plugins. The most comprehensive Rhino package directory.",
+      "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Search, filter, and install from the Yak package manager.",
     images: ["/logo.png"],
   },
   robots: {
