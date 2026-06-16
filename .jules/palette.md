@@ -50,3 +50,6 @@
 ## 2024-05-18 - Improve Mobile Filter Discoverability
 **Learning:** Mobile users often forget or are unaware of active filters when the filter menu is closed, leading to confusion about why data is missing or restricted. Additionally, screen readers need to be explicitly informed of this background filter state.
 **Action:** When hiding a filter panel behind a mobile toggle (like a hamburger menu), add a visual indicator (such as a dot) to the toggle button and update its `aria-label` to announce "active filters applied" when filters differ from the default state.
+## 2024-05-22 - Infinite Scroll Context & Focus Drop Fix
+**Learning:** For infinite scroll lists, announcing "Showing page X" to screen reader users lacks necessary context, as the list continually grows. Providing the visible items count against the total filtered count is significantly more helpful. Furthermore, when empty states containing "Clear all filters" buttons resolve (and the button unmounts), keyboard users suffer a focus drop to the document body.
+**Action:** Expose the total filtered count from the context to update the `aria-live` region to say "Showing X of Y packages". When resolving empty states via "Clear all filters" actions, explicitly restore focus to the primary container (e.g. `#main-content`) before the button unmounts.
