@@ -28,6 +28,7 @@ export const defaultParams: Params = {
 
 interface PackageContext {
   packages: Package[];
+  filteredCount: number;
   owners: Owner[];
   status: Status;
   controls: Params;
@@ -111,7 +112,7 @@ export function PackageProvider({
     return scores;
   }, [cache]);
 
-  const packages = useMemo(() => {
+  const { visiblePackages: packages, totalFiltered: filteredCount } = useMemo(() => {
     return filter(cache ?? [], params, trendingScores);
   }, [cache, params, trendingScores]);
 
@@ -150,6 +151,7 @@ export function PackageProvider({
     <PackageContext.Provider
       value={{
         packages,
+        filteredCount,
         owners,
         status,
         controls,
@@ -195,7 +197,10 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
     filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
 
-  return filtered.slice(0, (page + 1) * pageResults);
+  return {
+    visiblePackages: filtered.slice(0, (page + 1) * pageResults),
+    totalFiltered: filtered.length,
+  };
 }
 
 import { ReadonlyURLSearchParams } from "next/navigation";

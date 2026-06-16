@@ -19,7 +19,7 @@ import { Params, usePackageContext, defaultParams } from "./PackageContext";
 import Spinner from "./Spinner";
 
 export default function PackageList() {
-  const { controls, packages, navigate, stats, status } = usePackageContext();
+  const { controls, packages, filteredCount, navigate, stats, status } = usePackageContext();
   const expandedId = controls.p ?? null;
   const showHeaderLoading = status.isLoading && packages.length > 0;
 
@@ -51,7 +51,7 @@ export default function PackageList() {
                 ? "Failed to load packages."
                 : packages.length === 0
                   ? "No packages found matching your criteria."
-                  : `Showing page ${controls.page + 1}`}
+                  : `Showing ${packages.length} of ${filteredCount} packages`}
           </p>
         </div>
         <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
@@ -96,7 +96,10 @@ export default function PackageList() {
             <div className="mt-6">
               <button
                 type="button"
-                onClick={() => navigate(defaultParams)}
+                onClick={() => {
+                  navigate(defaultParams);
+                  document.getElementById("main-content")?.focus({ preventScroll: true });
+                }}
                 className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
               >
                 Clear all filters
