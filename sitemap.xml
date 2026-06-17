@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-06-16T22:31:55.877Z</lastmod>
+<lastmod>2026-06-17T02:49:16.930Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-06-16T22:31:55.877Z</lastmod>
+<lastmod>2026-06-17T02:49:16.930Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -5546,7 +5546,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=gh-pilot</loc>
-<lastmod>2026-06-15T04:19:41.000Z</lastmod>
+<lastmod>2026-06-16T18:55:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6014,7 +6014,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=jifto</loc>
-<lastmod>2026-06-15T06:24:21.000Z</lastmod>
+<lastmod>2026-06-16T18:55:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
