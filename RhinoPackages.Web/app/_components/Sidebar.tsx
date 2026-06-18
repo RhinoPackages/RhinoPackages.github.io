@@ -178,12 +178,12 @@ function SearchBar() {
   };
 
   return (
-    <div className="relative flex w-full rounded-md shadow-sm">
+    <div className="group relative flex w-full rounded-md shadow-sm">
       <label htmlFor="search-packages" className="sr-only">
         Search packages
       </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" aria-hidden="true" />
       </div>
       <input
         id="search-packages"
@@ -238,12 +238,12 @@ function Sort() {
   const { navigate, controls } = usePackageContext();
 
   return (
-    <div className="relative mt-1 flex w-full flex-col">
+    <div className="group relative mt-1 flex w-full flex-col">
       <label htmlFor="sort-packages" className="sr-only">
         Sort packages by
       </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <BarsArrowDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        <BarsArrowDownIcon className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" aria-hidden="true" />
       </div>
       <select
         id="sort-packages"
