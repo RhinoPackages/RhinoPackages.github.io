@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-06-18T02:45:31.521Z</lastmod>
+<lastmod>2026-06-18T23:31:37.531Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-06-18T02:45:31.521Z</lastmod>
+<lastmod>2026-06-18T23:31:37.531Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1550,7 +1550,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=flexibility</loc>
-<lastmod>2026-06-13T02:24:03.000Z</lastmod>
+<lastmod>2026-06-18T06:13:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -5342,7 +5342,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=KoalaRh</loc>
-<lastmod>2026-02-20T09:02:00.000Z</lastmod>
+<lastmod>2026-06-18T08:51:19.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5384,7 +5384,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=PlanFinderGH</loc>
-<lastmod>2026-06-17T05:58:16.000Z</lastmod>
+<lastmod>2026-06-18T06:13:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5546,7 +5546,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=gh-pilot</loc>
-<lastmod>2026-06-17T08:36:58.000Z</lastmod>
+<lastmod>2026-06-18T08:51:48.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -5768,7 +5768,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=follow-selection</loc>
-<lastmod>2026-04-29T21:13:15.000Z</lastmod>
+<lastmod>2026-06-18T06:13:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6056,7 +6056,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=AsyncGH</loc>
-<lastmod>2026-04-27T20:38:55.000Z</lastmod>
+<lastmod>2026-06-17T05:58:16.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6098,7 +6098,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=krill</loc>
-<lastmod>2026-06-10T01:04:47.000Z</lastmod>
+<lastmod>2026-06-18T08:16:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6488,7 +6488,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=RhinoFrame</loc>
-<lastmod>2026-06-17T05:58:16.000Z</lastmod>
+<lastmod>2026-06-18T06:13:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6554,7 +6554,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinotable</loc>
-<lastmod>2026-06-17T04:33:56.000Z</lastmod>
+<lastmod>2026-06-18T08:16:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6572,7 +6572,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=visoid</loc>
-<lastmod>2026-06-17T04:33:56.000Z</lastmod>
+<lastmod>2026-06-18T06:13:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
