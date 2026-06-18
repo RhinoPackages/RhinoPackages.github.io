@@ -53,3 +53,6 @@
 ## 2024-05-22 - Infinite Scroll Context & Focus Drop Fix
 **Learning:** For infinite scroll lists, announcing "Showing page X" to screen reader users lacks necessary context, as the list continually grows. Providing the visible items count against the total filtered count is significantly more helpful. Furthermore, when empty states containing "Clear all filters" buttons resolve (and the button unmounts), keyboard users suffer a focus drop to the document body.
 **Action:** Expose the total filtered count from the context to update the `aria-live` region to say "Showing X of Y packages". When resolving empty states via "Clear all filters" actions, explicitly restore focus to the primary container (e.g. `#main-content`) before the button unmounts.
+## 2024-06-14 - Visual Focus Context on Input Icons
+**Learning:** Adding interactive styles (like `text-brand-500`) to absolutely positioned leading icons within form inputs provides better visual context that the adjacent input is actively focused.
+**Action:** Use `group-focus-within` on the parent container alongside `transition-colors` on the icon to ensure immediate, smooth visual feedback when the associated input gains focus.

@@ -25,9 +25,9 @@ export default function OwnersControl() {
       <label htmlFor="filter-author" className="sr-only">
         Filter by author
       </label>
-      <div className="relative flex w-full">
+      <div className="group relative flex w-full">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <UserIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <UserIcon className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" aria-hidden="true" />
         </div>
         <Combobox.Input
           id="filter-author"
