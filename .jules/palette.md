@@ -56,3 +56,7 @@
 ## 2024-06-14 - Visual Focus Context on Input Icons
 **Learning:** Adding interactive styles (like `text-brand-500`) to absolutely positioned leading icons within form inputs provides better visual context that the adjacent input is actively focused.
 **Action:** Use `group-focus-within` on the parent container alongside `transition-colors` on the icon to ensure immediate, smooth visual feedback when the associated input gains focus.
+
+## 2024-06-20 - [Add Tooltips to Action Buttons]
+**Learning:** While `aria-label` effectively conveys the purpose of a button to screen reader users, sighted mouse users do not benefit from this invisible metadata. Elements relying solely on icons or generic text like 'Install' within a dense list can leave users guessing their exact target context.
+**Action:** Consistently add `title` attributes matching the `aria-label` to action links/buttons within dynamic lists (e.g., `title={"Install ${pkg.id} version ${version}"}`), providing sighted users with explicit hover tooltips.

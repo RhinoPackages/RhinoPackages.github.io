@@ -415,6 +415,7 @@ const PackageCard = memo(function PackageCard({
         <a
           href={link}
           aria-label={`Install ${pkg.id}`}
+          title={`Install ${pkg.id}`}
           className="hidden items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:flex"
         >
           <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
@@ -635,6 +636,7 @@ const PackageCard = memo(function PackageCard({
                                 <a
                                   href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
                                   aria-label={`Install ${pkg.id} version ${row.installVersion}`}
+                                  title={`Install ${pkg.id} version ${row.installVersion}`}
                                   className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
                                 >
                                   <ArrowDownTrayIcon className="h-3 w-3" aria-hidden="true" />
