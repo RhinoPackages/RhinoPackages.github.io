@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-06-18T23:31:37.531Z</lastmod>
+<lastmod>2026-06-19T21:49:38.568Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-06-18T23:31:37.531Z</lastmod>
+<lastmod>2026-06-19T21:49:38.568Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1550,7 +1550,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=flexibility</loc>
-<lastmod>2026-06-18T06:13:51.000Z</lastmod>
+<lastmod>2026-06-19T06:14:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -2216,7 +2216,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=InfraredCity</loc>
-<lastmod>2026-05-11T20:38:20.000Z</lastmod>
+<lastmod>2026-06-19T09:10:40.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -3182,7 +3182,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=OpenNest</loc>
-<lastmod>2026-06-17T04:33:56.000Z</lastmod>
+<lastmod>2026-06-19T09:10:36.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -3962,7 +3962,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Robots</loc>
-<lastmod>2026-06-17T08:36:58.000Z</lastmod>
+<lastmod>2026-06-19T05:29:29.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -4078,7 +4078,7 @@
 <loc>https://rhinopackages.github.io/?p=Scatter</loc>
 <lastmod>2021-04-06T07:11:22.000Z</lastmod>
 <changefreq>weekly</changefreq>
-<priority>0.5</priority>
+<priority>0.6</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=SCGCubic3mPrinter</loc>
@@ -4622,7 +4622,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=tapir</loc>
-<lastmod>2026-06-15T04:40:19.000Z</lastmod>
+<lastmod>2026-06-19T09:10:10.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -5384,7 +5384,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=PlanFinderGH</loc>
-<lastmod>2026-06-18T06:13:51.000Z</lastmod>
+<lastmod>2026-06-19T07:02:06.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5408,7 +5408,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=FEMur</loc>
-<lastmod>2026-06-17T08:36:58.000Z</lastmod>
+<lastmod>2026-06-19T06:14:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5546,7 +5546,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=gh-pilot</loc>
-<lastmod>2026-06-18T08:51:48.000Z</lastmod>
+<lastmod>2026-06-19T09:10:36.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -5888,13 +5888,13 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Performance-heatmap</loc>
-<lastmod>2026-04-09T19:07:12.000Z</lastmod>
+<lastmod>2026-06-19T09:10:36.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-06-16T08:25:37.000Z</lastmod>
+<lastmod>2026-06-19T09:10:10.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6044,7 +6044,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Aperiodic</loc>
-<lastmod>2026-04-25T20:18:02.000Z</lastmod>
+<lastmod>2026-06-19T06:14:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6056,7 +6056,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=AsyncGH</loc>
-<lastmod>2026-06-17T05:58:16.000Z</lastmod>
+<lastmod>2026-06-19T06:14:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6428,7 +6428,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=LaserFish</loc>
-<lastmod>2026-06-17T05:58:16.000Z</lastmod>
+<lastmod>2026-06-19T09:10:10.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6554,7 +6554,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinotable</loc>
-<lastmod>2026-06-18T08:16:20.000Z</lastmod>
+<lastmod>2026-06-19T06:14:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6584,7 +6584,13 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=robohopper</loc>
-<lastmod>2026-06-17T05:58:16.000Z</lastmod>
+<lastmod>2026-06-19T09:10:40.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=BBTools</loc>
+<lastmod>2026-06-19T06:14:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
