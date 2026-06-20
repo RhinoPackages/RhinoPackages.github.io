@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-06-19T21:49:38.568Z</lastmod>
+<lastmod>2026-06-20T02:34:33.775Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-06-19T21:49:38.568Z</lastmod>
+<lastmod>2026-06-20T02:34:33.775Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -4676,7 +4676,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Terra</loc>
-<lastmod>2026-06-17T08:36:58.000Z</lastmod>
+<lastmod>2026-06-19T09:10:10.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6260,7 +6260,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=oriolcloudlogin</loc>
-<lastmod>2026-06-11T03:00:56.000Z</lastmod>
+<lastmod>2026-06-19T05:29:29.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
