@@ -264,6 +264,16 @@ const PackageCard = memo(function PackageCard({
     ? groupVersionHistory(versionHistory.filter((v) => showPrereleases || !v.prerelease))
     : [];
 
+  const supportedPlatformsList = [
+    has(Filters.Windows) && "Windows",
+    has(Filters.Mac) && "Mac",
+    has(Filters.Rhino6) && "Rhino 6",
+    has(Filters.Rhino7) && "Rhino 7",
+    has(Filters.Rhino8) && "Rhino 8",
+    has(Filters.Rhino) && "Rhino plugin",
+    has(Filters.Grasshopper) && "Grasshopper plugin",
+  ].filter(Boolean);
+
   return (
     <li
       className={`group flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
@@ -281,7 +291,8 @@ const PackageCard = memo(function PackageCard({
             src={pkg.iconUrl}
             width={40}
             height={40}
-            alt={`Icon for ${pkg.id} package`}
+            alt=""
+            aria-hidden="true"
           />
           <div className="flex min-w-0 flex-col">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -335,7 +346,12 @@ const PackageCard = memo(function PackageCard({
           </div>
         </div>
         <div className="flex w-full flex-shrink-0 flex-grow-0 justify-between md:w-auto md:justify-end">
-          <div className="items-top mt-1 flex flex-wrap gap-4">
+          <span className="sr-only">
+            {supportedPlatformsList.length > 0
+              ? `Supports ${supportedPlatformsList.join(", ")}`
+              : "No platform compatibility specified"}
+          </span>
+          <div className="items-top mt-1 flex flex-wrap gap-4" aria-hidden="true">
             <div className="flex gap-1">
               <Icon isEnabled={has(Filters.Windows)} src="/icons/win.svg" alt="Windows" />
               <Icon isEnabled={has(Filters.Mac)} src="/icons/mac.svg" alt="Mac" />
@@ -457,8 +473,6 @@ const PackageCard = memo(function PackageCard({
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Total Downloads</span>
                 <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">{downloads}</span>
-                <div className="mt-1 flex flex-col gap-1">
-                </div>
               </div>
 
               {/* Last Updated */}
@@ -682,7 +696,8 @@ function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: s
       src={src}
       width={32}
       height={32}
-      alt={isEnabled ? `Supported on ${alt}` : `Not supported on ${alt}`}
+      alt=""
+      aria-hidden="true"
       title={title}
     />
   );
