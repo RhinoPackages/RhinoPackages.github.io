@@ -211,7 +211,7 @@ function SearchBar() {
       />
       {!localSearch && (
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500 sm:inline-block">
+          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 group-focus-within:hidden dark:border-zinc-700 dark:text-zinc-500 sm:inline-block">
             /
           </kbd>
         </div>
