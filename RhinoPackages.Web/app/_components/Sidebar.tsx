@@ -26,15 +26,24 @@ export default function Sidebar() {
       <OwnersControl />
       <Sort />
       <Spacer />
-      <CheckBox title="Windows" icon="/icons/win.svg" filter={Filters.Windows} />
-      <CheckBox title="Mac" icon="/icons/mac.svg" filter={Filters.Mac} />
+      <fieldset className="w-full flex flex-col gap-3">
+        <legend className="sr-only">Platform compatibility</legend>
+        <CheckBox title="Windows" icon="/icons/win.svg" filter={Filters.Windows} />
+        <CheckBox title="Mac" icon="/icons/mac.svg" filter={Filters.Mac} />
+      </fieldset>
       <Spacer />
-      <CheckBox title="Rhino 6" icon="/icons/rhino6.png" filter={Filters.Rhino6} />
-      <CheckBox title="Rhino 7" icon="/icons/rhino7.png" filter={Filters.Rhino7} />
-      <CheckBox title="Rhino 8" icon="/icons/rhino8.png" filter={Filters.Rhino8} />
+      <fieldset className="w-full flex flex-col gap-3">
+        <legend className="sr-only">Rhino versions</legend>
+        <CheckBox title="Rhino 6" icon="/icons/rhino6.png" filter={Filters.Rhino6} />
+        <CheckBox title="Rhino 7" icon="/icons/rhino7.png" filter={Filters.Rhino7} />
+        <CheckBox title="Rhino 8" icon="/icons/rhino8.png" filter={Filters.Rhino8} />
+      </fieldset>
       <Spacer />
-      <CheckBox title="Rhino plugin" icon="/icons/rhp.png" filter={Filters.Rhino} />
-      <CheckBox title="Grasshopper" icon="/icons/gha.png" filter={Filters.Grasshopper} />
+      <fieldset className="w-full flex flex-col gap-3">
+        <legend className="sr-only">Plugin types</legend>
+        <CheckBox title="Rhino plugin" icon="/icons/rhp.png" filter={Filters.Rhino} />
+        <CheckBox title="Grasshopper" icon="/icons/gha.png" filter={Filters.Grasshopper} />
+      </fieldset>
       <button
         type="button"
         aria-disabled={!hasFilters}
