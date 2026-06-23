@@ -60,3 +60,6 @@
 ## 2024-06-20 - [Add Tooltips to Action Buttons]
 **Learning:** While `aria-label` effectively conveys the purpose of a button to screen reader users, sighted mouse users do not benefit from this invisible metadata. Elements relying solely on icons or generic text like 'Install' within a dense list can leave users guessing their exact target context.
 **Action:** Consistently add `title` attributes matching the `aria-label` to action links/buttons within dynamic lists (e.g., `title={"Install ${pkg.id} version ${version}"}`), providing sighted users with explicit hover tooltips.
+## 2026-06-23 - Enhance Checkbox Clickability
+**Learning:** Sighted users expect form controls like checkboxes to indicate interactivity via the cursor when hovering over their labels, but this is not default browser behavior.
+**Action:** Add the `cursor-pointer` utility to checkbox labels and inputs to provide clear visual affordance.

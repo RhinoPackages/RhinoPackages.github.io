@@ -522,6 +522,7 @@ const PackageCard = memo(function PackageCard({
               <a
                 href={link}
                 aria-label={`Install ${pkg.id} in Rhino`}
+                title={`Install ${pkg.id} in Rhino`}
                 className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 active:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
@@ -533,6 +534,7 @@ const PackageCard = memo(function PackageCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Visit ${pkg.id} website (opens in a new tab)`}
+                  title={`Visit ${pkg.id} website (opens in a new tab)`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
@@ -543,6 +545,7 @@ const PackageCard = memo(function PackageCard({
                 <a
                   href={emailHref}
                   aria-label={`Email ${pkg.id} author`}
+                  title={`Email ${pkg.id} author`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
                 >
                   <EnvelopeIcon className="h-4 w-4" aria-hidden="true" />
@@ -564,12 +567,12 @@ const PackageCard = memo(function PackageCard({
               <div className="mt-6 border-t border-gray-200 pt-4 dark:border-zinc-700">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Version History</span>
-                  <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-400">
+                  <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-zinc-400">
                     <input
                       type="checkbox"
                       checked={showPrereleases}
                       onChange={(e) => setShowPrereleases(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-600 dark:border-zinc-600 dark:bg-zinc-800 dark:checked:bg-brand-500"
+                      className="cursor-pointer rounded border-gray-300 text-brand-600 focus:ring-brand-600 dark:border-zinc-600 dark:bg-zinc-800 dark:checked:bg-brand-500"
                     />
                     Show pre-releases
                   </label>
