@@ -97,7 +97,12 @@ export default function OwnersControl() {
         <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-zinc-800 dark:ring-white/10">
           {filteredOwners.length === 0 ? (
             <div className="relative cursor-default select-none px-3 py-2 text-gray-500 dark:text-zinc-400">
-              {query ? `No authors found for "${query}".` : "No authors found."}
+              <span className="block font-medium text-gray-900 dark:text-zinc-100">
+                {query ? `No authors found for "${query}"` : "No authors found"}
+              </span>
+              <span className="mt-0.5 block text-[0.65rem] text-gray-400 dark:text-zinc-500">
+                {query ? "Check for typos or try a different name." : "Try searching for a different name."}
+              </span>
             </div>
           ) : (
             filteredOwners.map((person) => (
