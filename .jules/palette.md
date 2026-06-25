@@ -63,3 +63,7 @@
 ## 2026-06-23 - Enhance Checkbox Clickability
 **Learning:** Sighted users expect form controls like checkboxes to indicate interactivity via the cursor when hovering over their labels, but this is not default browser behavior.
 **Action:** Add the `cursor-pointer` utility to checkbox labels and inputs to provide clear visual affordance.
+
+## 2026-06-25 - [Enhance Combobox Empty States with Actionable Context]
+**Learning:** When users search within a dropdown or combobox and receive a generic 'No results found' message, they are left without guidance. Enhancing this empty state to conditionally echo their query and provide actionable advice (like 'Check for typos') builds user confidence and provides a better micro-UX.
+**Action:** To improve micro-UX in search or filter empty states, conditionally display the user's active search query within the empty state message (e.g., 'No results for "[query]"') alongside actionable advice (e.g., 'Check for typos') to provide immediate visual validation, context, and guidance, rather than using generic 'No results found' text.
