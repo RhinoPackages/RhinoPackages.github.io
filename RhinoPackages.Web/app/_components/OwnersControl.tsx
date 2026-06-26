@@ -66,7 +66,7 @@ export default function OwnersControl() {
             }
           }}
         />
-        {selected && (
+        {(selected || query.length > 0) && (
           <button
             type="button"
             onClick={(e) => {
@@ -74,7 +74,10 @@ export default function OwnersControl() {
               navigate({ owner: undefined });
               setFilteredOwners(owners);
               setQuery("");
-              inputRef.current?.focus();
+              if (inputRef.current) {
+                inputRef.current.value = "";
+                inputRef.current.focus();
+              }
             }}
             title="Clear author filter"
             aria-label="Clear author filter"
