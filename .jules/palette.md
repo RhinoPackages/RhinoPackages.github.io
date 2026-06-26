@@ -67,3 +67,7 @@
 ## 2026-06-25 - [Enhance Combobox Empty States with Actionable Context]
 **Learning:** When users search within a dropdown or combobox and receive a generic 'No results found' message, they are left without guidance. Enhancing this empty state to conditionally echo their query and provide actionable advice (like 'Check for typos') builds user confidence and provides a better micro-UX.
 **Action:** To improve micro-UX in search or filter empty states, conditionally display the user's active search query within the empty state message (e.g., 'No results for "[query]"') alongside actionable advice (e.g., 'Check for typos') to provide immediate visual validation, context, and guidance, rather than using generic 'No results found' text.
+
+## 2025-05-23 - Combobox Clear Button Interaction Parity
+**Learning:** Missing interaction parity between keyboard and mouse in comboboxes. A clear button that only appears when a valid option is selected leaves mouse users stranded if they type a query that yields no results. They cannot easily clear the raw text without manually deleting it, whereas keyboard users often have an `Escape` shortcut.
+**Action:** Always show the clear button in a combobox or search input if there is *either* an active selection *or* raw text typed in the input.
