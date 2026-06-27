@@ -81,6 +81,7 @@ export default function OwnersControl() {
             }}
             title="Clear author filter"
             aria-label="Clear author filter"
+            aria-keyshortcuts="Escape"
             className="absolute inset-y-1 right-8 flex items-center justify-center rounded-md px-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
           >
             <span className="hidden items-center gap-1 sm:flex">

@@ -202,6 +202,7 @@ function SearchBar() {
         spellCheck={false}
         autoComplete="off"
         aria-label="Search packages (Press / to focus)"
+        aria-keyshortcuts="/"
         title="Search packages (Press / to focus)"
         placeholder="Search packages..."
         value={localSearch}
@@ -231,6 +232,7 @@ function SearchBar() {
           onClick={clearSearch}
           title="Clear search (Esc)"
           aria-label="Clear search (Esc)"
+          aria-keyshortcuts="Escape"
           className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
         >
           <span className="hidden items-center gap-1 sm:flex">
