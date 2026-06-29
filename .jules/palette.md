@@ -71,3 +71,6 @@
 ## 2025-05-23 - Combobox Clear Button Interaction Parity
 **Learning:** Missing interaction parity between keyboard and mouse in comboboxes. A clear button that only appears when a valid option is selected leaves mouse users stranded if they type a query that yields no results. They cannot easily clear the raw text without manually deleting it, whereas keyboard users often have an `Escape` shortcut.
 **Action:** Always show the clear button in a combobox or search input if there is *either* an active selection *or* raw text typed in the input.
+## 2026-06-28 - Combobox Contrast Conflict
+**Learning:** In Headless UI Combobox components, applying text colors independently for `selected` and `active` states can cause contrast failures when both states overlap (e.g. a selected option is hovered), as the selected text color overrides the active text color.
+**Action:** When styling complex stateful components like Combobox options, explicitly combine state conditions (e.g. `selected && !active`) for typography colors to prevent conflicting CSS overrides on interactive states.
