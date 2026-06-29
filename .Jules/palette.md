@@ -9,3 +9,7 @@
 ## 2026-06-25 - Explicit aria-keyshortcuts for hidden keyboard shortcuts
 **Learning:** Screen reader users are often unaware of custom keyboard shortcuts implemented via React keydown listeners (e.g., pressing `/` to focus a search input, or `Escape` to clear a combobox), as visual `<kbd>` hints might be hidden or missed.
 **Action:** Explicitly add the `aria-keyshortcuts` attribute (e.g., `aria-keyshortcuts="/"` or `aria-keyshortcuts="Escape"`) to inputs and buttons that respond to these global or component-level keyboard shortcuts to ensure assistive technologies announce them.
+
+## 2026-06-29 - Stable Accessible Names for Dynamic Actions
+**Learning:** Changing a button's `aria-label` dynamically upon activation (e.g., from "Copy link" to "Copied!") often leads to unreliable screen reader announcements, or confusing experiences where the original action's label is lost.
+**Action:** Keep the button's `aria-label` static (describing the action) and announce the transient success state (like "Copied!") using a separate `aria-live="polite"` region. Also apply `aria-hidden="true"` to any purely visual success text added to the button to prevent double-speaking.
