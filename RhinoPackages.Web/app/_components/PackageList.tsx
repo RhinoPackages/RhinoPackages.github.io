@@ -389,8 +389,7 @@ const PackageCard = memo(function PackageCard({
               type="button"
               onClick={handleCopyLink}
               title={copied ? "Copied to clipboard!" : `Copy link to ${pkg.id}`}
-              aria-label={copied ? "Link copied to clipboard!" : `Copy link to ${pkg.id}`}
-              aria-live="polite"
+              aria-label={`Copy link to ${pkg.id}`}
               className={`mt-0.5 flex items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
                 ? "text-green-600 dark:text-green-400"
                 : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
@@ -401,8 +400,11 @@ const PackageCard = memo(function PackageCard({
               ) : (
                 <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
               )}
-              {copied && <span className="text-[10px] font-bold uppercase">Copied!</span>}
+              {copied && <span className="text-[10px] font-bold uppercase" aria-hidden="true">Copied!</span>}
             </button>
+            <div aria-live="polite" className="sr-only">
+              {copied ? "Link copied to clipboard!" : ""}
+            </div>
           </div>
           <button
             type="button"
