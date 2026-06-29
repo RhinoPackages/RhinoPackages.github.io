@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-06-29T02:53:52.112Z</lastmod>
+<lastmod>2026-06-29T23:21:24.801Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-06-29T02:53:52.112Z</lastmod>
+<lastmod>2026-06-29T23:21:24.801Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -212,7 +212,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Ant</loc>
-<lastmod>2026-05-01T19:13:28.000Z</lastmod>
+<lastmod>2026-06-29T19:32:16.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -2690,7 +2690,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=MassingTools</loc>
-<lastmod>2025-09-10T14:05:08.000Z</lastmod>
+<lastmod>2026-06-29T19:32:15.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -2840,7 +2840,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=MolaUI</loc>
-<lastmod>2026-06-25T10:22:11.000Z</lastmod>
+<lastmod>2026-06-28T19:13:07.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -3962,7 +3962,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Robots</loc>
-<lastmod>2026-06-22T16:52:44.000Z</lastmod>
+<lastmod>2026-06-29T19:28:29.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -5732,7 +5732,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=MoleHill</loc>
-<lastmod>2026-06-27T12:39:05.000Z</lastmod>
+<lastmod>2026-06-28T18:41:57.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5894,7 +5894,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-06-26T11:52:27.000Z</lastmod>
+<lastmod>2026-06-29T04:51:36.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6014,7 +6014,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=jifto</loc>
-<lastmod>2026-06-16T18:55:51.000Z</lastmod>
+<lastmod>2026-06-29T13:32:19.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6686,7 +6686,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Lichen</loc>
-<lastmod>2026-06-23T17:28:40.000Z</lastmod>
+<lastmod>2026-06-28T19:06:09.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6728,13 +6728,25 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=signcadrhino</loc>
-<lastmod>2026-06-27T12:39:05.000Z</lastmod>
+<lastmod>2026-06-29T13:31:47.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=lxgjk</loc>
 <lastmod>2026-06-27T18:36:29.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=goasshopper</loc>
+<lastmod>2026-06-29T04:51:36.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=touch-to-connect</loc>
+<lastmod>2026-06-29T13:32:19.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
