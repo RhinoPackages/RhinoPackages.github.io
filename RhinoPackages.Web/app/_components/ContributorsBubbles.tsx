@@ -75,10 +75,10 @@ export default async function ContributorsBubbles() {
 
   return (
     <div className="mt-4">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+      <p id="contributors-heading" className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
         Contributors
       </p>
-      <ul className="flex flex-wrap justify-center gap-2">
+      <ul aria-labelledby="contributors-heading" className="flex flex-wrap justify-center gap-2">
         {contributors.map((contributor) => (
           <li key={contributor.id}>
             <a
@@ -91,7 +91,8 @@ export default async function ContributorsBubbles() {
             >
               <Image
                 src={getSizedAvatarUrl(contributor.avatar_url, 56)}
-                alt={`${contributor.login} avatar`}
+                alt=""
+                aria-hidden="true"
                 width={28}
                 height={28}
                 className="h-7 w-7 rounded-full ring-1 ring-gray-300 dark:ring-zinc-700"

@@ -74,3 +74,7 @@
 ## 2026-06-28 - Combobox Contrast Conflict
 **Learning:** In Headless UI Combobox components, applying text colors independently for `selected` and `active` states can cause contrast failures when both states overlap (e.g. a selected option is hovered), as the selected text color overrides the active text color.
 **Action:** When styling complex stateful components like Combobox options, explicitly combine state conditions (e.g. `selected && !active`) for typography colors to prevent conflicting CSS overrides on interactive states.
+
+## 2026-06-30 - Prevent screen reader double-speaking on decorative avatars
+**Learning:** When interactive links wrapping images have explicit `aria-label`s describing the action or destination, providing `alt` text on the inner image causes screen readers to redundantly announce the text twice.
+**Action:** Add `alt=""` and `aria-hidden="true"` to the nested `<Image>` inside a link with a comprehensive `aria-label` to de-noise the auditory experience.
