@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-06-29T23:21:24.801Z</lastmod>
+<lastmod>2026-06-30T02:33:28.263Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-06-29T23:21:24.801Z</lastmod>
+<lastmod>2026-06-30T02:33:28.263Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -3962,7 +3962,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Robots</loc>
-<lastmod>2026-06-29T19:28:29.000Z</lastmod>
+<lastmod>2026-06-29T19:14:41.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
