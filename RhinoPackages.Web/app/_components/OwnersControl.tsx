@@ -36,6 +36,7 @@ export default function OwnersControl() {
           autoComplete="off"
           className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
           aria-label="Filter by author"
+          aria-keyshortcuts="Escape"
           title="Filter by author"
           placeholder="Search for author..."
           displayValue={(person: Owner | null) => person?.name ?? ""}
