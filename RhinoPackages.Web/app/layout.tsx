@@ -218,7 +218,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/" title="Rhino Packages - Go to homepage" aria-label="Rhino Packages - Go to homepage" className="flex items-center gap-3 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400">
                 <Image
                   src="/logo.svg"
-                  alt="RhinoPackages Logo"
+                  alt=""
+                  aria-hidden="true"
                   width={36}
                   height={36}
                   className="rounded-md shadow-sm"
