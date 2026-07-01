@@ -78,3 +78,6 @@
 ## 2026-06-30 - Prevent screen reader double-speaking on decorative avatars
 **Learning:** When interactive links wrapping images have explicit `aria-label`s describing the action or destination, providing `alt` text on the inner image causes screen readers to redundantly announce the text twice.
 **Action:** Add `alt=""` and `aria-hidden="true"` to the nested `<Image>` inside a link with a comprehensive `aria-label` to de-noise the auditory experience.
+## 2024-07-01 - [Fix screen reader double-speaking on decorative images inside links]
+**Learning:** When interactive links wrapping images have explicit `aria-label`s describing the action or destination, providing `alt` text on the inner image causes screen readers to redundantly announce the text twice (once for the link label, once for the image).
+**Action:** Add `alt=""` and `aria-hidden="true"` to the nested `<Image>` inside a link with a comprehensive `aria-label` to de-noise the auditory experience.
