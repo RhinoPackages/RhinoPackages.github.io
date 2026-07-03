@@ -93,7 +93,7 @@ const structuredData = {
           name: "Which Rhino versions are supported?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Packages in this directory support Rhino 6, Rhino 7, and Rhino 8. You can filter by version to find plugins compatible with your installation. Most actively maintained plugins support Rhino 7 and 8.",
+            text: "Packages in this directory support Rhino 6, Rhino 7, Rhino 8, and Rhino 9 (WIP). You can filter by version to find plugins compatible with your installation. Most actively maintained plugins support Rhino 7, 8, and 9.",
           },
         },
         {
@@ -130,6 +130,7 @@ export const metadata: Metadata = {
     "Rhino packages",
     "Grasshopper add-ons",
     "Yak package manager",
+    "Rhino 9 plugins",
     "Rhino 8 plugins",
     "Rhino 7 plugins",
     "Rhino plugin download",

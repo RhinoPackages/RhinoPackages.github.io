@@ -27,10 +27,10 @@ jobs:
       data_changed: ${{ steps.detect-changes.outputs.data_changed }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             8.0.x
@@ -74,7 +74,7 @@ jobs:
       structural_changed: ${{ steps.detect-structural-changes.outputs.structural_changed }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref_name }} # Use PR head for pull requests, triggering ref otherwise
           fetch-depth: 0 # Required so github.event.before exists for git diff

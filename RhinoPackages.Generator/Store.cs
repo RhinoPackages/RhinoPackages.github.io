@@ -19,7 +19,8 @@ public enum Filters
     Grasshopper = 8,
     Rhino6 = 16,
     Rhino7 = 32,
-    Rhino8 = 64
+    Rhino8 = 64,
+    Rhino9 = 128
 }
 
 public class Store(ILogger<Store> logger)

@@ -360,6 +360,7 @@ const PackageCard = memo(function PackageCard({
               <Icon isEnabled={has(Filters.Rhino6)} src="/icons/rhino6.png" alt="Rhino 6" />
               <Icon isEnabled={has(Filters.Rhino7)} src="/icons/rhino7.png" alt="Rhino 7" />
               <Icon isEnabled={has(Filters.Rhino8)} src="/icons/rhino8.png" alt="Rhino 8" />
+              <Icon isEnabled={has(Filters.Rhino9)} src="/icons/rhino9.png" alt="Rhino 9 (WIP)" />
             </div>
             <div className="flex gap-1">
               <Icon isEnabled={has(Filters.Rhino)} src="/icons/rhp.png" alt="Rhino plugin" />
@@ -506,6 +507,7 @@ const PackageCard = memo(function PackageCard({
                   <Badge label="Rhino 6" active={has(Filters.Rhino6)} />
                   <Badge label="Rhino 7" active={has(Filters.Rhino7)} />
                   <Badge label="Rhino 8" active={has(Filters.Rhino8)} />
+                  <Badge label="Rhino 9 (WIP)" active={has(Filters.Rhino9)} />
                 </div>
               </div>
 

@@ -142,7 +142,8 @@ public class Seeder
                 "rh6" => Filters.Rhino6,
                 "rh7" => Filters.Rhino7,
                 "rh8" => Filters.Rhino8,
-                _ => Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8
+                "rh9" => Filters.Rhino9,
+                _ => Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8 | Filters.Rhino9
             };
 
             filters |= await GetPluginType(distribution.Url);

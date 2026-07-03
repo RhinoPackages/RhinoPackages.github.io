@@ -37,6 +37,7 @@ export default function Sidebar() {
         <CheckBox title="Rhino 6" icon="/icons/rhino6.png" filter={Filters.Rhino6} />
         <CheckBox title="Rhino 7" icon="/icons/rhino7.png" filter={Filters.Rhino7} />
         <CheckBox title="Rhino 8" icon="/icons/rhino8.png" filter={Filters.Rhino8} />
+        <CheckBox title="Rhino 9 (WIP)" icon="/icons/rhino9.png" filter={Filters.Rhino9} />
       </fieldset>
       <Spacer />
       <fieldset className="w-full flex flex-col gap-3">
