@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-01T23:34:31.133Z</lastmod>
+<lastmod>2026-07-03T02:04:41.272Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-01T23:34:31.133Z</lastmod>
+<lastmod>2026-07-03T02:04:41.272Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -854,7 +854,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=CNCPath</loc>
-<lastmod>2025-10-31T18:56:09.000Z</lastmod>
+<lastmod>2026-07-01T20:18:11.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -974,7 +974,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=compas_timber</loc>
-<lastmod>2026-05-11T21:25:31.000Z</lastmod>
+<lastmod>2026-07-02T21:01:59.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -1070,7 +1070,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Cyclops</loc>
-<lastmod>2026-04-19T17:42:10.000Z</lastmod>
+<lastmod>2026-07-01T20:48:57.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -2360,7 +2360,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=KaroroCAD</loc>
-<lastmod>2026-06-27T18:20:52.000Z</lastmod>
+<lastmod>2026-07-01T20:48:57.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5390,7 +5390,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=hopperwire</loc>
-<lastmod>2026-02-27T09:00:47.000Z</lastmod>
+<lastmod>2026-07-01T20:28:14.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6014,7 +6014,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=jifto</loc>
-<lastmod>2026-06-29T13:32:19.000Z</lastmod>
+<lastmod>2026-07-01T20:18:11.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6110,7 +6110,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=GhGumball</loc>
-<lastmod>2026-05-03T20:41:15.000Z</lastmod>
+<lastmod>2026-07-01T20:28:13.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6710,7 +6710,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=zzctRhino</loc>
-<lastmod>2026-07-01T09:57:02.000Z</lastmod>
+<lastmod>2026-07-01T20:48:57.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6722,7 +6722,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=placewize-exporter</loc>
-<lastmod>2026-06-28T13:09:07.000Z</lastmod>
+<lastmod>2026-07-02T16:55:43.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6764,7 +6764,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=GhSpaceGass</loc>
-<lastmod>2026-06-30T19:41:18.000Z</lastmod>
+<lastmod>2026-07-01T20:18:11.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6783,6 +6783,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=SpacelyAI</loc>
 <lastmod>2026-06-30T19:59:32.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=WoollyRhino</loc>
+<lastmod>2026-07-01T20:48:57.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
