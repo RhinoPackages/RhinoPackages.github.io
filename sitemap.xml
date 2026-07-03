@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-03T02:04:41.272Z</lastmod>
+<lastmod>2026-07-03T17:44:18.212Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-03T02:04:41.272Z</lastmod>
+<lastmod>2026-07-03T17:44:18.212Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1754,7 +1754,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ggRhinoSAP</loc>
-<lastmod>2026-06-12T01:56:42.000Z</lastmod>
+<lastmod>2026-07-02T20:29:03.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -4820,7 +4820,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=toolpaths</loc>
-<lastmod>2026-07-01T09:57:02.000Z</lastmod>
+<lastmod>2026-07-02T20:29:03.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5684,7 +5684,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Eddy3D</loc>
-<lastmod>2026-05-01T19:13:28.000Z</lastmod>
+<lastmod>2026-07-02T20:29:03.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6032,7 +6032,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinotamer</loc>
-<lastmod>2026-05-10T23:19:18.000Z</lastmod>
+<lastmod>2026-07-02T21:05:30.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6789,6 +6789,18 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=WoollyRhino</loc>
 <lastmod>2026-07-01T20:48:57.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=DesignTools</loc>
+<lastmod>2026-07-02T21:05:30.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=Exoskeleton2-Fixed-Version</loc>
+<lastmod>2026-07-02T20:29:03.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
