@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-03T18:59:38.911Z</lastmod>
+<lastmod>2026-07-04T02:01:54.823Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-03T18:59:38.911Z</lastmod>
+<lastmod>2026-07-04T02:01:54.823Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1276,7 +1276,7 @@
 <loc>https://rhinopackages.github.io/?p=cordyceps</loc>
 <lastmod>2026-06-24T16:32:25.000Z</lastmod>
 <changefreq>weekly</changefreq>
-<priority>0.5</priority>
+<priority>0.6</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=corgi</loc>
@@ -1634,7 +1634,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Eddy3D</loc>
-<lastmod>2026-07-02T20:29:03.000Z</lastmod>
+<lastmod>2026-07-03T21:39:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
