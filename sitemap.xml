@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-04T02:01:54.823Z</lastmod>
+<lastmod>2026-07-05T02:10:32.130Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-04T02:01:54.823Z</lastmod>
+<lastmod>2026-07-05T02:10:32.130Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1634,7 +1634,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Eddy3D</loc>
-<lastmod>2026-07-03T21:39:20.000Z</lastmod>
+<lastmod>2026-07-04T21:46:38.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -1856,7 +1856,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=FEMur</loc>
-<lastmod>2026-06-19T06:14:56.000Z</lastmod>
+<lastmod>2026-07-03T21:39:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -2222,7 +2222,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=GhGumball</loc>
-<lastmod>2026-07-01T20:28:13.000Z</lastmod>
+<lastmod>2026-07-03T21:39:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -3038,7 +3038,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=LaserFish</loc>
-<lastmod>2026-06-25T17:05:19.000Z</lastmod>
+<lastmod>2026-07-03T20:54:49.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4742,7 +4742,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinomcp-mod</loc>
-<lastmod>2026-03-06T09:15:59.000Z</lastmod>
+<lastmod>2026-07-03T21:11:09.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6585,6 +6585,18 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=zzctRhino</loc>
 <lastmod>2026-07-01T20:48:57.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=grandstand</loc>
+<lastmod>2026-07-04T18:30:26.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=wireify</loc>
+<lastmod>2026-07-03T20:54:49.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
