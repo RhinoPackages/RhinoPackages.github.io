@@ -116,6 +116,7 @@ export default function PackageList() {
                 pkg={pkg}
                 isExpanded={expandedId === pkg.id}
                 navigate={navigate}
+                controls={controls}
               />
             );
           })}
@@ -207,11 +208,14 @@ const PackageCard = memo(function PackageCard({
   pkg,
   isExpanded,
   navigate,
+  controls,
 }: {
   pkg: Package;
   isExpanded: boolean;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
+  controls: Params;
 }) {
+
   const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showPrereleases, setShowPrereleases] = useState(false);
@@ -325,22 +329,25 @@ const PackageCard = memo(function PackageCard({
               <div className="flex min-w-0 flex-wrap items-center gap-x-1" title="Authors">
                 <UserIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
                 <span className="sr-only">Authors: </span>
-                {pkg.owners.map((owner, i) => (
+                {pkg.owners.map((owner, i) => {
+                  const isActive = controls.owner === owner.id;
+                  return (
                   <span key={owner.id} className="text-xs text-gray-600 dark:text-zinc-400">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate({ owner: owner.id });
+                        navigate({ owner: isActive ? undefined : owner.id });
                       }}
-                      title={`Filter by author: ${owner.name}`}
-                      aria-label={`Filter by author: ${owner.name}`}
-                      className="transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 rounded-sm"
+                      aria-pressed={isActive}
+                      title={isActive ? `Clear author filter: ${owner.name}` : `Filter by author: ${owner.name}`}
+                      aria-label={isActive ? `Clear author filter: ${owner.name}` : `Filter by author: ${owner.name}`}
+                      className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${isActive ? "text-brand-700 font-bold dark:text-brand-400" : "hover:text-brand-600 dark:hover:text-brand-400"}`}
                     >
                       {owner.name}
                     </button>
                     {i < pkg.owners.length - 1 ? "," : ""}
                   </span>
-                ))}
+                )})}
               </div>
             </div>
           </div>
@@ -444,21 +451,28 @@ const PackageCard = memo(function PackageCard({
       {(tags && tags.length > 0 && tags[0] !== "") && (
         <div className="mt-4 flex flex-wrap place-items-center items-start gap-2">
           <span className="sr-only">Keywords: </span>
-          {tags.map((tag) => (
+          {tags.map((tag) => {
+            const isActive = (controls.search || '').toLowerCase() === tag.toLowerCase();
+            return (
             <button
               key={tag}
               type="button"
-              title={`Filter by keyword: ${tag}`}
-              aria-label={`Filter by keyword: ${tag}`}
+              aria-pressed={isActive}
+              title={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
+              aria-label={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
               onClick={(e) => {
                 e.stopPropagation();
-                navigate({ search: tag });
+                navigate({ search: isActive ? "" : tag });
               }}
-              className="cursor-pointer rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 transition-colors hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group-hover:bg-brand-50 group-hover:text-brand-700 group-hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300 dark:focus-visible:ring-brand-400 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-300"
+              className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${
+                isActive
+                  ? "bg-brand-100 text-brand-800 ring-brand-500/30 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30"
+                  : "bg-slate-100 text-slate-600 ring-slate-500/10 hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 group-hover:bg-brand-50 group-hover:text-brand-700 group-hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-300"
+              }`}
             >
               {tag}
             </button>
-          ))}
+          )})}
         </div>
       )}
 
