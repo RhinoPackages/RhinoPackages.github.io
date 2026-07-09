@@ -154,24 +154,32 @@ public class Seeder
 
     async Task<Filters> GetPluginType(string url)
     {
-        using var stream = await _client.GetStreamAsync(url);
-        using ZipArchive zip = new(stream, ZipArchiveMode.Read);
-
-        Filters type = Filters.None;
-
-        foreach (var entry in zip.Entries)
+        try
         {
-            var ext = Path.GetExtension(entry.FullName);
+            using var stream = await _client.GetStreamAsync(url);
+            using ZipArchive zip = new(stream, ZipArchiveMode.Read);
 
-            type |= ext switch
+            Filters type = Filters.None;
+
+            foreach (var entry in zip.Entries)
             {
-                ".rhp" => Filters.Rhino,
-                ".gha" => Filters.Grasshopper,
-                _ => Filters.None
-            };
-        }
+                var ext = Path.GetExtension(entry.FullName);
 
-        return type;
+                type |= ext switch
+                {
+                    ".rhp" => Filters.Rhino,
+                    ".gha" => Filters.Grasshopper,
+                    _ => Filters.None
+                };
+            }
+
+            return type;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to fetch plugin distribution {Url}: {Message}", url, ex.Message);
+            return Filters.None;
+        }
     }
 
     async Task<string> GetIcon(string name, string version)
