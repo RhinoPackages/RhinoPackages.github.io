@@ -204,6 +204,99 @@ public class SeederTests
         Assert.Empty(updates);
     }
 
+    [Fact]
+    public async Task Run_PackageNoLongerOnServer_ReturnsRemoveAndDeletesHistory()
+    {
+        var staleName = "mycelium";
+        var liveName = "Mycelium";
+        var liveVersion = "1.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+        var packageUrl = "https://files.example.test/mycelium.yak";
+
+        var existing = new List<Package>
+        {
+            new(
+                Id: staleName,
+                Version: "0.9.0",
+                Updated: new DateTime(2026, 1, 1),
+                Authors: "Author",
+                Downloads: 5,
+                IconUrl: "/icons/special/default.png",
+                Description: "Old lowercase entry",
+                Keywords: "",
+                Prerelease: false,
+                HomepageUrl: null,
+                Filters: Filters.Windows,
+                Owners: [new Owner(1, "Author")]
+            )
+        };
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Author", "download_count": 7, "name": "Mycelium", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{liveName}/{liveVersion}"] = Json("""
+                {
+                  "created_at": "2026-03-01T00:00:00Z",
+                  "description": "Renamed package",
+                  "distributions": [
+                    {
+                      "filename": "Mycelium-1.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/mycelium.yak"
+                    }
+                  ],
+                  "homepage_url": "https://example.test",
+                  "keywords": ["test"],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"packages/{liveName}/owners"] = Json("""
+                [ { "id": 1, "name": "Author" } ]
+                """),
+            [yakBase + $"versions/{liveName}"] = Json("""
+                [
+                  {
+                    "created_at": "2026-03-01T00:00:00Z",
+                    "version": "1.0.0",
+                    "distributions": [
+                      {
+                        "filename": "Mycelium-1.0.0-rh8_0-win.yak",
+                        "platform": "win",
+                        "rhino_version": "rh8_0",
+                        "url": "https://files.example.test/mycelium.yak"
+                      }
+                    ],
+                    "prerelease": false
+                  }
+                ]
+                """),
+            [yakBase + $"versions/{liveName}/{liveVersion}/_icon"] = new HttpResponseMessage(HttpStatusCode.OK),
+            [packageUrl] = ZipWithEntries("test.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+
+        // Seed a stale history file for the lowercase entry that should be pruned.
+        var staleHistoryPath = Path.GetFullPath($"../RhinoPackages.Web/public/data/versions/{staleName}.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(staleHistoryPath)!);
+        await File.WriteAllTextAsync(staleHistoryPath, "[]");
+
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, existing, client);
+
+        var updates = await seeder.Run();
+
+        Assert.Contains(updates, u => u.Update == Update.New && u.Package.Id == liveName);
+        Assert.Contains(updates, u => u.Update == Update.Remove && u.Package.Id == staleName);
+        Assert.False(File.Exists(staleHistoryPath));
+    }
+
     static HttpResponseMessage Json(string json)
         => new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 

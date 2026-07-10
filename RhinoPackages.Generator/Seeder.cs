@@ -12,7 +12,7 @@ public record DistributionYak(string Filename, string Platform, string RhinoVers
 public record OwnerYak(int Id, string Name);
 public record YakVersionHistoryItem(string CreatedAt, string Version, DistributionYak[] Distributions, bool Prerelease);
 
-public enum Update { None, New, Update }
+public enum Update { None, New, Update, Remove }
 
 public class Seeder
 {
@@ -86,7 +86,30 @@ public class Seeder
             }
         });
 
-        return updates.Where(p => p.Update != Update.None).ToList();
+        var result = updates.Where(p => p.Update != Update.None).ToList();
+
+        // Prune packages that are no longer published on the yak server, for
+        // example ones that were deleted or renamed (a rename such as
+        // "mycelium" -> "Mycelium" leaves the old entry stranded here forever
+        // otherwise). Names are compared case-sensitively so a capitalization
+        // change is treated as a different package. Guard against wiping the
+        // whole catalogue if the server ever returns an empty list.
+        if (entries.Length > 0)
+        {
+            var liveNames = new HashSet<string>(entries.Select(e => e.Name), StringComparer.Ordinal);
+
+            foreach (var package in _packages)
+            {
+                if (!liveNames.Contains(package.Id))
+                {
+                    _logger.LogInformation("{Name}: {Update}", package.Id, Update.Remove);
+                    DeleteVersionHistory(package.Id);
+                    result.Add((Update.Remove, package));
+                }
+            }
+        }
+
+        return result;
     }
 
     async Task<T> Get<T>(string route)
@@ -202,6 +225,21 @@ public class Seeder
 
         return $"/icons/special/{icon}.png";
     }
+    void DeleteVersionHistory(string name)
+    {
+        var path = Path.Combine("../RhinoPackages.Web/public/data/versions", $"{name}.json");
+
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to delete version history for {Name}: {Message}", name, ex.Message);
+        }
+    }
+
     async Task SaveVersionHistory(string name, YakVersionHistoryItem[] history)
     {
         var path = Path.Combine("../RhinoPackages.Web/public/data/versions", $"{name}.json");

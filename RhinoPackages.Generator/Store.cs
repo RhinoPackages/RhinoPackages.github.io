@@ -68,6 +68,9 @@ public class Store(ILogger<Store> logger)
                         packages.Add(package);
                     }
                     break;
+                case Update.Remove:
+                    packages.RemoveAll(p => p.Id == package.Id);
+                    break;
             }
         }
 
