@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-10T02:03:02.627Z</lastmod>
+<lastmod>2026-07-10T09:01:05.847Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-10T02:03:02.627Z</lastmod>
+<lastmod>2026-07-10T09:01:05.847Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -2222,7 +2222,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=GhGumball</loc>
-<lastmod>2026-07-09T04:28:22.000Z</lastmod>
+<lastmod>2026-07-09T22:32:06.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -3152,7 +3152,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=llxgjk</loc>
-<lastmod>2026-07-09T19:07:01.000Z</lastmod>
+<lastmod>2026-07-09T19:07:00.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4964,7 +4964,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=robohopper</loc>
-<lastmod>2026-07-09T19:07:00.000Z</lastmod>
+<lastmod>2026-07-09T19:07:01.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6608,7 +6608,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=robochat</loc>
-<lastmod>2026-07-09T00:08:59.000Z</lastmod>
+<lastmod>2026-07-09T22:32:06.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6650,12 +6650,6 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ElephantTools</loc>
-<lastmod>2026-07-08T15:52:32.000Z</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.5</priority>
-</url>
-<url>
-<loc>https://rhinopackages.github.io/?p=mycelium</loc>
 <lastmod>2026-07-08T15:52:32.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
