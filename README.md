@@ -8,6 +8,10 @@ A community-maintained directory of [Rhino 3D](https://www.rhino3d.com/) package
 
 ---
 
+## Attribution
+
+This project is derived from [RhinoPackages](https://github.com/visose/RhinoPackages), originally created by [@visose](https://github.com/visose), and has been independently maintained by this repository since February 2026.
+
 ## Features
 
 - 🔍 **Instant search** — live-filtering with 300ms debounce
@@ -49,10 +53,6 @@ dotnet run
 cd RhinoPackages.Tests
 dotnet test
 ```
-
-## Attribution
-
-This project was inspired by [RhinoPackager](https://github.com/visose/RhinoPackager) by [@visose](https://github.com/visose).
 
 ## License
 
