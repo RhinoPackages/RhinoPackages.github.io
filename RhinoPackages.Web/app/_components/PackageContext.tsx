@@ -232,8 +232,19 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
     filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
 
+  let visiblePackages = filtered.slice(0, (page + 1) * pageResults);
+
+  // Deep links (?p=name) must always show the target package, even when it
+  // falls outside the current page or the active filters: pin it to the top.
+  if (params.p && !visiblePackages.some((pkg) => pkg.id === params.p)) {
+    const target = packages.find((pkg) => pkg.id === params.p);
+    if (target) {
+      visiblePackages = [target, ...visiblePackages];
+    }
+  }
+
   return {
-    visiblePackages: filtered.slice(0, (page + 1) * pageResults),
+    visiblePackages,
     totalFiltered: filtered.length,
   };
 }
