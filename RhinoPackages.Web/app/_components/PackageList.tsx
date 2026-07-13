@@ -54,7 +54,11 @@ export default function PackageList() {
                   : `Showing ${packages.length} of ${filteredCount} packages`}
           </p>
         </div>
-        <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
+        <a
+          href="/stats"
+          title="View full directory statistics"
+          className="group hidden divide-x divide-gray-200 rounded-md text-sm transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:divide-zinc-800 dark:focus-visible:ring-brand-400 md:flex"
+        >
           <div className="flex flex-col pr-4">
             <span className="text-gray-500 dark:text-zinc-400">Total Packages</span>
             <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalPackages.toLocaleString() ?? "-"}</span>
@@ -73,7 +77,10 @@ export default function PackageList() {
             <span className="text-gray-500 dark:text-zinc-400">Updated Monthly</span>
             <span className="font-semibold text-brand-600 dark:text-brand-400">{stats?.recentUpdates.toLocaleString() ?? "-"}</span>
           </div>
-        </div>
+          <div className="flex items-center pl-4 text-xs font-medium text-gray-400 transition-colors group-hover:text-brand-600 dark:text-zinc-500 dark:group-hover:text-brand-400">
+            All stats →
+          </div>
+        </a>
       </div>
 
       {packages.length === 0 && status.isLoading ? (
