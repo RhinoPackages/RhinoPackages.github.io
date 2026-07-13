@@ -38,6 +38,7 @@ interface PackageContext {
     recentUpdates: number;
     weeklyDownloads: number;
   };
+  filterCounts: Map<Filters, number>;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -140,6 +141,26 @@ export function PackageProvider({
     return owners.sort((a, b) => a.id - b.id);
   }, [cache]);
 
+  const filterCounts = useMemo(() => {
+    const flags = [
+      Filters.Windows,
+      Filters.Mac,
+      Filters.Rhino6,
+      Filters.Rhino7,
+      Filters.Rhino8,
+      Filters.Rhino9,
+      Filters.Rhino,
+      Filters.Grasshopper,
+    ];
+    const counts = new Map<Filters, number>(flags.map((f) => [f, 0]));
+    for (const pkg of cache ?? []) {
+      for (const flag of flags) {
+        if (has(flag, pkg)) counts.set(flag, counts.get(flag)! + 1);
+      }
+    }
+    return counts;
+  }, [cache]);
+
   const stats = useMemo(() => {
     let totalDownloads = 0;
     let recentUpdates = 0;
@@ -169,6 +190,7 @@ export function PackageProvider({
         status,
         controls,
         stats,
+        filterCounts,
         navigate,
         navigateFilter,
         setSearch,
