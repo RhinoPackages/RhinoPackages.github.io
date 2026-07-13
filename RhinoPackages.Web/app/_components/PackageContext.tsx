@@ -219,8 +219,11 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
 import { ReadonlyURLSearchParams } from "next/navigation";
 
 function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Params {
+  // Note: 0 is a valid value (e.g. sort=0 is Sort.Downloads), so we can't use
+  // `parseInt(...) || defaultValue` — it would swallow zeros.
   function toInt<T>(param: string, defaultValue: T) {
-    let result = parseInt(searchParams.get(param) ?? "") || defaultValue;
+    const parsed = parseInt(searchParams.get(param) ?? "");
+    let result = Number.isNaN(parsed) ? defaultValue : parsed;
     if ((result as number) < 0) result = defaultValue;
     return result;
   }
@@ -248,9 +251,13 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
 function toQuery(params: Params) {
   const urlParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value) {
-      urlParams.append(key, value.toString());
-    }
+    if (value === undefined || value === null || value === "") continue;
+
+    // Skip values that match the defaults to keep URLs short, but keep
+    // explicit non-default falsy values like sort=0 (Sort.Downloads).
+    if (value === defaultParams[key as keyof Params]) continue;
+
+    urlParams.append(key, value.toString());
   }
   const query = urlParams.toString();
   return !query ? "" : `?${query}`;
