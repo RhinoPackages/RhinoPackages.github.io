@@ -1,5 +1,4 @@
 using System.IO.Compression;
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -7,10 +6,37 @@ using Microsoft.Extensions.Logging;
 namespace RhinoPackages.Api;
 
 public record EntryYak(string Authors, int DownloadCount, string Name, string Version);
-public record PackageYak(string CreatedAt, string? Description, DistributionYak[] Distributions, string? HomepageUrl, string[]? Keywords, bool Prerelease);
-public record DistributionYak(string Filename, string Platform, string RhinoVersion, string Url);
+public record PackageYak(string CreatedAt, string? Description, DistributionYak[] Distributions, string? HomepageUrl, string[]? Keywords, bool Prerelease, string? IconUrl = null);
+public record DistributionYak(string Filename, string Platform, string RhinoVersion, string Url, string? CreatedAt = null);
 public record OwnerYak(int Id, string Name);
-public record YakVersionHistoryItem(string CreatedAt, string Version, DistributionYak[] Distributions, bool Prerelease);
+public record DownloadsYak(int LastDay, int LastWeek, int LastMonth);
+public record YakVersionHistoryItem(string CreatedAt, string Version, DistributionYak[] Distributions, bool Prerelease, int DownloadCount = 0, DownloadsYak? Downloads = null);
+
+public record HistoryStats(int Week, int Month, DateTime? FirstReleased, int VersionCount)
+{
+    public static readonly HistoryStats Empty = new(0, 0, null, 0);
+
+    public static HistoryStats From(YakVersionHistoryItem[] history)
+    {
+        if (history.Length == 0)
+            return Empty;
+
+        var week = 0;
+        var month = 0;
+        DateTime? first = null;
+
+        foreach (var item in history)
+        {
+            week += item.Downloads?.LastWeek ?? 0;
+            month += item.Downloads?.LastMonth ?? 0;
+
+            if (DateTime.TryParse(item.CreatedAt, out var created) && (first is null || created < first))
+                first = created;
+        }
+
+        return new(week, month, first, history.Length);
+    }
+}
 
 public enum Update { None, New, Update, Remove }
 
@@ -53,37 +79,52 @@ public class Seeder
         {
             var (entry, index) = item;
 
-            if (packagesMap.TryGetValue(entry.Name, out var package))
-            {
-                if (package.Version == entry.Version)
-                {
-                    if (package.Downloads != entry.DownloadCount)
-                    {
-                        updates[index] = (Update.Update, package with { Downloads = entry.DownloadCount });
-                    }
-                }
-                else
-                {
-                    updates[index] = (Update.Update, await MakePackage(entry));
-                }
-            }
-            else
-            {
-                updates[index] = (Update.New, await MakePackage(entry));
-            }
+            // The version history doubles as the source for rolling download
+            // windows, first release date and version count, so fetch it up
+            // front and reuse it below.
+            YakVersionHistoryItem[] history = [];
 
-            _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
-
-            // Fetch and save version history for all packages
             try
             {
-                var history = await Get<YakVersionHistoryItem[]>($"versions/{entry.Name}");
+                history = await Get<YakVersionHistoryItem[]>($"versions/{entry.Name}");
                 await SaveVersionHistory(entry.Name, history);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning("Failed to fetch version history for {Name}: {Message}", entry.Name, ex.Message);
             }
+
+            var stats = HistoryStats.From(history);
+
+            if (packagesMap.TryGetValue(entry.Name, out var package))
+            {
+                if (package.Version == entry.Version)
+                {
+                    var refreshed = package with
+                    {
+                        Downloads = entry.DownloadCount,
+                        DownloadsWeek = stats.Week,
+                        DownloadsMonth = stats.Month,
+                        FirstReleased = stats.FirstReleased ?? package.FirstReleased,
+                        VersionCount = stats.VersionCount > 0 ? stats.VersionCount : package.VersionCount,
+                    };
+
+                    if (refreshed != package)
+                    {
+                        updates[index] = (Update.Update, refreshed);
+                    }
+                }
+                else
+                {
+                    updates[index] = (Update.Update, await MakePackage(entry, stats));
+                }
+            }
+            else
+            {
+                updates[index] = (Update.New, await MakePackage(entry, stats));
+            }
+
+            _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
         });
 
         var result = updates.Where(p => p.Update != Update.None).ToList();
@@ -104,6 +145,7 @@ public class Seeder
                 {
                     _logger.LogInformation("{Name}: {Update}", package.Id, Update.Remove);
                     DeleteVersionHistory(package.Id);
+                    DeleteDownloadHistory(package.Id);
                     result.Add((Update.Remove, package));
                 }
             }
@@ -120,7 +162,7 @@ public class Seeder
             ?? throw new("Could not get package list.");
     }
 
-    async Task<Package> MakePackage(EntryYak entry)
+    async Task<Package> MakePackage(EntryYak entry, HistoryStats stats)
     {
         var packageTask = Get<PackageYak>($"versions/{entry.Name}/{entry.Version}");
         var ownersTask = Get<OwnerYak[]>($"packages/{entry.Name}/owners");
@@ -137,13 +179,17 @@ public class Seeder
             Updated: DateTime.Parse(package.CreatedAt),
             Authors: entry.Authors,
             Downloads: entry.DownloadCount,
-            IconUrl: await GetIcon(entry.Name, entry.Version),
+            IconUrl: GetIcon(entry.Name, package.IconUrl),
             Description: package.Description ?? "",
             Keywords: package.Keywords is null ? "" : string.Join(", ", package.Keywords),
             Prerelease: package.Prerelease,
             HomepageUrl: package.HomepageUrl,
             Filters: await GetFilters(package.Distributions),
-            Owners: owners.Select(o => new Owner(o.Id, o.Name)).ToList()
+            Owners: owners.Select(o => new Owner(o.Id, o.Name)).ToList(),
+            DownloadsWeek: stats.Week,
+            DownloadsMonth: stats.Month,
+            FirstReleased: stats.FirstReleased,
+            VersionCount: stats.VersionCount
         );
     }
 
@@ -205,20 +251,12 @@ public class Seeder
         }
     }
 
-    async Task<string> GetIcon(string name, string version)
+    // The version endpoint reports the icon URL directly, so no extra request
+    // per package is needed anymore.
+    static string GetIcon(string name, string? iconUrl)
     {
-        var url = $"https://yak.rhino3d.com/versions/{name}/{version}/_icon";
-
-        try
-        {
-            var response = await _client.GetAsync(url);
-
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new("Not found");
-
-            return url;
-        }
-        catch { }
+        if (!string.IsNullOrWhiteSpace(iconUrl))
+            return iconUrl;
 
         string[] specialIcons = ["plankton", "kangaroo", "metahopper", "iris", "imaging", "Weaver", "GhShaderNodes", "icosphere", "waterman", "Paneling"];
         var icon = specialIcons.FirstOrDefault(name.Contains) ?? "default";
@@ -237,6 +275,21 @@ public class Seeder
         catch (Exception ex)
         {
             _logger.LogWarning("Failed to delete version history for {Name}: {Message}", name, ex.Message);
+        }
+    }
+
+    void DeleteDownloadHistory(string name)
+    {
+        var path = Path.Combine("../RhinoPackages.Web/public/data/history", $"{name}.json");
+
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to delete download history for {Name}: {Message}", name, ex.Message);
         }
     }
 

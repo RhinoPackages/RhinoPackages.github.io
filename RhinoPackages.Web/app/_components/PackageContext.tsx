@@ -36,6 +36,7 @@ interface PackageContext {
     totalPackages: number;
     totalDownloads: number;
     recentUpdates: number;
+    weeklyDownloads: number;
   };
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
@@ -105,9 +106,18 @@ export function PackageProvider({
   const trendingScores = useMemo(() => {
     const scores = new Map<string, number>();
     const now = Date.now();
+
+    // Real weekly download counts from the Yak API; fall back to the old
+    // recency heuristic until the generator has published the new fields.
+    const hasWeekly = (cache ?? []).some((p) => (p.downloadsWeek ?? 0) > 0);
+
     for (const p of cache ?? []) {
-      const daysSinceUpdate = (now - new Date(p.updated).getTime()) / (1000 * 3600 * 24);
-      scores.set(p.id, p.downloads / Math.pow(Math.max(1, daysSinceUpdate), 1.5));
+      if (hasWeekly) {
+        scores.set(p.id, (p.downloadsWeek ?? 0) + (p.downloadsMonth ?? 0) / 100);
+      } else {
+        const daysSinceUpdate = (now - new Date(p.updated).getTime()) / (1000 * 3600 * 24);
+        scores.set(p.id, p.downloads / Math.pow(Math.max(1, daysSinceUpdate), 1.5));
+      }
     }
     return scores;
   }, [cache]);
@@ -133,9 +143,11 @@ export function PackageProvider({
   const stats = useMemo(() => {
     let totalDownloads = 0;
     let recentUpdates = 0;
+    let weeklyDownloads = 0;
     const now = Date.now();
     for (const pkg of cache ?? []) {
       totalDownloads += pkg.downloads;
+      weeklyDownloads += pkg.downloadsWeek ?? 0;
       if ((now - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24) <= 30) {
         recentUpdates++;
       }
@@ -144,6 +156,7 @@ export function PackageProvider({
       totalPackages: cache?.length ?? 0,
       totalDownloads,
       recentUpdates,
+      weeklyDownloads,
     };
   }, [cache]);
 

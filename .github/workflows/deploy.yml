@@ -49,7 +49,7 @@ jobs:
       - name: Detect data changes
         id: detect-changes
         run: |
-          if git diff --quiet -- RhinoPackages.Web/public/data.json RhinoPackages.Web/public/data/versions; then
+          if git diff --quiet -- RhinoPackages.Web/public/data.json RhinoPackages.Web/public/data/versions RhinoPackages.Web/public/data/history; then
             echo "data_changed=false" >> "$GITHUB_OUTPUT"
             echo "No changes detected in generated API data files"
           else
@@ -62,7 +62,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add -A RhinoPackages.Web/public/data.json RhinoPackages.Web/public/data/versions
+          git add -A RhinoPackages.Web/public/data.json RhinoPackages.Web/public/data/versions RhinoPackages.Web/public/data/history
           git commit -m "chore: update package data"
           git push
 
