@@ -741,7 +741,6 @@ const PackageCard = memo(function PackageCard({
                       {versionRows
                         .map((row) => {
                           const vDate = new Date(row.createdAt).toLocaleDateString();
-                          const lag = platformLag(row.distributions);
                           const platforms = Array.from(
                             new Set(
                               row.distributions
@@ -783,14 +782,6 @@ const PackageCard = memo(function PackageCard({
                                       {p === 'mac' ? 'Mac' : 'Windows'}
                                     </span>
                                   ))}
-                                  {lag && (
-                                    <span
-                                      title={`The ${lag.later} build was published ${lag.days} day${lag.days === 1 ? "" : "s"} after ${lag.earlier}`}
-                                      className="rounded bg-purple-50 px-1.5 py-0.5 text-[0.65rem] font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                                    >
-                                      {lag.later} +{lag.days}d
-                                    </span>
-                                  )}
                                   {rhinoVersions.map((rv) => (
                                     <a
                                       key={rv.raw}
@@ -932,31 +923,6 @@ function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHist
       downloadCount: row.downloadCount,
     }))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-// Difference in days between the first Windows and first Mac build of a
-// release, using the per-distribution timestamps from the Yak API.
-function platformLag(
-  distributions: Distribution[],
-): { later: "Mac" | "Windows"; earlier: "Mac" | "Windows"; days: number } | null {
-  const first = (platform: string) => {
-    const times = distributions
-      .filter((d) => d.platform === platform && d.createdAt)
-      .map((d) => new Date(d.createdAt!).getTime())
-      .filter((t) => Number.isFinite(t));
-    return times.length > 0 ? Math.min(...times) : null;
-  };
-
-  const win = first("win");
-  const mac = first("mac");
-  if (win === null || mac === null) return null;
-
-  const days = Math.round((mac - win) / (1000 * 3600 * 24));
-  if (Math.abs(days) < 1) return null;
-
-  return days > 0
-    ? { later: "Mac", earlier: "Windows", days }
-    : { later: "Windows", earlier: "Mac", days: -days };
 }
 
 function Sparkline({ points }: { points: HistoryPoint[] }) {
