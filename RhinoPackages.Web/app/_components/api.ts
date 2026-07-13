@@ -50,6 +50,12 @@ export interface HistoryPoint {
   week: number;
 }
 
+export interface TotalsPoint {
+  date: string;
+  packages: number;
+  downloads: number;
+}
+
 export enum Filters {
   None = 0,
   Windows = 1,

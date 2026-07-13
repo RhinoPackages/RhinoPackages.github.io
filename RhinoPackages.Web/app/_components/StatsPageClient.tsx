@@ -1,7 +1,7 @@
 "use client";
 
-import { Filters, Package, has, useApi } from "@/app/_components/api";
-import { useMemo, useState } from "react";
+import { Filters, Package, TotalsPoint, has, useApi } from "@/app/_components/api";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Spinner from "./Spinner";
@@ -10,6 +10,60 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   const { cache, status } = useApi(initialCache);
   const stats = useMemo(() => getStats(cache), [cache]);
   const [authorQuery, setAuthorQuery] = useState("");
+  const [totals, setTotals] = useState<TotalsPoint[] | null>(null);
+
+  useEffect(() => {
+    // Daily ecosystem snapshots; the chart appears once at least two
+    // days of data have been collected.
+    fetch("./data/history/_totals.json")
+      .then((r) => {
+        if (!r.ok) throw new Error("No totals history");
+        return r.json();
+      })
+      .then((data: TotalsPoint[]) => setTotals(data))
+      .catch(() => setTotals([]));
+  }, []);
+
+  // Cumulative package count by month of first release.
+  const growth = useMemo(() => {
+    const months = new Map<string, number>();
+    for (const pkg of cache) {
+      if (!pkg.firstReleased) continue;
+      const d = new Date(pkg.firstReleased);
+      if (Number.isNaN(d.getTime())) continue;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      months.set(key, (months.get(key) ?? 0) + 1);
+    }
+    if (months.size < 2) return null;
+
+    const keys = Array.from(months.keys()).sort();
+    const [startYear, startMonth] = keys[0].split("-").map(Number);
+    const now = new Date();
+    const values: number[] = [];
+    let running = 0;
+
+    for (let y = startYear, m = startMonth; y < now.getFullYear() || (y === now.getFullYear() && m <= now.getMonth() + 1); ) {
+      running += months.get(`${y}-${String(m).padStart(2, "0")}`) ?? 0;
+      values.push(running);
+      m++;
+      if (m > 12) {
+        m = 1;
+        y++;
+      }
+    }
+
+    return { values, start: keys[0], end: "today" };
+  }, [cache]);
+
+  // Small packages gaining unusual momentum: weekly downloads as a share
+  // of lifetime downloads.
+  const risingStars = useMemo(() => {
+    return cache
+      .filter((p) => (p.downloadsWeek ?? 0) >= 20 && p.downloads >= 100)
+      .map((p) => ({ pkg: p, ratio: (p.downloadsWeek ?? 0) / p.downloads }))
+      .sort((a, b) => b.ratio - a.ratio)
+      .slice(0, 10);
+  }, [cache]);
 
   const visibleAuthors = useMemo(() => {
     if (!stats) return [];
@@ -124,6 +178,46 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         />
       </div>
 
+      {/* Directory growth */}
+      {growth && (
+        <section aria-labelledby="stats-growth" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="mb-2 flex items-center justify-between">
+            <h2
+              id="stats-growth"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            >
+              Directory Growth
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-zinc-400">
+              {growth.values[growth.values.length - 1].toLocaleString()} packages · since {growth.start}
+            </span>
+          </div>
+          <LineChart values={growth.values} startLabel={growth.start} endLabel={growth.end} />
+        </section>
+      )}
+
+      {/* Ecosystem downloads over time (accumulating snapshots) */}
+      {totals && totals.length >= 2 && (
+        <section aria-labelledby="stats-totals" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="mb-2 flex items-center justify-between">
+            <h2
+              id="stats-totals"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            >
+              Total Downloads Over Time
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-zinc-400">
+              {totals[0].date} → {totals[totals.length - 1].date}
+            </span>
+          </div>
+          <LineChart
+            values={totals.map((t) => t.downloads)}
+            startLabel={totals[0].date}
+            endLabel={totals[totals.length - 1].date}
+          />
+        </section>
+      )}
+
       {/* Author leaderboard */}
       <section aria-labelledby="stats-authors">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -200,6 +294,59 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         </div>
       </section>
 
+      {/* Rising stars */}
+      {risingStars.length > 0 && (
+        <section aria-labelledby="stats-rising">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2
+              id="stats-rising"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            >
+              Rising Stars
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-zinc-400">
+              Highest share of lifetime downloads earned this week
+            </span>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
+            <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
+              <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+                <tr>
+                  <th scope="col" className="px-4 py-2">#</th>
+                  <th scope="col" className="px-4 py-2">Package</th>
+                  <th scope="col" className="px-4 py-2 text-right">This Week</th>
+                  <th scope="col" className="px-4 py-2 text-right">Total</th>
+                  <th scope="col" className="px-4 py-2 text-right">Momentum</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
+                {risingStars.map(({ pkg, ratio }, i) => (
+                  <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
+                    <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{i + 1}</td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={`/?p=${encodeURIComponent(pkg.id)}`}
+                        title={`Show ${pkg.id}`}
+                        className="font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                      >
+                        {pkg.id}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
+                      +{(pkg.downloadsWeek ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">{pkg.downloads.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-right tabular-nums" title="Share of lifetime downloads earned in the last 7 days">
+                      {(ratio * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* New packages */}
       {stats.newThisMonth.length > 0 && (
         <section aria-labelledby="stats-new">
@@ -226,6 +373,59 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           </ul>
         </section>
       )}
+    </div>
+  );
+}
+
+function LineChart({
+  values,
+  startLabel,
+  endLabel,
+}: {
+  values: number[];
+  startLabel: string;
+  endLabel: string;
+}) {
+  const width = 600;
+  const height = 140;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+
+  const coords = values.map((v, i) => ({
+    x: i * step,
+    y: height - 6 - ((v - min) / span) * (height - 12),
+  }));
+  const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
+  const area = `${line} L${width},${height} L0,${height} Z`;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-start justify-between text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+        <span>{max.toLocaleString()}</span>
+      </div>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-36 w-full"
+        role="img"
+        aria-label={`Chart from ${min.toLocaleString()} to ${max.toLocaleString()}`}
+        preserveAspectRatio="none"
+      >
+        <path d={area} className="fill-brand-500/10 dark:fill-brand-400/10" />
+        <path
+          d={line}
+          fill="none"
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
+          className="stroke-brand-500 dark:stroke-brand-400"
+        />
+      </svg>
+      <div className="flex items-center justify-between text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+        <span>{startLabel}</span>
+        <span>{min.toLocaleString()} → {max.toLocaleString()}</span>
+        <span>{endLabel}</span>
+      </div>
     </div>
   );
 }
