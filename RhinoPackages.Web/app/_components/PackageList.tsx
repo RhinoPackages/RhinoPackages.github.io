@@ -754,13 +754,16 @@ const PackageCard = memo(function PackageCard({
                       {versionRows
                         .map((row) => {
                           const vDate = new Date(row.createdAt).toLocaleDateString();
-                          const platforms = Array.from(
-                            new Set(
-                              row.distributions
-                                .map((d) => d?.platform)
-                                .filter((p): p is string => typeof p === "string" && p.length > 0)
-                            )
+                          // Yak reports "win", "mac" or "any" (cross-platform
+                          // build); normalize to display labels and dedupe so
+                          // e.g. win + any doesn't render "Windows" twice.
+                          const platformSet = new Set(
+                            row.distributions
+                              .map((d) => d?.platform)
+                              .filter((p): p is string => typeof p === "string" && p.length > 0)
+                              .flatMap((p) => (p === "win" ? ["Windows"] : p === "mac" ? ["Mac"] : ["Windows", "Mac"]))
                           );
+                          const platforms = ["Windows", "Mac"].filter((p) => platformSet.has(p));
                           const rhinoVersions = Array.from(
                             new Set(
                               row.distributions
@@ -792,7 +795,7 @@ const PackageCard = memo(function PackageCard({
                                 <div className="flex flex-wrap gap-1">
                                   {platforms.map((p) => (
                                     <span key={p} className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                      {p === 'mac' ? 'Mac' : 'Windows'}
+                                      {p}
                                     </span>
                                   ))}
                                   {rhinoVersions.map((rv) => (
