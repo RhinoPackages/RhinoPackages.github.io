@@ -26,13 +26,13 @@ export default function Sidebar() {
       <OwnersControl />
       <Sort />
       <Spacer />
-      <fieldset className="w-full flex flex-col gap-3">
+      <fieldset className="flex w-full flex-col gap-3">
         <legend className="sr-only">Platform compatibility</legend>
         <CheckBox title="Windows" icon="/icons/win.svg" filter={Filters.Windows} />
         <CheckBox title="Mac" icon="/icons/mac.svg" filter={Filters.Mac} />
       </fieldset>
       <Spacer />
-      <fieldset className="w-full flex flex-col gap-3">
+      <fieldset className="flex w-full flex-col gap-3">
         <legend className="sr-only">Rhino versions</legend>
         <CheckBox title="Rhino 6" icon="/icons/rhino6.png" filter={Filters.Rhino6} />
         <CheckBox title="Rhino 7" icon="/icons/rhino7.png" filter={Filters.Rhino7} />
@@ -40,7 +40,7 @@ export default function Sidebar() {
         <CheckBox title="Rhino 9 (WIP)" icon="/icons/rhino9.png" filter={Filters.Rhino9} />
       </fieldset>
       <Spacer />
-      <fieldset className="w-full flex flex-col gap-3">
+      <fieldset className="flex w-full flex-col gap-3">
         <legend className="sr-only">Plugin types</legend>
         <CheckBox title="Rhino plugin" icon="/icons/rhp.png" filter={Filters.Rhino} />
         <CheckBox title="Grasshopper" icon="/icons/gha.png" filter={Filters.Grasshopper} />
@@ -58,7 +58,7 @@ export default function Sidebar() {
         }}
         className={`mt-6 flex w-full items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:focus-visible:ring-brand-400 ${
           !hasFilters
-            ? "opacity-50 cursor-not-allowed"
+            ? "cursor-not-allowed opacity-50"
             : "hover:bg-gray-50 active:bg-gray-200 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
         }`}
       >
@@ -69,17 +69,35 @@ export default function Sidebar() {
         href="https://rhinoversions.github.io"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-2 mb-6 md:mb-0 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 transition-all hover:border-brand-500 hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
+        className="mb-6 mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 transition-all hover:border-brand-500 hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 md:mb-0"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-4 w-4" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="h-4 w-4"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
+          />
         </svg>
-        Version Archive
+        Rhino Version Archive
         <span className="sr-only"> (opens in a new tab)</span>
       </a>
       {status.isError && (
         <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
-          <p role="alert" aria-live="assertive" className="text-center text-red-500 dark:text-red-400">{status.message}</p>
+          <p
+            role="alert"
+            aria-live="assertive"
+            className="text-center text-red-500 dark:text-red-400"
+          >
+            {status.message}
+          </p>
         </div>
       )}
     </form>
@@ -115,7 +133,9 @@ function CheckBox({ title, icon, filter }: CheckProps) {
           alt=""
           aria-hidden="true"
         />
-        <span className="text-right text-sm text-gray-900 select-none dark:text-zinc-300">{title}</span>
+        <span className="select-none text-right text-sm text-gray-900 dark:text-zinc-300">
+          {title}
+        </span>
       </Switch.Label>
       <Switch
         as={Fragment}
@@ -126,13 +146,15 @@ function CheckBox({ title, icon, filter }: CheckProps) {
           <button
             type="button"
             aria-label={title}
-            className={`${checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
-              } relative inline-flex h-5 w-11 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
+            className={`${
+              checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
+            } relative inline-flex h-5 w-11 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
           >
             <span
               aria-hidden="true"
-              className={`${checked ? "translate-x-6" : "translate-x-0"
-                } pointer-events-none absolute inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+              className={`${
+                checked ? "translate-x-6" : "translate-x-0"
+              } pointer-events-none absolute inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
             />
           </button>
         )}
@@ -169,7 +191,7 @@ function SearchBar() {
         if (
           inputRef.current &&
           inputRef.current.offsetWidth > 0 &&
-          window.getComputedStyle(inputRef.current).display !== 'none'
+          window.getComputedStyle(inputRef.current).display !== "none"
         ) {
           e.preventDefault();
           inputRef.current.focus();
@@ -193,7 +215,10 @@ function SearchBar() {
         Search packages
       </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" aria-hidden="true" />
+        <MagnifyingGlassIcon
+          className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400"
+          aria-hidden="true"
+        />
       </div>
       <input
         id="search-packages"
@@ -237,7 +262,9 @@ function SearchBar() {
           className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
         >
           <span className="hidden items-center gap-1 sm:flex">
-            <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500">Esc</kbd>
+            <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500">
+              Esc
+            </kbd>
           </span>
           <XMarkIcon className="h-5 w-5 sm:ml-1" aria-hidden="true" />
         </button>
@@ -255,7 +282,10 @@ function Sort() {
         Sort packages by
       </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <BarsArrowDownIcon className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" aria-hidden="true" />
+        <BarsArrowDownIcon
+          className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400"
+          aria-hidden="true"
+        />
       </div>
       <select
         id="sort-packages"
