@@ -304,6 +304,7 @@ function Sort() {
         <option value={0}>Downloads</option>
         <option value={1}>Latest updates</option>
         <option value={2}>Trending</option>
+        <option value={3}>Rising stars</option>
       </select>
     </div>
   );

@@ -6,6 +6,7 @@ export enum Sort {
   Downloads,
   Date,
   Trending,
+  Rising,
 }
 
 export interface Params {
@@ -228,6 +229,18 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
     filtered = filtered.sort((a, b) => (a.updated < b.updated ? 1 : -1));
   } else if (sort === Sort.Trending) {
     filtered = filtered.sort((a, b) => (trendingScores.get(a.id)! < trendingScores.get(b.id)! ? 1 : -1));
+  } else if (sort === Sort.Rising) {
+    // Momentum: weekly downloads as a share of lifetime downloads. Same
+    // eligibility floor as the stats page so tiny packages don't dominate.
+    const risingScore = (p: Package) => {
+      const week = p.downloadsWeek ?? 0;
+      if (week < 20 || p.downloads < 100) return 0;
+      return week / p.downloads;
+    };
+    filtered = filtered.sort((a, b) => {
+      const diff = risingScore(b) - risingScore(a);
+      return diff !== 0 ? diff : (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0);
+    });
   } else {
     filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
