@@ -77,9 +77,6 @@ export default function PackageList() {
             <span className="text-gray-500 dark:text-zinc-400">Updated Monthly</span>
             <span className="font-semibold text-brand-600 dark:text-brand-400">{stats?.recentUpdates.toLocaleString() ?? "-"}</span>
           </div>
-          <div className="flex items-center pl-4 text-xs font-medium text-gray-400 transition-colors group-hover:text-brand-600 dark:text-zinc-500 dark:group-hover:text-brand-400">
-            All stats →
-          </div>
         </a>
       </div>
 
