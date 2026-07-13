@@ -38,7 +38,8 @@ public class SeederTests
                   ],
                   "homepage_url": "https://example.test",
                   "keywords": ["test", "unit"],
-                  "prerelease": false
+                  "prerelease": false,
+                  "icon_url": "https://files.example.test/icons/unit-test.png"
                 }
                 """),
             [yakBase + $"packages/{packageName}/owners"] = Json("""
@@ -54,14 +55,16 @@ public class SeederTests
                         "filename": "UnitTestPackage-1.2.3-rh8_0-win.yak",
                         "platform": "win",
                         "rhino_version": "rh8_0",
-                        "url": "https://files.example.test/unit-test-package.yak"
+                        "url": "https://files.example.test/unit-test-package.yak",
+                        "created_at": "2026-02-20T00:00:00Z"
                       }
                     ],
-                    "prerelease": false
+                    "prerelease": false,
+                    "download_count": 42,
+                    "downloads": { "last_day": 1, "last_week": 5, "last_month": 20 }
                   }
                 ]
                 """),
-            [yakBase + $"versions/{packageName}/{packageVersion}/_icon"] = new HttpResponseMessage(HttpStatusCode.OK),
             [packageUrl] = ZipWithEntries("test.rhp"),
         };
 
@@ -78,6 +81,11 @@ public class SeederTests
         Assert.Equal(packageVersion, updates[0].Package.Version);
         Assert.Equal(Filters.Windows | Filters.Rhino8 | Filters.Rhino, updates[0].Package.Filters);
         Assert.Equal(42, updates[0].Package.Downloads);
+        Assert.Equal("https://files.example.test/icons/unit-test.png", updates[0].Package.IconUrl);
+        Assert.Equal(5, updates[0].Package.DownloadsWeek);
+        Assert.Equal(20, updates[0].Package.DownloadsMonth);
+        Assert.Equal(1, updates[0].Package.VersionCount);
+        Assert.Equal(DateTime.Parse("2026-02-20T00:00:00Z"), updates[0].Package.FirstReleased);
 
         var historyPath = Path.GetFullPath($"../RhinoPackages.Web/public/data/versions/{packageName}.json");
         Assert.True(File.Exists(historyPath));
@@ -135,7 +143,6 @@ public class SeederTests
                   }
                 ]
                 """),
-            [yakBase + $"versions/{packageName}/{packageVersion}/_icon"] = new HttpResponseMessage(HttpStatusCode.NotFound),
             [packageUrl] = ZipWithEntries("test.rhp"),
         };
 
@@ -171,7 +178,11 @@ public class SeederTests
                 Prerelease: false,
                 HomepageUrl: null,
                 Filters: Filters.Windows,
-                Owners: [new Owner(1, "Owner One")]
+                Owners: [new Owner(1, "Owner One")],
+                DownloadsWeek: 0,
+                DownloadsMonth: 0,
+                FirstReleased: DateTime.Parse("2026-01-01T00:00:00Z"),
+                VersionCount: 1
             )
         };
 
@@ -275,7 +286,6 @@ public class SeederTests
                   }
                 ]
                 """),
-            [yakBase + $"versions/{liveName}/{liveVersion}/_icon"] = new HttpResponseMessage(HttpStatusCode.OK),
             [packageUrl] = ZipWithEntries("test.rhp"),
         };
 
@@ -295,6 +305,69 @@ public class SeederTests
         Assert.Contains(updates, u => u.Update == Update.New && u.Package.Id == liveName);
         Assert.Contains(updates, u => u.Update == Update.Remove && u.Package.Id == staleName);
         Assert.False(File.Exists(staleHistoryPath));
+    }
+
+    [Fact]
+    public async Task Run_SameVersion_WeeklyDownloadsChanged_ReturnsUpdate()
+    {
+        var packageName = "WeeklyChangePackage";
+        var packageVersion = "1.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+
+        var existing = new List<Package>
+        {
+            new(
+                Id: packageName,
+                Version: packageVersion,
+                Updated: new DateTime(2026, 1, 1),
+                Authors: "Unit Tester",
+                Downloads: 99,
+                IconUrl: "/icons/special/default.png",
+                Description: "Existing",
+                Keywords: "",
+                Prerelease: false,
+                HomepageUrl: null,
+                Filters: Filters.Windows,
+                Owners: [new Owner(1, "Owner One")],
+                DownloadsWeek: 0,
+                DownloadsMonth: 0,
+                FirstReleased: DateTime.Parse("2026-01-01T00:00:00Z"),
+                VersionCount: 1
+            )
+        };
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 99, "name": "WeeklyChangePackage", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  {
+                    "created_at": "2026-01-01T00:00:00Z",
+                    "version": "1.0.0",
+                    "distributions": [],
+                    "prerelease": false,
+                    "download_count": 99,
+                    "downloads": { "last_day": 2, "last_week": 15, "last_month": 40 }
+                  }
+                ]
+                """),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, existing, client);
+
+        var updates = await seeder.Run();
+
+        Assert.Single(updates);
+        Assert.Equal(Update.Update, updates[0].Update);
+        Assert.Equal(15, updates[0].Package.DownloadsWeek);
+        Assert.Equal(40, updates[0].Package.DownloadsMonth);
     }
 
     static HttpResponseMessage Json(string json)

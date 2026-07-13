@@ -15,6 +15,10 @@ export interface Package {
   homepageUrl?: string | null;
   filters: Filters;
   owners: Owner[];
+  downloadsWeek?: number;
+  downloadsMonth?: number;
+  firstReleased?: string | null;
+  versionCount?: number;
 }
 
 export interface Distribution {
@@ -22,6 +26,13 @@ export interface Distribution {
   platform: string;
   rhinoVersion: string;
   url: string;
+  createdAt?: string | null;
+}
+
+export interface DownloadsWindow {
+  lastDay: number;
+  lastWeek: number;
+  lastMonth: number;
 }
 
 export interface YakVersionHistoryItem {
@@ -29,6 +40,14 @@ export interface YakVersionHistoryItem {
   version: string;
   distributions: Distribution[];
   prerelease: boolean;
+  downloadCount?: number;
+  downloads?: DownloadsWindow | null;
+}
+
+export interface HistoryPoint {
+  date: string;
+  downloads: number;
+  week: number;
 }
 
 export enum Filters {

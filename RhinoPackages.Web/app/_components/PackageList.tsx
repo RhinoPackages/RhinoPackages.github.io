@@ -14,7 +14,7 @@ import {
   StarIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
+import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
 import { Params, usePackageContext, defaultParams } from "./PackageContext";
 import Spinner from "./Spinner";
 
@@ -63,6 +63,12 @@ export default function PackageList() {
             <span className="text-gray-500 dark:text-zinc-400">Total Downloads</span>
             <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalDownloads.toLocaleString() ?? "-"}</span>
           </div>
+          {(stats?.weeklyDownloads ?? 0) > 0 && (
+            <div className="flex flex-col px-4">
+              <span className="text-gray-500 dark:text-zinc-400">This Week</span>
+              <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats.weeklyDownloads.toLocaleString()}</span>
+            </div>
+          )}
           <div className="flex flex-col pl-4">
             <span className="text-gray-500 dark:text-zinc-400">Updated Monthly</span>
             <span className="font-semibold text-brand-600 dark:text-brand-400">{stats?.recentUpdates.toLocaleString() ?? "-"}</span>
@@ -217,6 +223,7 @@ const PackageCard = memo(function PackageCard({
 }) {
 
   const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
+  const [downloadHistory, setDownloadHistory] = useState<HistoryPoint[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showPrereleases, setShowPrereleases] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -251,6 +258,20 @@ const PackageCard = memo(function PackageCard({
       .finally(() => setHistoryLoading(false));
   }, [isExpanded, pkg.id, versionHistory]);
 
+  useEffect(() => {
+    if (!isExpanded || downloadHistory !== null) return;
+
+    // Daily download snapshots accumulated by the generator; missing until
+    // enough data has been collected for this package.
+    fetch(`./data/history/${pkg.id}.json`)
+      .then((r) => {
+        if (!r.ok) throw new Error("No download history");
+        return r.json();
+      })
+      .then((data: HistoryPoint[]) => setDownloadHistory(data))
+      .catch(() => setDownloadHistory([]));
+  }, [isExpanded, pkg.id, downloadHistory]);
+
   function has(constant: Filters) {
     return constant === (pkg.filters & constant);
   }
@@ -261,12 +282,44 @@ const PackageCard = memo(function PackageCard({
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
   const date = new Date(pkg.updated).toLocaleDateString();
   const downloads = pkg.downloads.toLocaleString();
+  const downloadsWeek = pkg.downloadsWeek ?? 0;
+  const downloadsMonth = pkg.downloadsMonth ?? 0;
 
   // Relative time for expanded view
   const relativeTime = getRelativeTime(new Date(pkg.updated));
   const versionRows = versionHistory
     ? groupVersionHistory(versionHistory.filter((v) => showPrereleases || !v.prerelease))
     : [];
+
+  // Derived stats from the new Yak API fields.
+  const isTrending = downloadsWeek >= 30 && downloadsWeek > pkg.downloads * 0.01;
+  const ageDays = pkg.firstReleased
+    ? (Date.now() - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24)
+    : null;
+  const isNew = ageDays !== null && ageDays <= 30;
+  const downloadsPerDay = ageDays && ageDays >= 1 ? pkg.downloads / ageDays : null;
+  const releaseCadenceDays = (() => {
+    const count = pkg.versionCount ?? 0;
+    if (count < 2 || !pkg.firstReleased) return null;
+    const spanDays =
+      (new Date(pkg.updated).getTime() - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24);
+    return spanDays > 0 ? Math.round(spanDays / (count - 1)) : null;
+  })();
+  const daysSinceUpdate = (Date.now() - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24);
+  const isMaintained = daysSinceUpdate <= 365;
+
+  // Share of downloads on the latest stable release.
+  const adoption = (() => {
+    if (!versionHistory || versionHistory.length === 0) return null;
+    const total = versionHistory.reduce((sum, v) => sum + (v.downloadCount ?? 0), 0);
+    if (total === 0) return null;
+    const stable = versionHistory.filter((v) => !v.prerelease);
+    const pool = stable.length > 0 ? stable : versionHistory;
+    const latest = pool.reduce((prev, curr) =>
+      new Date(curr.createdAt).getTime() > new Date(prev.createdAt).getTime() ? curr : prev,
+    );
+    return { version: latest.version, percent: Math.round(((latest.downloadCount ?? 0) / total) * 100) };
+  })();
 
   const supportedPlatformsList = [
     has(Filters.Windows) && "Windows",
@@ -319,6 +372,23 @@ const PackageCard = memo(function PackageCard({
                 >
                   <span aria-hidden="true">wip</span>
                   <span className="sr-only">Pre-release</span>
+                </span>
+              )}
+              {isNew && (
+                <span
+                  title="First released within the last 30 days"
+                  className="rounded-full bg-green-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
+                >
+                  new
+                </span>
+              )}
+              {isTrending && (
+                <span
+                  title={`Trending: ${downloadsWeek.toLocaleString()} downloads this week`}
+                  className="rounded-full bg-orange-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-500/20"
+                >
+                  <span aria-hidden="true">🔥 trending</span>
+                  <span className="sr-only">Trending this week</span>
                 </span>
               )}
               <p className="max-w-full break-all text-xs font-semibold text-gray-500 dark:text-zinc-400 md:whitespace-nowrap md:break-normal">
@@ -386,6 +456,14 @@ const PackageCard = memo(function PackageCard({
                 {downloads}
               </p>
             </div>
+            {downloadsWeek > 0 && (
+              <div className="flex items-center gap-1" title="Downloads in the last 7 days">
+                <p className="text-xs font-medium text-brand-600 dark:text-brand-400">
+                  <span className="sr-only">Weekly downloads: </span>+
+                  {downloadsWeek.toLocaleString()}/week
+                </p>
+              </div>
+            )}
             <div className="flex items-center gap-1" title="Last updated">
               <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
               <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
@@ -490,6 +568,16 @@ const PackageCard = memo(function PackageCard({
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Total Downloads</span>
                 <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">{downloads}</span>
+                {(downloadsWeek > 0 || downloadsMonth > 0) && (
+                  <span className="text-xs text-gray-500 dark:text-zinc-400">
+                    +{downloadsWeek.toLocaleString()} this week · +{downloadsMonth.toLocaleString()} this month
+                  </span>
+                )}
+                {downloadsPerDay !== null && downloadsPerDay >= 0.1 && (
+                  <span className="text-xs text-gray-500 dark:text-zinc-400">
+                    ~{downloadsPerDay >= 10 ? Math.round(downloadsPerDay).toLocaleString() : downloadsPerDay.toFixed(1)}/day since first release
+                  </span>
+                )}
               </div>
 
               {/* Last Updated */}
@@ -497,6 +585,36 @@ const PackageCard = memo(function PackageCard({
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Last Updated</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{date}</span>
                 <span className="text-xs text-gray-500 dark:text-zinc-400">{relativeTime}</span>
+                <span
+                  className={`inline-flex w-fit items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                    isMaintained
+                      ? "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
+                      : "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20"
+                  }`}
+                >
+                  {isMaintained ? "Actively maintained" : "No release in over a year"}
+                </span>
+              </div>
+
+              {/* Release history */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Releases</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
+                  {pkg.versionCount ? `${pkg.versionCount.toLocaleString()} version${pkg.versionCount === 1 ? "" : "s"}` : "—"}
+                  {releaseCadenceDays !== null && (
+                    <span className="font-normal text-gray-500 dark:text-zinc-400"> · every ~{releaseCadenceDays}d</span>
+                  )}
+                </span>
+                {pkg.firstReleased && (
+                  <span className="text-xs text-gray-500 dark:text-zinc-400">
+                    First released {new Date(pkg.firstReleased).toLocaleDateString()} ({getRelativeTime(new Date(pkg.firstReleased))})
+                  </span>
+                )}
+                {adoption && (
+                  <span className="text-xs text-gray-500 dark:text-zinc-400" title={`Share of all downloads on v${adoption.version}`}>
+                    {adoption.percent}% of downloads on latest (v{adoption.version})
+                  </span>
+                )}
               </div>
 
               {/* Authors */}
@@ -572,6 +690,19 @@ const PackageCard = memo(function PackageCard({
               )}
             </div>
 
+            {/* Download growth over time (daily snapshots) */}
+            {downloadHistory && downloadHistory.length >= 2 && (
+              <div className="mt-6 border-t border-gray-200 pt-4 dark:border-zinc-700">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Download Trend</span>
+                  <span className="text-xs text-gray-500 dark:text-zinc-400">
+                    {downloadHistory[0].date} → {downloadHistory[downloadHistory.length - 1].date}
+                  </span>
+                </div>
+                <Sparkline points={downloadHistory} />
+              </div>
+            )}
+
             {/* Version History Table */}
             {historyLoading ? (
               <div className="mt-6 flex justify-center py-6 border-t border-gray-200 dark:border-zinc-700" aria-live="polite" aria-atomic="true">
@@ -602,6 +733,7 @@ const PackageCard = memo(function PackageCard({
                         <th scope="col" className="rounded-tl-md px-4 py-2">Date</th>
                         <th scope="col" className="px-4 py-2">Version</th>
                         <th scope="col" className="px-4 py-2">Platforms</th>
+                        <th scope="col" className="px-4 py-2 text-right">Downloads</th>
                         <th scope="col" className="rounded-tr-md px-4 py-2 text-right">Install</th>
                       </tr>
                     </thead>
@@ -609,6 +741,7 @@ const PackageCard = memo(function PackageCard({
                       {versionRows
                         .map((row) => {
                           const vDate = new Date(row.createdAt).toLocaleDateString();
+                          const lag = platformLag(row.distributions);
                           const platforms = Array.from(
                             new Set(
                               row.distributions
@@ -650,6 +783,14 @@ const PackageCard = memo(function PackageCard({
                                       {p === 'mac' ? 'Mac' : 'Windows'}
                                     </span>
                                   ))}
+                                  {lag && (
+                                    <span
+                                      title={`The ${lag.later} build was published ${lag.days} day${lag.days === 1 ? "" : "s"} after ${lag.earlier}`}
+                                      className="rounded bg-purple-50 px-1.5 py-0.5 text-[0.65rem] font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                                    >
+                                      {lag.later} +{lag.days}d
+                                    </span>
+                                  )}
                                   {rhinoVersions.map((rv) => (
                                     <a
                                       key={rv.raw}
@@ -666,6 +807,9 @@ const PackageCard = memo(function PackageCard({
                                     </a>
                                   ))}
                                 </div>
+                              </td>
+                              <td className="whitespace-nowrap px-4 py-2 text-right text-xs tabular-nums">
+                                {row.downloadCount > 0 ? row.downloadCount.toLocaleString() : "—"}
                               </td>
                               <td className="px-4 py-2 text-right">
                                 <a
@@ -731,6 +875,7 @@ type GroupedVersionHistoryRow = {
   installVersionByRhino: Map<string, string>;
   distributions: Distribution[];
   prerelease: boolean;
+  downloadCount: number;
 };
 
 function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHistoryRow[] {
@@ -749,6 +894,7 @@ function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHist
         installVersionByRhino: new Map<string, string>(),
         distributions: [...item.distributions],
         prerelease: item.prerelease,
+        downloadCount: item.downloadCount ?? 0,
         versions: new Set([item.version]),
       });
       for (const dist of item.distributions) {
@@ -771,6 +917,7 @@ function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHist
       }
     }
 
+    existing.downloadCount += item.downloadCount ?? 0;
     existing.versions.add(item.version);
   }
 
@@ -782,8 +929,64 @@ function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHist
       installVersionByRhino: row.installVersionByRhino,
       distributions: row.distributions,
       prerelease: row.prerelease,
+      downloadCount: row.downloadCount,
     }))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+// Difference in days between the first Windows and first Mac build of a
+// release, using the per-distribution timestamps from the Yak API.
+function platformLag(
+  distributions: Distribution[],
+): { later: "Mac" | "Windows"; earlier: "Mac" | "Windows"; days: number } | null {
+  const first = (platform: string) => {
+    const times = distributions
+      .filter((d) => d.platform === platform && d.createdAt)
+      .map((d) => new Date(d.createdAt!).getTime())
+      .filter((t) => Number.isFinite(t));
+    return times.length > 0 ? Math.min(...times) : null;
+  };
+
+  const win = first("win");
+  const mac = first("mac");
+  if (win === null || mac === null) return null;
+
+  const days = Math.round((mac - win) / (1000 * 3600 * 24));
+  if (Math.abs(days) < 1) return null;
+
+  return days > 0
+    ? { later: "Mac", earlier: "Windows", days }
+    : { later: "Windows", earlier: "Mac", days: -days };
+}
+
+function Sparkline({ points }: { points: HistoryPoint[] }) {
+  const width = 600;
+  const height = 60;
+  const values = points.map((p) => p.downloads);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const step = width / (points.length - 1);
+
+  const coords = values.map((v, i) => ({
+    x: i * step,
+    y: height - 4 - ((v - min) / span) * (height - 8),
+  }));
+  const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
+  const area = `${line} L${width},${height} L0,${height} Z`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="h-16 w-full"
+      role="img"
+      aria-label={`Download trend from ${points[0].downloads.toLocaleString()} to ${points[points.length - 1].downloads.toLocaleString()} total downloads`}
+      preserveAspectRatio="none"
+    >
+      <path d={area} className="fill-brand-500/10 dark:fill-brand-400/10" />
+      <path d={line} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-brand-500 dark:stroke-brand-400" />
+    </svg>
+  );
 }
 
 function normalizeVersionForGrouping(item: YakVersionHistoryItem): { baseVersion: string } {
