@@ -54,7 +54,11 @@ export default function PackageList() {
                   : `Showing ${packages.length} of ${filteredCount} packages`}
           </p>
         </div>
-        <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
+        <a
+          href="/stats"
+          title="View full directory statistics"
+          className="group hidden divide-x divide-gray-200 rounded-md text-sm transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:divide-zinc-800 dark:focus-visible:ring-brand-400 md:flex"
+        >
           <div className="flex flex-col pr-4">
             <span className="text-gray-500 dark:text-zinc-400">Total Packages</span>
             <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalPackages.toLocaleString() ?? "-"}</span>
@@ -73,7 +77,10 @@ export default function PackageList() {
             <span className="text-gray-500 dark:text-zinc-400">Updated Monthly</span>
             <span className="font-semibold text-brand-600 dark:text-brand-400">{stats?.recentUpdates.toLocaleString() ?? "-"}</span>
           </div>
-        </div>
+          <div className="flex items-center pl-4 text-xs font-medium text-gray-400 transition-colors group-hover:text-brand-600 dark:text-zinc-500 dark:group-hover:text-brand-400">
+            All stats →
+          </div>
+        </a>
       </div>
 
       {packages.length === 0 && status.isLoading ? (
@@ -741,7 +748,6 @@ const PackageCard = memo(function PackageCard({
                       {versionRows
                         .map((row) => {
                           const vDate = new Date(row.createdAt).toLocaleDateString();
-                          const lag = platformLag(row.distributions);
                           const platforms = Array.from(
                             new Set(
                               row.distributions
@@ -783,14 +789,6 @@ const PackageCard = memo(function PackageCard({
                                       {p === 'mac' ? 'Mac' : 'Windows'}
                                     </span>
                                   ))}
-                                  {lag && (
-                                    <span
-                                      title={`The ${lag.later} build was published ${lag.days} day${lag.days === 1 ? "" : "s"} after ${lag.earlier}`}
-                                      className="rounded bg-purple-50 px-1.5 py-0.5 text-[0.65rem] font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                                    >
-                                      {lag.later} +{lag.days}d
-                                    </span>
-                                  )}
                                   {rhinoVersions.map((rv) => (
                                     <a
                                       key={rv.raw}
@@ -932,31 +930,6 @@ function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHist
       downloadCount: row.downloadCount,
     }))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-// Difference in days between the first Windows and first Mac build of a
-// release, using the per-distribution timestamps from the Yak API.
-function platformLag(
-  distributions: Distribution[],
-): { later: "Mac" | "Windows"; earlier: "Mac" | "Windows"; days: number } | null {
-  const first = (platform: string) => {
-    const times = distributions
-      .filter((d) => d.platform === platform && d.createdAt)
-      .map((d) => new Date(d.createdAt!).getTime())
-      .filter((t) => Number.isFinite(t));
-    return times.length > 0 ? Math.min(...times) : null;
-  };
-
-  const win = first("win");
-  const mac = first("mac");
-  if (win === null || mac === null) return null;
-
-  const days = Math.round((mac - win) / (1000 * 3600 * 24));
-  if (Math.abs(days) < 1) return null;
-
-  return days > 0
-    ? { later: "Mac", earlier: "Windows", days }
-    : { later: "Windows", earlier: "Mac", days: -days };
 }
 
 function Sparkline({ points }: { points: HistoryPoint[] }) {

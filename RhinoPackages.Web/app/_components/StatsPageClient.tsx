@@ -1,13 +1,24 @@
 "use client";
 
 import { Filters, Package, has, useApi } from "@/app/_components/api";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Spinner from "./Spinner";
 
 export default function StatsPageClient({ initialCache = [] }: { initialCache?: Package[] }) {
   const { cache, status } = useApi(initialCache);
   const stats = useMemo(() => getStats(cache), [cache]);
+  const [authorQuery, setAuthorQuery] = useState("");
+
+  const visibleAuthors = useMemo(() => {
+    if (!stats) return [];
+    const query = authorQuery.trim().toLowerCase();
+    const pool = query
+      ? stats.authors.filter((a) => a.name.toLowerCase().includes(query))
+      : stats.authors;
+    return pool.slice(0, 15);
+  }, [stats, authorQuery]);
 
   if (status.isLoading && cache.length === 0) {
     return (
@@ -54,7 +65,14 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   }
 
   return (
-    <div className="flex flex-col gap-8 pb-12">
+    <div className="flex flex-col gap-8 pb-12 pt-8">
+      <div>
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">Directory Stats</h1>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">
+          Live statistics for all packages, updated daily from the Yak package manager.
+        </p>
+      </div>
+
       {/* Headline numbers */}
       <section aria-labelledby="stats-overview">
         <h2 id="stats-overview" className="sr-only">
@@ -108,12 +126,35 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
 
       {/* Author leaderboard */}
       <section aria-labelledby="stats-authors">
-        <h2
-          id="stats-authors"
-          className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
-        >
-          Top Authors by Downloads
-        </h2>
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2
+            id="stats-authors"
+            className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+          >
+            Top Authors by Downloads
+          </h2>
+          <div className="group relative flex w-full sm:w-64">
+            <label htmlFor="author-filter" className="sr-only">
+              Filter authors
+            </label>
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <MagnifyingGlassIcon
+                className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400"
+                aria-hidden="true"
+              />
+            </div>
+            <input
+              id="author-filter"
+              type="text"
+              spellCheck={false}
+              autoComplete="off"
+              placeholder={`Search ${stats.authors.length.toLocaleString()} authors...`}
+              value={authorQuery}
+              onChange={(e) => setAuthorQuery(e.target.value)}
+              className="w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+            />
+          </div>
+        </div>
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
           <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
             <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
@@ -126,12 +167,15 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
-              {stats.topAuthors.map((author, i) => (
+              {visibleAuthors.map((author) => (
                 <tr key={author.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                  <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{i + 1}</td>
+                  <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+                    {author.rank}
+                  </td>
                   <td className="px-4 py-2">
                     <Link
                       href={`/?owner=${author.id}`}
+                      title={`Show packages by ${author.name}`}
                       className="font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                     >
                       {author.name}
@@ -144,6 +188,13 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                   </td>
                 </tr>
               ))}
+              {visibleAuthors.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
+                    No authors match &quot;{authorQuery}&quot;
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -251,6 +302,7 @@ interface AuthorStats {
   packages: number;
   downloads: number;
   weekly: number;
+  rank: number;
 }
 
 function getStats(cache: Package[]) {
@@ -311,6 +363,7 @@ function getStats(cache: Package[]) {
         packages: 0,
         downloads: 0,
         weekly: 0,
+        rank: 0,
       };
       entry.packages++;
       entry.downloads += pkg.downloads;
@@ -319,9 +372,8 @@ function getStats(cache: Package[]) {
     }
   }
 
-  const topAuthors = Array.from(authors.values())
-    .sort((a, b) => b.downloads - a.downloads)
-    .slice(0, 15);
+  const rankedAuthors = Array.from(authors.values()).sort((a, b) => b.downloads - a.downloads);
+  rankedAuthors.forEach((author, i) => (author.rank = i + 1));
 
   newThisMonth.sort(
     (a, b) => new Date(b.firstReleased!).getTime() - new Date(a.firstReleased!).getTime(),
@@ -343,7 +395,7 @@ function getStats(cache: Package[]) {
     rhino7,
     rhino8,
     rhino9,
-    topAuthors,
+    authors: rankedAuthors,
     newThisMonth: newThisMonth.slice(0, 12),
   };
 }
