@@ -115,8 +115,9 @@ interface CheckProps {
 }
 
 function CheckBox({ title, icon, filter }: CheckProps) {
-  const { navigateFilter, controls } = usePackageContext();
+  const { navigateFilter, controls, filterCounts } = usePackageContext();
   const isSvg = icon.endsWith(".svg");
+  const count = filterCounts.get(filter) ?? 0;
 
   const has = (constant: Filters) => {
     return constant === (controls.filters & constant);
@@ -135,6 +136,11 @@ function CheckBox({ title, icon, filter }: CheckProps) {
         />
         <span className="select-none text-right text-sm text-gray-900 dark:text-zinc-300">
           {title}
+          {count > 0 && (
+            <span className="ml-1 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+              ({count.toLocaleString()})
+            </span>
+          )}
         </span>
       </Switch.Label>
       <Switch
@@ -298,6 +304,7 @@ function Sort() {
         <option value={0}>Downloads</option>
         <option value={1}>Latest updates</option>
         <option value={2}>Trending</option>
+        <option value={3}>Rising stars</option>
       </select>
     </div>
   );

@@ -54,7 +54,11 @@ export default function PackageList() {
                   : `Showing ${packages.length} of ${filteredCount} packages`}
           </p>
         </div>
-        <div className="hidden divide-x divide-gray-200 text-sm dark:divide-zinc-800 md:flex">
+        <a
+          href="/stats"
+          title="View full directory statistics"
+          className="group hidden divide-x divide-gray-200 rounded-md text-sm transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:divide-zinc-800 dark:focus-visible:ring-brand-400 md:flex"
+        >
           <div className="flex flex-col pr-4">
             <span className="text-gray-500 dark:text-zinc-400">Total Packages</span>
             <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalPackages.toLocaleString() ?? "-"}</span>
@@ -73,7 +77,7 @@ export default function PackageList() {
             <span className="text-gray-500 dark:text-zinc-400">Updated Monthly</span>
             <span className="font-semibold text-brand-600 dark:text-brand-400">{stats?.recentUpdates.toLocaleString() ?? "-"}</span>
           </div>
-        </div>
+        </a>
       </div>
 
       {packages.length === 0 && status.isLoading ? (
@@ -293,6 +297,8 @@ const PackageCard = memo(function PackageCard({
 
   // Derived stats from the new Yak API fields.
   const isTrending = downloadsWeek >= 30 && downloadsWeek > pkg.downloads * 0.01;
+  const hasDescription =
+    pkg.description.trim().length > 0 && pkg.description.trim().toLowerCase() !== "no description";
   const ageDays = pkg.firstReleased
     ? (Date.now() - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24)
     : null;
@@ -387,7 +393,8 @@ const PackageCard = memo(function PackageCard({
                   title={`Trending: ${downloadsWeek.toLocaleString()} downloads this week`}
                   className="rounded-full bg-orange-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-500/20"
                 >
-                  <span aria-hidden="true">🔥 trending</span>
+                  {/* Icon-only when other badges are present to avoid crowding the title row */}
+                  <span aria-hidden="true">{pkg.prerelease || isNew ? "🔥" : "🔥 trending"}</span>
                   <span className="sr-only">Trending this week</span>
                 </span>
               )}
@@ -513,9 +520,15 @@ const PackageCard = memo(function PackageCard({
         </div>
       </div>
       <div className="mt-2 flex min-w-0 items-start gap-4 md:gap-6">
-        <p className="break-long-words min-w-0 flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
-          {pkg.description}
-        </p>
+        {hasDescription ? (
+          <p className="break-long-words min-w-0 flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
+            {pkg.description}
+          </p>
+        ) : (
+          <p className="min-w-0 flex-grow text-sm italic leading-relaxed text-gray-400 dark:text-zinc-500">
+            No description provided
+          </p>
+        )}
         <a
           href={link}
           aria-label={`Install ${pkg.id}`}
@@ -741,13 +754,16 @@ const PackageCard = memo(function PackageCard({
                       {versionRows
                         .map((row) => {
                           const vDate = new Date(row.createdAt).toLocaleDateString();
-                          const platforms = Array.from(
-                            new Set(
-                              row.distributions
-                                .map((d) => d?.platform)
-                                .filter((p): p is string => typeof p === "string" && p.length > 0)
-                            )
+                          // Yak reports "win", "mac" or "any" (cross-platform
+                          // build); normalize to display labels and dedupe so
+                          // e.g. win + any doesn't render "Windows" twice.
+                          const platformSet = new Set(
+                            row.distributions
+                              .map((d) => d?.platform)
+                              .filter((p): p is string => typeof p === "string" && p.length > 0)
+                              .flatMap((p) => (p === "win" ? ["Windows"] : p === "mac" ? ["Mac"] : ["Windows", "Mac"]))
                           );
+                          const platforms = ["Windows", "Mac"].filter((p) => platformSet.has(p));
                           const rhinoVersions = Array.from(
                             new Set(
                               row.distributions
@@ -779,7 +795,7 @@ const PackageCard = memo(function PackageCard({
                                 <div className="flex flex-wrap gap-1">
                                   {platforms.map((p) => (
                                     <span key={p} className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                      {p === 'mac' ? 'Mac' : 'Windows'}
+                                      {p}
                                     </span>
                                   ))}
                                   {rhinoVersions.map((rv) => (
@@ -926,6 +942,7 @@ function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHist
 }
 
 function Sparkline({ points }: { points: HistoryPoint[] }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const width = 600;
   const height = 60;
   const values = points.map((p) => p.downloads);
@@ -941,17 +958,48 @@ function Sparkline({ points }: { points: HistoryPoint[] }) {
   const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
   const area = `${line} L${width},${height} L0,${height} Z`;
 
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    const index = Math.round(ratio * (points.length - 1));
+    setHoverIndex(Math.max(0, Math.min(points.length - 1, index)));
+  };
+
+  const hover = hoverIndex !== null ? points[hoverIndex] : null;
+
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="h-16 w-full"
-      role="img"
-      aria-label={`Download trend from ${points[0].downloads.toLocaleString()} to ${points[points.length - 1].downloads.toLocaleString()} total downloads`}
-      preserveAspectRatio="none"
-    >
-      <path d={area} className="fill-brand-500/10 dark:fill-brand-400/10" />
-      <path d={line} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-brand-500 dark:stroke-brand-400" />
-    </svg>
+    <div className="relative" onMouseMove={onMouseMove} onMouseLeave={() => setHoverIndex(null)}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-16 w-full"
+        role="img"
+        aria-label={`Download trend from ${points[0].downloads.toLocaleString()} to ${points[points.length - 1].downloads.toLocaleString()} total downloads`}
+        preserveAspectRatio="none"
+      >
+        <path d={area} className="fill-brand-500/10 dark:fill-brand-400/10" />
+        <path d={line} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-brand-500 dark:stroke-brand-400" />
+        {hoverIndex !== null && (
+          <line
+            x1={coords[hoverIndex].x}
+            y1={0}
+            x2={coords[hoverIndex].x}
+            y2={height}
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+            className="stroke-gray-400 dark:stroke-zinc-500"
+          />
+        )}
+      </svg>
+      {hover && (
+        <div
+          className="pointer-events-none absolute -top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow dark:bg-zinc-100 dark:text-zinc-900"
+          style={{ left: `${(coords[hoverIndex!].x / width) * 100}%` }}
+        >
+          {hover.date} · {hover.downloads.toLocaleString()} downloads
+          {hover.week > 0 && ` · +${hover.week.toLocaleString()}/week`}
+        </div>
+      )}
+    </div>
   );
 }
 

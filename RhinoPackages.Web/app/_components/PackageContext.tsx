@@ -6,6 +6,7 @@ export enum Sort {
   Downloads,
   Date,
   Trending,
+  Rising,
 }
 
 export interface Params {
@@ -38,6 +39,7 @@ interface PackageContext {
     recentUpdates: number;
     weeklyDownloads: number;
   };
+  filterCounts: Map<Filters, number>;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -140,6 +142,26 @@ export function PackageProvider({
     return owners.sort((a, b) => a.id - b.id);
   }, [cache]);
 
+  const filterCounts = useMemo(() => {
+    const flags = [
+      Filters.Windows,
+      Filters.Mac,
+      Filters.Rhino6,
+      Filters.Rhino7,
+      Filters.Rhino8,
+      Filters.Rhino9,
+      Filters.Rhino,
+      Filters.Grasshopper,
+    ];
+    const counts = new Map<Filters, number>(flags.map((f) => [f, 0]));
+    for (const pkg of cache ?? []) {
+      for (const flag of flags) {
+        if (has(flag, pkg)) counts.set(flag, counts.get(flag)! + 1);
+      }
+    }
+    return counts;
+  }, [cache]);
+
   const stats = useMemo(() => {
     let totalDownloads = 0;
     let recentUpdates = 0;
@@ -169,6 +191,7 @@ export function PackageProvider({
         status,
         controls,
         stats,
+        filterCounts,
         navigate,
         navigateFilter,
         setSearch,
@@ -206,12 +229,35 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
     filtered = filtered.sort((a, b) => (a.updated < b.updated ? 1 : -1));
   } else if (sort === Sort.Trending) {
     filtered = filtered.sort((a, b) => (trendingScores.get(a.id)! < trendingScores.get(b.id)! ? 1 : -1));
+  } else if (sort === Sort.Rising) {
+    // Momentum: weekly downloads as a share of lifetime downloads. Same
+    // eligibility floor as the stats page so tiny packages don't dominate.
+    const risingScore = (p: Package) => {
+      const week = p.downloadsWeek ?? 0;
+      if (week < 20 || p.downloads < 100) return 0;
+      return week / p.downloads;
+    };
+    filtered = filtered.sort((a, b) => {
+      const diff = risingScore(b) - risingScore(a);
+      return diff !== 0 ? diff : (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0);
+    });
   } else {
     filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
 
+  let visiblePackages = filtered.slice(0, (page + 1) * pageResults);
+
+  // Deep links (?p=name) must always show the target package, even when it
+  // falls outside the current page or the active filters: pin it to the top.
+  if (params.p && !visiblePackages.some((pkg) => pkg.id === params.p)) {
+    const target = packages.find((pkg) => pkg.id === params.p);
+    if (target) {
+      visiblePackages = [target, ...visiblePackages];
+    }
+  }
+
   return {
-    visiblePackages: filtered.slice(0, (page + 1) * pageResults),
+    visiblePackages,
     totalFiltered: filtered.length,
   };
 }
@@ -219,8 +265,11 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
 import { ReadonlyURLSearchParams } from "next/navigation";
 
 function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Params {
+  // Note: 0 is a valid value (e.g. sort=0 is Sort.Downloads), so we can't use
+  // `parseInt(...) || defaultValue` — it would swallow zeros.
   function toInt<T>(param: string, defaultValue: T) {
-    let result = parseInt(searchParams.get(param) ?? "") || defaultValue;
+    const parsed = parseInt(searchParams.get(param) ?? "");
+    let result = Number.isNaN(parsed) ? defaultValue : parsed;
     if ((result as number) < 0) result = defaultValue;
     return result;
   }
@@ -248,9 +297,13 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
 function toQuery(params: Params) {
   const urlParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value) {
-      urlParams.append(key, value.toString());
-    }
+    if (value === undefined || value === null || value === "") continue;
+
+    // Skip values that match the defaults to keep URLs short, but keep
+    // explicit non-default falsy values like sort=0 (Sort.Downloads).
+    if (value === defaultParams[key as keyof Params]) continue;
+
+    urlParams.append(key, value.toString());
   }
   const query = urlParams.toString();
   return !query ? "" : `?${query}`;
