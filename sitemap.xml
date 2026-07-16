@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-16T01:45:05.418Z</lastmod>
+<lastmod>2026-07-16T07:56:59.187Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-16T01:45:05.418Z</lastmod>
+<lastmod>2026-07-16T07:56:59.187Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1676,7 +1676,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=EmarfTools_Rhino</loc>
-<lastmod>2026-02-11T18:41:53.000Z</lastmod>
+<lastmod>2026-07-15T22:18:53.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -2120,7 +2120,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ggRhinoIFC</loc>
-<lastmod>2026-07-13T21:09:56.000Z</lastmod>
+<lastmod>2026-07-15T22:18:53.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -2756,7 +2756,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=interstitial-ai</loc>
-<lastmod>2026-07-15T22:31:11.000Z</lastmod>
+<lastmod>2026-07-15T21:56:38.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4208,7 +4208,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=PlanFinderGH</loc>
-<lastmod>2026-07-14T04:36:11.000Z</lastmod>
+<lastmod>2026-07-16T05:36:10.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -4502,7 +4502,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-07-09T00:08:59.000Z</lastmod>
+<lastmod>2026-07-15T22:18:53.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -6728,7 +6728,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Blendkit</loc>
-<lastmod>2026-07-14T21:44:43.000Z</lastmod>
+<lastmod>2026-07-15T22:18:53.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6753,6 +6753,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=RhinosCanFly</loc>
 <lastmod>2026-07-15T11:57:36.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=SlicelabTools</loc>
+<lastmod>2026-07-15T22:18:53.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
