@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-16T18:57:14.311Z</lastmod>
+<lastmod>2026-07-17T01:47:44.281Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-16T18:57:14.311Z</lastmod>
+<lastmod>2026-07-17T01:47:44.281Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -4634,7 +4634,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinoclaw</loc>
-<lastmod>2026-07-06T22:25:49.000Z</lastmod>
+<lastmod>2026-07-15T22:18:53.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4934,7 +4934,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rig</loc>
-<lastmod>2026-06-09T00:55:03.000Z</lastmod>
+<lastmod>2026-07-16T05:35:39.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5588,7 +5588,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=StudFinder</loc>
-<lastmod>2026-06-09T00:55:03.000Z</lastmod>
+<lastmod>2026-07-16T22:06:39.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6771,6 +6771,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=rplidar</loc>
 <lastmod>2026-07-16T05:36:10.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=Shop1RHProj</loc>
+<lastmod>2026-07-16T05:35:39.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
