@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-18T07:28:26.671Z</lastmod>
+<lastmod>2026-07-18T12:53:10.382Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-18T07:28:26.671Z</lastmod>
+<lastmod>2026-07-18T12:53:10.382Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -4502,7 +4502,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-07-17T06:16:45.000Z</lastmod>
+<lastmod>2026-07-17T22:31:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -4970,7 +4970,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Robots</loc>
-<lastmod>2026-07-05T22:13:31.000Z</lastmod>
+<lastmod>2026-07-17T22:30:22.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -5786,7 +5786,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Terra</loc>
-<lastmod>2026-07-13T01:05:21.000Z</lastmod>
+<lastmod>2026-07-17T22:56:44.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6795,6 +6795,24 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=ImportAlias2027</loc>
 <lastmod>2026-07-16T22:06:39.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=ExcelWorks</loc>
+<lastmod>2026-07-17T22:30:22.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=Locator</loc>
+<lastmod>2026-07-17T22:31:20.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=ReDOs</loc>
+<lastmod>2026-07-17T22:30:22.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
