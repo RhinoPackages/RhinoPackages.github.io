@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-19T08:00:37.838Z</lastmod>
+<lastmod>2026-07-19T12:56:03.557Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-19T08:00:37.838Z</lastmod>
+<lastmod>2026-07-19T12:56:03.557Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1172,7 +1172,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=CommaRh</loc>
-<lastmod>2026-07-09T19:07:01.000Z</lastmod>
+<lastmod>2026-07-18T23:10:48.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
