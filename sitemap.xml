@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-18T18:47:49.597Z</lastmod>
+<lastmod>2026-07-19T01:45:33.253Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-18T18:47:49.597Z</lastmod>
+<lastmod>2026-07-19T01:45:33.253Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -6812,6 +6812,18 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ReDOs</loc>
+<lastmod>2026-07-17T22:30:22.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=lattice-bridge</loc>
+<lastmod>2026-07-17T22:30:22.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=nextra-code</loc>
 <lastmod>2026-07-17T22:30:22.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
