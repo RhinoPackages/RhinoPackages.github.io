@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-20T02:59:16.647Z</lastmod>
+<lastmod>2026-07-20T08:41:39.264Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-20T02:59:16.647Z</lastmod>
+<lastmod>2026-07-20T08:41:39.264Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1412,7 +1412,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=DesignTools</loc>
-<lastmod>2026-07-02T21:05:30.000Z</lastmod>
+<lastmod>2026-07-19T23:52:55.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -3674,7 +3674,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Nextra-gh</loc>
-<lastmod>2026-07-12T20:38:38.000Z</lastmod>
+<lastmod>2026-07-19T23:35:24.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6800,7 +6800,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ExcelWorks</loc>
-<lastmod>2026-07-17T22:30:22.000Z</lastmod>
+<lastmod>2026-07-19T23:35:17.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6824,7 +6824,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=nextra-code</loc>
-<lastmod>2026-07-17T22:30:22.000Z</lastmod>
+<lastmod>2026-07-19T23:35:18.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
