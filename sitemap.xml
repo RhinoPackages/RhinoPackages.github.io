@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-20T08:41:39.264Z</lastmod>
+<lastmod>2026-07-20T13:49:52.421Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-20T08:41:39.264Z</lastmod>
+<lastmod>2026-07-20T13:49:52.421Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -926,7 +926,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Casa_NeonwireVFX</loc>
-<lastmod>2026-06-23T10:08:30.000Z</lastmod>
+<lastmod>2026-07-19T23:35:24.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -1772,7 +1772,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=fabricator</loc>
-<lastmod>2026-05-28T18:44:23.000Z</lastmod>
+<lastmod>2026-07-19T23:52:55.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -2120,7 +2120,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ggRhinoIFC</loc>
-<lastmod>2026-07-15T22:18:53.000Z</lastmod>
+<lastmod>2026-07-19T23:35:24.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -4801,12 +4801,6 @@
 <priority>0.6</priority>
 </url>
 <url>
-<loc>https://rhinopackages.github.io/?p=RhinoSlicer</loc>
-<lastmod>2026-07-15T11:57:36.000Z</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.5</priority>
-</url>
-<url>
 <loc>https://rhinopackages.github.io/?p=RhinoSpatial</loc>
 <lastmod>2026-07-17T22:56:44.000Z</lastmod>
 <changefreq>weekly</changefreq>
@@ -4817,12 +4811,6 @@
 <lastmod>2026-06-23T10:08:30.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
-</url>
-<url>
-<loc>https://rhinopackages.github.io/?p=RhinoTab</loc>
-<lastmod>2025-06-15T11:25:23.000Z</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.5</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinotable</loc>
@@ -5786,7 +5774,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Terra</loc>
-<lastmod>2026-07-17T22:56:44.000Z</lastmod>
+<lastmod>2026-07-19T23:35:18.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
