@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-20T13:49:52.421Z</lastmod>
+<lastmod>2026-07-20T19:26:22.362Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-20T13:49:52.421Z</lastmod>
+<lastmod>2026-07-20T19:26:22.362Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -272,7 +272,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=APConsultingCanvasEnclosureTools</loc>
-<lastmod>2026-07-06T23:20:38.000Z</lastmod>
+<lastmod>2026-07-19T23:35:24.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -356,7 +356,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=ArchiVisora</loc>
-<lastmod>2026-07-10T13:38:04.000Z</lastmod>
+<lastmod>2026-07-20T15:11:45.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4502,7 +4502,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-07-17T22:31:20.000Z</lastmod>
+<lastmod>2026-07-20T10:07:45.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -4736,7 +4736,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=rhinomcp-mod</loc>
-<lastmod>2026-07-03T21:11:09.000Z</lastmod>
+<lastmod>2026-07-20T10:09:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -4796,7 +4796,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=RhinoRobot_5</loc>
-<lastmod>2025-12-02T16:11:01.000Z</lastmod>
+<lastmod>2026-07-19T23:35:17.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6825,6 +6825,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=cocodrilo</loc>
 <lastmod>2026-07-18T23:10:48.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=3DPrintLayout</loc>
+<lastmod>2026-07-20T10:07:45.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
