@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-21T19:04:41.302Z</lastmod>
+<lastmod>2026-07-22T01:45:05.383Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-21T19:04:41.302Z</lastmod>
+<lastmod>2026-07-22T01:45:05.383Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -3668,13 +3668,13 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Nextra-gh</loc>
-<lastmod>2026-07-19T23:35:24.000Z</lastmod>
+<lastmod>2026-07-21T19:59:17.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=nextra-rhino</loc>
-<lastmod>2026-07-20T10:09:20.000Z</lastmod>
+<lastmod>2026-07-21T19:59:29.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -5708,7 +5708,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=tapir</loc>
-<lastmod>2026-07-21T00:07:05.000Z</lastmod>
+<lastmod>2026-07-21T15:17:27.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.6</priority>
 </url>
@@ -6734,7 +6734,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=RhinosCanFly</loc>
-<lastmod>2026-07-16T05:36:10.000Z</lastmod>
+<lastmod>2026-07-21T19:59:17.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
