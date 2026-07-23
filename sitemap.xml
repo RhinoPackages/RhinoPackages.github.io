@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-23T08:13:02.547Z</lastmod>
+<lastmod>2026-07-23T13:25:18.809Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-23T08:13:02.547Z</lastmod>
+<lastmod>2026-07-23T13:25:18.809Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -638,7 +638,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=bedrock</loc>
-<lastmod>2026-07-22T00:35:53.000Z</lastmod>
+<lastmod>2026-07-23T00:45:16.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -968,7 +968,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Cernicalo</loc>
-<lastmod>2026-07-23T01:01:26.000Z</lastmod>
+<lastmod>2026-07-23T01:17:48.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4496,7 +4496,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-07-21T11:20:28.000Z</lastmod>
+<lastmod>2026-07-23T01:01:26.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -6722,7 +6722,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Form2Nest</loc>
-<lastmod>2026-07-21T15:17:27.000Z</lastmod>
+<lastmod>2026-07-23T00:45:16.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6849,6 +6849,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=oriolconcept</loc>
 <lastmod>2026-07-22T00:26:47.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=commandmoment</loc>
+<lastmod>2026-07-23T01:01:26.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
