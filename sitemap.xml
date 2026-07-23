@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-22T18:58:49.808Z</lastmod>
+<lastmod>2026-07-23T01:52:08.117Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-22T18:58:49.808Z</lastmod>
+<lastmod>2026-07-23T01:52:08.117Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1772,7 +1772,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=fabricator</loc>
-<lastmod>2026-07-22T00:26:48.000Z</lastmod>
+<lastmod>2026-07-22T10:38:51.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -3908,7 +3908,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=OpenNest</loc>
-<lastmod>2026-07-22T10:38:21.000Z</lastmod>
+<lastmod>2026-07-22T00:26:47.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -6368,7 +6368,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=WoollyRhino</loc>
-<lastmod>2026-07-13T21:09:56.000Z</lastmod>
+<lastmod>2026-07-22T00:26:47.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6836,13 +6836,13 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=interstitial</loc>
-<lastmod>2026-07-21T00:07:05.000Z</lastmod>
+<lastmod>2026-07-22T00:26:47.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Tiger</loc>
-<lastmod>2026-07-22T00:26:47.000Z</lastmod>
+<lastmod>2026-07-23T00:45:16.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
