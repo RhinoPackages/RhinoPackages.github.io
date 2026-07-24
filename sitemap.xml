@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-24T14:43:24.294Z</lastmod>
+<lastmod>2026-07-24T19:13:46.453Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-24T14:43:24.294Z</lastmod>
+<lastmod>2026-07-24T19:13:46.453Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1928,7 +1928,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=flexibility</loc>
-<lastmod>2026-07-17T06:17:14.000Z</lastmod>
+<lastmod>2026-07-24T01:19:33.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -6836,13 +6836,13 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=interstitial</loc>
-<lastmod>2026-07-23T01:17:48.000Z</lastmod>
+<lastmod>2026-07-24T01:19:33.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Tiger</loc>
-<lastmod>2026-07-24T01:50:00.000Z</lastmod>
+<lastmod>2026-07-24T10:06:17.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6867,6 +6867,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=form2bone</loc>
 <lastmod>2026-07-24T01:19:33.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=pondskater</loc>
+<lastmod>2026-07-24T01:50:00.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
