@@ -124,7 +124,7 @@ export default function PackageList() {
               <PackageCard
                 key={pkg.id}
                 pkg={pkg}
-                isExpanded={expandedId === pkg.id}
+                isExpanded={expandedId !== null && expandedId.toLowerCase() === pkg.id.toLowerCase()}
                 navigate={navigate}
                 controls={controls}
               />

@@ -202,7 +202,7 @@ export function PackageProvider({
   );
 }
 
-function filter(packages: Package[], params: Params, trendingScores: Map<string, number>) {
+export function filter(packages: Package[], params: Params, trendingScores: Map<string, number>) {
   const { owner, search, filters, sort, page } = params;
   let filtered = [...packages];
 
@@ -245,16 +245,23 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
     filtered = filtered.sort((a, b) => (a.downloads < b.downloads ? 1 : -1));
   }
 
-  let visiblePackages = filtered.slice(0, (page + 1) * pageResults);
-
-  // Deep links (?p=name) must always show the target package, even when it
-  // falls outside the current page or the active filters: pin it to the top.
-  if (params.p && !visiblePackages.some((pkg) => pkg.id === params.p)) {
-    const target = packages.find((pkg) => pkg.id === params.p);
-    if (target) {
-      visiblePackages = [target, ...visiblePackages];
+  // Deep links (?p=name) must always show the target package first in the list,
+  // even if it falls further down the sorted list or outside active filters.
+  if (params.p) {
+    const pLower = params.p.toLowerCase();
+    const idxInFiltered = filtered.findIndex((pkg) => pkg.id.toLowerCase() === pLower);
+    if (idxInFiltered > 0) {
+      const [target] = filtered.splice(idxInFiltered, 1);
+      filtered.unshift(target);
+    } else if (idxInFiltered === -1) {
+      const target = packages.find((pkg) => pkg.id.toLowerCase() === pLower);
+      if (target) {
+        filtered.unshift(target);
+      }
     }
   }
+
+  const visiblePackages = filtered.slice(0, (page + 1) * pageResults);
 
   return {
     visiblePackages,
