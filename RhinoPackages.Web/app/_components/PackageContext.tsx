@@ -16,6 +16,8 @@ export interface Params {
   sort: Sort;
   page: number;
   p?: string;
+  /** When true, the pre-releases toggle is expanded by default (used with ?p= deep links). */
+  pre: boolean;
 }
 
 export const defaultParams: Params = {
@@ -25,6 +27,7 @@ export const defaultParams: Params = {
   sort: Sort.Trending,
   page: 0,
   p: undefined,
+  pre: false,
 };
 
 interface PackageContext {
@@ -290,6 +293,7 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
   const page = toInt("page", 0);
 
   const p = searchParams.get("p") || undefined;
+  const pre = searchParams.get("pre") === "true";
 
   return {
     owner,
@@ -298,6 +302,7 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
     sort,
     page,
     p,
+    pre,
   };
 }
 

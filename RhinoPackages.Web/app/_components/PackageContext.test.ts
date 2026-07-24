@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { filter, Params, Sort } from "./PackageContext";
+import { filter, Params, Sort, defaultParams } from "./PackageContext";
 import { Filters, Package } from "./api";
 
 const mockPackages: Package[] = [
@@ -50,6 +50,7 @@ const baseParams: Params = {
   filters: Filters.None,
   sort: Sort.Downloads,
   page: 0,
+  pre: false,
 };
 
 describe("PackageContext filter deep link (?p=) pinning", () => {
@@ -92,5 +93,33 @@ describe("PackageContext filter deep link (?p=) pinning", () => {
     assert.strictEqual(visiblePackages[0].id, "BetaPackage");
     assert.strictEqual(visiblePackages[1].id, "AlphaPackage");
     assert.strictEqual(visiblePackages[2].id, "zzctRhino");
+  });
+});
+
+describe("PackageContext defaultParams", () => {
+  it("has pre=false by default", () => {
+    assert.strictEqual(defaultParams.pre, false);
+  });
+
+  it("has p=undefined by default", () => {
+    assert.strictEqual(defaultParams.p, undefined);
+  });
+});
+
+describe("Params.pre URL param", () => {
+  it("is a boolean field that exists on Params", () => {
+    const params: Params = { ...baseParams, p: "zzctRhino", pre: true };
+    assert.strictEqual(params.pre, true);
+  });
+
+  it("deep-link with pre=false does not change filter output", () => {
+    const trendingScores = new Map<string, number>();
+    const withPre = filter(mockPackages, { ...baseParams, p: "zzctRhino", pre: true }, trendingScores);
+    const withoutPre = filter(mockPackages, { ...baseParams, p: "zzctRhino", pre: false }, trendingScores);
+    // The pre flag controls the UI toggle, not the visible package list itself.
+    assert.deepStrictEqual(
+      withPre.visiblePackages.map((p) => p.id),
+      withoutPre.visiblePackages.map((p) => p.id),
+    );
   });
 });
