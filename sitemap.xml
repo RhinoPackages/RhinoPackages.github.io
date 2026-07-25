@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-24T19:13:46.453Z</lastmod>
+<lastmod>2026-07-25T00:38:45.309Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-24T19:13:46.453Z</lastmod>
+<lastmod>2026-07-25T00:38:45.309Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -6872,6 +6872,12 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=pondskater</loc>
+<lastmod>2026-07-24T01:50:00.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=Manta-Ray</loc>
 <lastmod>2026-07-24T01:50:00.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
