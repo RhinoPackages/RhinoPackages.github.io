@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-25T01:48:13.758Z</lastmod>
+<lastmod>2026-07-25T07:51:36.639Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-25T01:48:13.758Z</lastmod>
+<lastmod>2026-07-25T07:51:36.639Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -640,7 +640,7 @@
 <loc>https://rhinopackages.github.io/?p=bedrock</loc>
 <lastmod>2026-07-23T00:45:16.000Z</lastmod>
 <changefreq>weekly</changefreq>
-<priority>0.5</priority>
+<priority>0.6</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=BeingAliveLanguage</loc>
@@ -6860,7 +6860,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Painkiller</loc>
-<lastmod>2026-07-23T14:01:58.000Z</lastmod>
+<lastmod>2026-07-24T01:50:00.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6879,6 +6879,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=Manta-Ray</loc>
 <lastmod>2026-07-24T01:50:00.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=Lifebuoy-Autosave</loc>
+<lastmod>2026-07-25T01:37:34.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
