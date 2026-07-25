@@ -124,7 +124,7 @@ export default function PackageList() {
               <PackageCard
                 key={pkg.id}
                 pkg={pkg}
-                isExpanded={expandedId !== null && expandedId.toLowerCase() === pkg.id.toLowerCase()}
+                isExpanded={expandedId === pkg.id}
                 navigate={navigate}
                 controls={controls}
               />
@@ -229,30 +229,14 @@ const PackageCard = memo(function PackageCard({
   const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
   const [downloadHistory, setDownloadHistory] = useState<HistoryPoint[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
-  // Seed from the URL param when this card is the deep-linked target; otherwise default to false.
-  const [showPrereleases, setShowPrereleases] = useState(
-    isExpanded && controls.pre
-  );
+  const [showPrereleases, setShowPrereleases] = useState(false);
   const [copied, setCopied] = useState(false);
-  const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
-
-  // Keep showPrereleases in sync when navigating via deep link after first render.
-  useEffect(() => {
-    if (isExpanded) {
-      setShowPrereleases(controls.pre);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExpanded]);
+  const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id });
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = new URL(window.location.href);
     url.searchParams.set("p", pkg.id);
-    if (showPrereleases) {
-      url.searchParams.set("pre", "true");
-    } else {
-      url.searchParams.delete("pre");
-    }
     navigator.clipboard.writeText(url.toString());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -749,11 +733,7 @@ const PackageCard = memo(function PackageCard({
                     <input
                       type="checkbox"
                       checked={showPrereleases}
-                      onChange={(e) => {
-                        const val = e.target.checked;
-                        setShowPrereleases(val);
-                        navigate({ pre: val });
-                      }}
+                      onChange={(e) => setShowPrereleases(e.target.checked)}
                       className="cursor-pointer rounded border-gray-300 text-brand-600 focus:ring-brand-600 dark:border-zinc-600 dark:bg-zinc-800 dark:checked:bg-brand-500"
                     />
                     Show pre-releases

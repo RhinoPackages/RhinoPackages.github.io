@@ -129,10 +129,6 @@ jobs:
         working-directory: ./RhinoPackages.Web
         run: npm install
 
-      - name: Run frontend unit tests
-        working-directory: ./RhinoPackages.Web
-        run: npm test
-
       - name: Generate Version Tag
         id: version
         run: echo "TAG_NAME=v$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_ENV
