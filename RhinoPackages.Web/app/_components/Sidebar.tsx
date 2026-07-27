@@ -146,7 +146,7 @@ function CheckBox({ title, icon, filter }: CheckProps) {
       onChange={(checked) => navigateFilter(filter, checked)}
       icon={
         <Image
-          className={`inline h-[1.2rem] w-[1.2rem] opacity-80 ${isSvg ? "dark:invert" : ""}`}
+          className={`inline h-[1.2rem] w-[1.2rem] flex-shrink-0 opacity-80 ${isSvg ? "dark:invert" : ""}`}
           src={icon}
           width={32}
           height={32}
@@ -197,9 +197,9 @@ function Toggle({
 }) {
   return (
     <Switch.Group as="div" className="flex w-full items-center justify-between">
-      <Switch.Label as="label" className="flex cursor-pointer items-center gap-2 pr-6" title={hint}>
+      <Switch.Label as="label" className="flex min-w-0 cursor-pointer items-center gap-2 pr-3" title={hint}>
         {icon}
-        <span className="select-none text-right text-sm text-gray-900 dark:text-zinc-300">
+        <span className="select-none text-sm text-gray-900 dark:text-zinc-300">
           {title}
           {count > 0 && (
             <span className="ml-1 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
@@ -215,7 +215,7 @@ function Toggle({
             aria-label={title}
             className={`${
               checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
-            } relative inline-flex h-5 w-11 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
+            } relative inline-flex h-5 w-11 flex-shrink-0 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
           >
             <span
               aria-hidden="true"

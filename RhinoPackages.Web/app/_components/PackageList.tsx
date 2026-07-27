@@ -80,7 +80,7 @@ export default function PackageList() {
       )}
 
       {/* Stats Banner / Header */}
-      <div className="mt-4 mb-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center">
+      <div className="mt-4 mb-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 lg:flex-row lg:items-center">
         <div>
           <div className="flex min-h-8 items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
@@ -103,7 +103,7 @@ export default function PackageList() {
         <a
           href="/stats"
           title="View full directory statistics"
-          className="group hidden divide-x divide-gray-200 rounded-md text-sm transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:divide-zinc-800 dark:focus-visible:ring-brand-400 md:flex"
+          className="group hidden divide-x divide-gray-200 rounded-md text-sm transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:divide-zinc-800 dark:focus-visible:ring-brand-400 lg:flex"
         >
           <div className="flex flex-col pr-4">
             <span className="text-gray-500 dark:text-zinc-400">Total Packages</span>
@@ -473,8 +473,11 @@ const PackageCard = memo(function PackageCard({
         : "border-gray-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80"
         } p-4`}
     >
+      {/* Stays stacked until there is room for the icon strip beside the
+          title; side by side any earlier squeezes the name to one letter
+          per line. */}
       <div
-        className="mb-2 flex cursor-pointer flex-col gap-2 rounded-lg transition-shadow md:flex-row md:gap-0"
+        className="mb-2 flex cursor-pointer flex-col gap-2 rounded-lg transition-shadow lg:flex-row lg:gap-0"
         onClick={onToggle}
       >
         <div className="flex min-w-0 flex-grow gap-x-4">
@@ -575,7 +578,7 @@ const PackageCard = memo(function PackageCard({
             </div>
           </div>
         </div>
-        <div className="flex w-full flex-shrink-0 flex-grow-0 justify-between md:w-auto md:justify-end">
+        <div className="flex w-full flex-shrink-0 flex-grow-0 justify-between lg:w-auto lg:justify-end">
           <span className="sr-only">
             {supportedPlatformsList.length > 0
               ? `Supports ${supportedPlatformsList.join(", ")}`
