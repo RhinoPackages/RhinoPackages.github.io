@@ -7,6 +7,7 @@ import { ThemeProvider } from "./_components/ThemeProvider";
 import { ThemeToggle } from "./_components/ThemeToggle";
 import ContributorsBubbles from "./_components/ContributorsBubbles";
 import ScrollToTop from "./_components/ScrollToTop";
+import { formatDateTime } from "./_components/format";
 
 import Image from "next/image";
 
@@ -270,7 +271,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Suspense>
             </div>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
-              <p>Site Generated: {new Date().toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}</p>
+              <p>Site Generated: {formatDateTime(new Date())}</p>
               {process.env.NEXT_PUBLIC_VERSION && (
                 <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>
               )}

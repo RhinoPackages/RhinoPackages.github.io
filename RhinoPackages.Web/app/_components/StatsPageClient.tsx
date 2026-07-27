@@ -1,6 +1,6 @@
 "use client";
 
-import { Filters, Package, TotalsPoint, has, useApi } from "@/app/_components/api";
+import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, useApi } from "@/app/_components/api";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -384,7 +384,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                 >
                   <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
                   <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
-                    {pkg.firstReleased ? new Date(pkg.firstReleased).toLocaleDateString() : ""}
+                    {pkg.firstReleased ? formatDate(pkg.firstReleased) : ""}
                   </span>
                 </Link>
               </li>
@@ -652,7 +652,7 @@ function getStats(cache: Package[]) {
     totalDownloads,
     weeklyDownloads,
     updatedThisMonth,
-    lastUpdated: new Date(lastUpdated).toLocaleDateString(),
+    lastUpdated: formatDateTime(lastUpdated),
     grasshopper,
     rhino,
     bothTypes,

@@ -14,7 +14,7 @@ import {
   StarIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem } from "@/app/_components/api";
+import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime } from "@/app/_components/api";
 import { Params, usePackageContext, defaultParams } from "./PackageContext";
 import Spinner from "./Spinner";
 
@@ -300,7 +300,7 @@ const PackageCard = memo(function PackageCard({
 
   const link = `rhino://package/search?name=${pkg.id}`;
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
-  const date = new Date(pkg.updated).toLocaleDateString();
+  const date = formatDate(pkg.updated);
   const downloads = pkg.downloads.toLocaleString();
   const downloadsWeek = pkg.downloadsWeek ?? 0;
   const downloadsMonth = pkg.downloadsMonth ?? 0;
@@ -320,12 +320,26 @@ const PackageCard = memo(function PackageCard({
     : null;
   const isNew = ageDays !== null && ageDays <= 30;
   const downloadsPerDay = ageDays && ageDays >= 1 ? pkg.downloads / ageDays : null;
-  const releaseCadenceDays = (() => {
-    const count = pkg.versionCount ?? 0;
-    if (count < 2 || !pkg.firstReleased) return null;
-    const spanDays =
-      (new Date(pkg.updated).getTime() - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24);
-    return spanDays > 0 ? Math.round(spanDays / (count - 1)) : null;
+  // Release count and cadence must come from the same set of releases. The
+  // package-level `updated` is the date of the *current* version, which can
+  // predate later pre-releases, so measuring the span against it understates
+  // the cadence. Prefer the full history once it has loaded.
+  const releaseStats = (() => {
+    const times = (versionHistory ?? [])
+      .map((v) => new Date(v.createdAt).getTime())
+      .filter((t) => Number.isFinite(t))
+      .sort((a, b) => a - b);
+
+    const count = times.length > 0 ? times.length : (pkg.versionCount ?? 0);
+    const first = times.length > 0 ? times[0] : pkg.firstReleased ? new Date(pkg.firstReleased).getTime() : null;
+    const last = times.length > 0 ? times[times.length - 1] : new Date(pkg.updated).getTime();
+
+    if (count === 0 || first === null) return null;
+
+    const spanDays = (last - first) / (1000 * 3600 * 24);
+    const cadence = count > 1 && spanDays > 0 ? spanDays / (count - 1) : null;
+
+    return { count, first: new Date(first), cadence };
   })();
   const daysSinceUpdate = (Date.now() - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24);
   const isMaintained = daysSinceUpdate <= 365;
@@ -612,7 +626,7 @@ const PackageCard = memo(function PackageCard({
               {/* Last Updated */}
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Last Updated</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{date}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{formatDateTime(pkg.updated)}</span>
                 <span className="text-xs text-gray-500 dark:text-zinc-400">{relativeTime}</span>
                 <span
                   className={`inline-flex w-fit items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
@@ -629,14 +643,14 @@ const PackageCard = memo(function PackageCard({
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Releases</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
-                  {pkg.versionCount ? `${pkg.versionCount.toLocaleString()} version${pkg.versionCount === 1 ? "" : "s"}` : "—"}
-                  {releaseCadenceDays !== null && (
-                    <span className="font-normal text-gray-500 dark:text-zinc-400"> · every ~{releaseCadenceDays}d</span>
+                  {releaseStats ? `${releaseStats.count.toLocaleString()} version${releaseStats.count === 1 ? "" : "s"}` : "—"}
+                  {releaseStats?.cadence != null && (
+                    <span className="font-normal text-gray-500 dark:text-zinc-400"> · {formatCadence(releaseStats.cadence)}</span>
                   )}
                 </span>
-                {pkg.firstReleased && (
+                {releaseStats && (
                   <span className="text-xs text-gray-500 dark:text-zinc-400">
-                    First released {new Date(pkg.firstReleased).toLocaleDateString()} ({getRelativeTime(new Date(pkg.firstReleased))})
+                    First released {formatDate(releaseStats.first)} ({getRelativeTime(releaseStats.first)})
                   </span>
                 )}
                 {adoption && (
@@ -773,7 +787,7 @@ const PackageCard = memo(function PackageCard({
                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
                       {versionRows
                         .map((row) => {
-                          const vDate = new Date(row.createdAt).toLocaleDateString();
+                          const vDate = formatDate(row.createdAt);
                           // Yak reports "win", "mac" or "any" (cross-platform
                           // build); normalize to display labels and dedupe so
                           // e.g. win + any doesn't render "Windows" twice.
@@ -1054,6 +1068,15 @@ function compareNumericVersions(a: string, b: string): number {
   }
 
   return 0;
+}
+
+// Sub-day cadences are common for very active packages, so avoid rounding
+// them down to a meaningless "every ~0d".
+function formatCadence(days: number): string {
+  if (days < 1) return "multiple per day";
+  if (days < 10) return `every ~${days.toFixed(1)}d`;
+  if (days < 60) return `every ~${Math.round(days)}d`;
+  return `every ~${Math.round(days / 30)}mo`;
 }
 
 function getRelativeTime(date: Date): string {
