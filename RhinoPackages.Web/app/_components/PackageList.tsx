@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ArrowDownTrayIcon,
@@ -33,6 +33,25 @@ export default function PackageList() {
     controls.sort !== defaultParams.sort ||
     controls.maintained !== defaultParams.maintained ||
     controls.deprecated !== defaultParams.deprecated;
+
+  // A ?p= deep link expands its package but leaves the reader at the top of
+  // the page, with the card itself often thousands of pixels down. Bring it
+  // into view once it has rendered. Captured at mount so that expanding a
+  // card by hand later, which also writes ?p=, never moves the page.
+  const deepLinkTarget = useRef(controls.p);
+  const hasScrolledToDeepLink = useRef(false);
+
+  useEffect(() => {
+    const id = deepLinkTarget.current;
+    if (!id || hasScrolledToDeepLink.current) return;
+
+    const card = document.getElementById(packageAnchorId(id));
+    if (!card) return; // Still loading, or the id matches no package.
+
+    hasScrolledToDeepLink.current = true;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, [packages]);
 
   return (
     <div className="flex min-w-0 w-full flex-col">
@@ -185,6 +204,11 @@ export default function PackageList() {
       )}
     </div>
   );
+}
+
+/** DOM id of a package card, used as the ?p= deep link scroll target. */
+function packageAnchorId(packageId: string) {
+  return `package-${packageId}`;
 }
 
 function OwnerStat({
@@ -468,7 +492,8 @@ const PackageCard = memo(function PackageCard({
 
   return (
     <li
-      className={`group flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
+      id={packageAnchorId(pkg.id)}
+      className={`group flex scroll-mt-4 flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
         ? "border-brand-300 shadow-md dark:border-brand-700 dark:bg-zinc-900/80"
         : "border-gray-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80"
         } p-4`}
