@@ -5,6 +5,11 @@ const config: Config = {
   content: ["./app/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // Narrow phones (iPhone SE and similar) sit below this; the header and
+      // chart axes drop their roomier layout there.
+      screens: {
+        xs: "400px",
+      },
       colors: {
         zinc: {
           700: '#484f58',

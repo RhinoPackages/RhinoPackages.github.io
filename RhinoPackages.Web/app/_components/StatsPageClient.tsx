@@ -648,9 +648,13 @@ function LineChart({
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+      {/* On narrow phones the three labels have no room side by side, so the
+          range drops to its own line instead of colliding with the dates. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
         <span>{startLabel}</span>
-        <span>{min.toLocaleString()} → {max.toLocaleString()}</span>
+        <span className="order-last w-full text-center xs:order-none xs:w-auto xs:text-left">
+          {min.toLocaleString()} → {max.toLocaleString()}
+        </span>
         <span>{endLabel}</span>
       </div>
     </div>

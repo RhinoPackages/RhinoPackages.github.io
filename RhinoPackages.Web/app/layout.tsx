@@ -216,28 +216,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="mx-auto max-w-6xl px-4 pb-10 pt-2">
-            <div className="flex flex-grow items-center justify-between border-b border-gray-200 pb-3 dark:border-zinc-800">
-              <a href="/" title="Rhino Packages - Go to homepage" aria-label="Rhino Packages - Go to homepage" className="flex items-center gap-3 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400">
+            <div className="flex flex-grow items-center justify-between gap-2 border-b border-gray-200 pb-3 dark:border-zinc-800">
+              <a href="/" title="Rhino Packages - Go to homepage" aria-label="Rhino Packages - Go to homepage" className="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 xs:gap-3">
                 <Image
                   src="/logo.svg"
                   alt=""
                   aria-hidden="true"
                   width={36}
                   height={36}
-                  className="rounded-md shadow-sm"
+                  className="h-8 w-8 flex-shrink-0 rounded-md shadow-sm xs:h-9 xs:w-9"
                 />
-                <h1 className="flex items-center gap-1 text-xl tracking-wider pt-1">
+                {/* Truncates rather than overflowing into the links on the
+                    right, which used to collide on narrow phones. */}
+                <h1 className="truncate pt-1 text-lg tracking-wider xs:text-xl">
                   <span className="font-bold text-gray-900 dark:text-white">
                     Rhino
-                  </span>
+                  </span>{" "}
                   <span className="font-light text-gray-500 dark:text-zinc-400">Packages</span>
                 </h1>
               </a>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-shrink-0 items-center gap-1 xs:gap-2">
                 <a
                   href="/stats"
                   title="Directory statistics"
-                  className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400"
+                  aria-label="Directory statistics"
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -254,7 +257,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
                     />
                   </svg>
-                  Stats
+                  <span className="hidden xs:inline">Stats</span>
                 </a>
                 <ThemeToggle />
               </div>
