@@ -272,12 +272,17 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       {/* Author leaderboard */}
       <section aria-labelledby="stats-authors">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2
-            id="stats-authors"
-            className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
-          >
-            Top Authors by Downloads
-          </h2>
+          <div className="flex flex-col gap-0.5">
+            <h2
+              id="stats-authors"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            >
+              Top Authors by Downloads
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-zinc-400">
+              Owned and credited packages combined
+            </span>
+          </div>
           <TableSearch
             id="author-filter"
             label="Filter authors"
@@ -376,9 +381,27 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                       "—"
                     )}
                   </td>
-                  <td className="px-4 py-2 text-right tabular-nums">{author.downloads.toLocaleString()}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
-                    {author.weekly > 0 ? `+${author.weekly.toLocaleString()}` : "—"}
+                  <td
+                    className="px-4 py-2 text-right tabular-nums"
+                    title={
+                      author.credited > 0
+                        ? `${author.downloads.toLocaleString()} owned + ${author.creditedDownloads.toLocaleString()} credited`
+                        : undefined
+                    }
+                  >
+                    {(author.downloads + author.creditedDownloads).toLocaleString()}
+                  </td>
+                  <td
+                    className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400"
+                    title={
+                      author.creditedWeekly > 0
+                        ? `${author.weekly.toLocaleString()} owned + ${author.creditedWeekly.toLocaleString()} credited`
+                        : undefined
+                    }
+                  >
+                    {author.weekly + author.creditedWeekly > 0
+                      ? `+${(author.weekly + author.creditedWeekly).toLocaleString()}`
+                      : "—"}
                   </td>
                 </tr>
               ))}
@@ -766,6 +789,7 @@ interface AuthorStats {
   /** Packages where the person is in the credit list but not the owner. */
   credited: number;
   creditedDownloads: number;
+  creditedWeekly: number;
   creditedItems: { id: string; iconUrl: string }[];
 }
 
@@ -834,6 +858,7 @@ function getStats(cache: Package[]) {
         items: [],
         credited: 0,
         creditedDownloads: 0,
+        creditedWeekly: 0,
         creditedItems: [],
       };
       entry.packages++;
@@ -859,11 +884,17 @@ function getStats(cache: Package[]) {
 
       entry.credited++;
       entry.creditedDownloads += pkg.downloads;
+      entry.creditedWeekly += pkg.downloadsWeek ?? 0;
       entry.creditedItems.push({ id: pkg.id, iconUrl: pkg.iconUrl });
     }
   }
 
-  const rankedAuthors = Array.from(authors.values()).sort((a, b) => b.downloads - a.downloads);
+  // Ranked on everything a person worked on, owned or credited. A package
+  // with several credited authors therefore counts towards each of them, so
+  // these columns intentionally sum to more than the ecosystem total.
+  const rankedAuthors = Array.from(authors.values()).sort(
+    (a, b) => b.downloads + b.creditedDownloads - (a.downloads + a.creditedDownloads),
+  );
   rankedAuthors.forEach((author, i) => (author.rank = i + 1));
 
   newThisMonth.sort(
