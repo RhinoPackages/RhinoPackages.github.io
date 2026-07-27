@@ -8,18 +8,20 @@ import Sidebar from "./Sidebar";
 import type { Package } from "./api";
 
 export default function HomePageClient({ initialCache = [] }: { initialCache?: Package[] }) {
+  // Only the filter controls differ between breakpoints; the list itself is
+  // rendered once so cards are not mounted and diffed twice.
   return (
     <PackageProvider initialCache={initialCache}>
-      <div className="hidden w-full items-start divide-x divide-gray-200 dark:divide-zinc-800 md:flex">
-        <div className="pr-6 pt-6">
+      <div className="flex w-full items-start divide-x divide-gray-200 dark:divide-zinc-800">
+        <div className="hidden pr-6 pt-6 md:block">
           <Sidebar />
         </div>
-        <div className="min-w-0 flex-1 pl-6">
+        <div className="min-w-0 flex-1 md:pl-6">
+          <div className="md:hidden">
+            <ToggleMenu />
+          </div>
           <PackageList />
         </div>
-      </div>
-      <div className="md:hidden">
-        <ToggleMenu />
       </div>
     </PackageProvider>
   );
@@ -81,7 +83,6 @@ function ToggleMenu() {
           </div>
         </>
       )}
-      <PackageList />
     </div>
   );
 }

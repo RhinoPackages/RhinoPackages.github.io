@@ -19,7 +19,8 @@ import { Params, usePackageContext, defaultParams } from "./PackageContext";
 import Spinner from "./Spinner";
 
 export default function PackageList() {
-  const { controls, packages, filteredCount, navigate, stats, status } = usePackageContext();
+  const { controls, packages, filteredCount, navigate, stats, status, ownerSummary } =
+    usePackageContext();
   const expandedId = controls.p ?? null;
   const showHeaderLoading = status.isLoading && packages.length > 0;
 
@@ -35,6 +36,49 @@ export default function PackageList() {
 
   return (
     <div className="flex min-w-0 w-full flex-col">
+      {/* Author profile header, shown when filtering by a single author */}
+      {ownerSummary && (
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50/40 p-4 dark:border-brand-800/60 dark:bg-brand-900/10">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <UserIcon className="h-5 w-5 text-brand-500 dark:text-brand-400" aria-hidden="true" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
+                {ownerSummary.name}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate({ owner: undefined })}
+              className="rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-white hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            >
+              Clear author filter
+            </button>
+          </div>
+          <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4 lg:grid-cols-5">
+            <OwnerStat label="Packages" value={ownerSummary.packages.toLocaleString()} />
+            <OwnerStat
+              label="Owned / Credited"
+              value={`${ownerSummary.owned.toLocaleString()} / ${ownerSummary.credited.toLocaleString()}`}
+            />
+            <OwnerStat label="Downloads" value={ownerSummary.downloads.toLocaleString()} />
+            <OwnerStat
+              label="This Week"
+              value={ownerSummary.weekly > 0 ? `+${ownerSummary.weekly.toLocaleString()}` : "—"}
+              accent
+            />
+            <OwnerStat
+              label="Last Release"
+              value={ownerSummary.lastUpdated ? formatDate(ownerSummary.lastUpdated) : "—"}
+              hint={
+                ownerSummary.firstReleased
+                  ? `Publishing since ${formatDate(ownerSummary.firstReleased)}`
+                  : undefined
+              }
+            />
+          </dl>
+        </div>
+      )}
+
       {/* Stats Banner / Header */}
       <div className="mt-4 mb-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center">
         <div>
@@ -139,6 +183,31 @@ export default function PackageList() {
       {!disablePagination && (
         <InfiniteScrollTrigger onIntersect={() => navigate({ page: controls.page + 1 })} />
       )}
+    </div>
+  );
+}
+
+function OwnerStat({
+  label,
+  value,
+  accent = false,
+  hint,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="flex flex-col" title={hint}>
+      <dt className="text-xs text-gray-500 dark:text-zinc-400">{label}</dt>
+      <dd
+        className={`font-semibold ${
+          accent ? "text-brand-600 dark:text-brand-400" : "text-gray-900 dark:text-zinc-100"
+        }`}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -335,12 +404,16 @@ const PackageCard = memo(function PackageCard({
 
     const count = times.length > 0 ? times.length : (pkg.versionCount ?? 0);
     const first = times.length > 0 ? times[0] : pkg.firstReleased ? new Date(pkg.firstReleased).getTime() : null;
-    const last = times.length > 0 ? times[times.length - 1] : new Date(pkg.updated).getTime();
+    const last =
+      times.length > 0
+        ? times[times.length - 1]
+        : new Date(pkg.lastReleased ?? pkg.updated).getTime();
 
     if (count === 0 || first === null) return null;
 
     const spanDays = (last - first) / (1000 * 3600 * 24);
-    const cadence = count > 1 && spanDays > 0 ? spanDays / (count - 1) : null;
+    const cadence =
+      count > 1 && spanDays > 0 ? spanDays / (count - 1) : (pkg.releaseCadenceDays ?? null);
 
     return { count, first: new Date(first), last: new Date(last), cadence };
   })();
@@ -706,6 +779,19 @@ const PackageCard = memo(function PackageCard({
                     {adoption.percent}% of downloads on latest (v{adoption.version})
                   </span>
                 )}
+              </div>
+
+              {/* Download size and license */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+                  Download
+                </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
+                  {pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : "—"}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-zinc-400">
+                  {pkg.license ? `License: ${pkg.license}` : "No license declared"}
+                </span>
               </div>
 
               {/* Authors */}
@@ -1138,6 +1224,18 @@ function compareNumericVersions(a: string, b: string): number {
   }
 
   return 0;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
 }
 
 // Sub-day cadences are common for very active packages, so avoid rounding

@@ -48,6 +48,17 @@ export const defaultParams: Params = {
   deprecated: false,
 };
 
+export interface OwnerSummary {
+  name: string;
+  packages: number;
+  owned: number;
+  credited: number;
+  downloads: number;
+  weekly: number;
+  lastUpdated?: string;
+  firstReleased?: string;
+}
+
 interface PackageContext {
   packages: Package[];
   filteredCount: number;
@@ -64,6 +75,8 @@ interface PackageContext {
   statusCounts: { maintained: number; deprecated: number };
   /** Normalized owner name to account id, for crediting listed authors. */
   ownerIdByName: Map<string, number>;
+  /** Aggregates for the author currently being filtered on, if any. */
+  ownerSummary: OwnerSummary | null;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -186,6 +199,46 @@ export function PackageProvider({
     return filter(cache ?? [], params, trendingScores, ownerName);
   }, [cache, params, trendingScores, ownerName]);
 
+  const ownerSummary = useMemo<OwnerSummary | null>(() => {
+    if (params.owner === undefined || !ownerName) return null;
+
+    const target = normalizeName(ownerName);
+    const matched = (cache ?? []).filter((pkg) => matchesOwner(pkg, params.owner!, ownerName));
+    if (matched.length === 0) return null;
+
+    let owned = 0;
+    let downloads = 0;
+    let weekly = 0;
+    let lastUpdated: string | undefined;
+    let firstReleased: string | undefined;
+
+    for (const pkg of matched) {
+      const isOwner = pkg.owners.some(
+        (o) => o.id === params.owner || normalizeName(o.name) === target,
+      );
+      if (isOwner) owned++;
+
+      downloads += pkg.downloads;
+      weekly += pkg.downloadsWeek ?? 0;
+
+      if (!lastUpdated || pkg.updated > lastUpdated) lastUpdated = pkg.updated;
+      if (pkg.firstReleased && (!firstReleased || pkg.firstReleased < firstReleased)) {
+        firstReleased = pkg.firstReleased;
+      }
+    }
+
+    return {
+      name: ownerName,
+      packages: matched.length,
+      owned,
+      credited: matched.length - owned,
+      downloads,
+      weekly,
+      lastUpdated,
+      firstReleased,
+    };
+  }, [cache, params.owner, ownerName]);
+
   const filterCounts = useMemo(() => {
     const flags = [
       Filters.Windows,
@@ -249,6 +302,7 @@ export function PackageProvider({
         filterCounts,
         statusCounts,
         ownerIdByName,
+        ownerSummary,
         navigate,
         navigateFilter,
         setSearch,

@@ -6,7 +6,8 @@ namespace RhinoPackages.Api;
 
 public record Package(string Id, string Version, DateTime Updated, string Authors, int Downloads, string? IconUrl,
     string Description, string Keywords, bool Prerelease, string? HomepageUrl, Filters Filters, List<Owner> Owners,
-    int DownloadsWeek = 0, int DownloadsMonth = 0, DateTime? FirstReleased = null, int VersionCount = 0);
+    int DownloadsWeek = 0, int DownloadsMonth = 0, DateTime? FirstReleased = null, int VersionCount = 0,
+    DateTime? LastReleased = null, double? ReleaseCadenceDays = null, long? SizeBytes = null, string? License = null);
 
 public record SnapshotPoint(string Date, int Downloads, int Week);
 
@@ -101,10 +102,10 @@ public class Store(ILogger<Store> logger)
 
     // Appends one download snapshot per package per day, only when the counts
     // actually moved, so the files stay sparse while still charting growth.
-    async Task SaveSnapshots(List<Package> packages)
+    internal async Task SaveSnapshots(List<Package> packages, DateTime? utcNow = null)
     {
         Directory.CreateDirectory(_historyDir);
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var today = (utcNow ?? DateTime.UtcNow).ToString("yyyy-MM-dd");
 
         foreach (var package in packages)
         {

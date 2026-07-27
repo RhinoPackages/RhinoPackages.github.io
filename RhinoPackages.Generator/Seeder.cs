@@ -12,7 +12,13 @@ public record OwnerYak(int Id, string Name);
 public record DownloadsYak(int LastDay, int LastWeek, int LastMonth);
 public record YakVersionHistoryItem(string CreatedAt, string Version, DistributionYak[] Distributions, bool Prerelease, int DownloadCount = 0, DownloadsYak? Downloads = null);
 
-public record HistoryStats(int Week, int Month, DateTime? FirstReleased, int VersionCount)
+public record HistoryStats(
+    int Week,
+    int Month,
+    DateTime? FirstReleased,
+    int VersionCount,
+    DateTime? LastReleased = null,
+    double? CadenceDays = null)
 {
     public static readonly HistoryStats Empty = new(0, 0, null, 0);
 
@@ -24,18 +30,43 @@ public record HistoryStats(int Week, int Month, DateTime? FirstReleased, int Ver
         var week = 0;
         var month = 0;
         DateTime? first = null;
+        DateTime? last = null;
 
         foreach (var item in history)
         {
             week += item.Downloads?.LastWeek ?? 0;
             month += item.Downloads?.LastMonth ?? 0;
 
-            if (DateTime.TryParse(item.CreatedAt, out var created) && (first is null || created < first))
+            if (!DateTime.TryParse(item.CreatedAt, out var created))
+                continue;
+
+            if (first is null || created < first)
                 first = created;
+
+            if (last is null || created > last)
+                last = created;
         }
 
-        return new(week, month, first, history.Length);
+        // Average gap between releases. Measured across the same set that
+        // VersionCount reports, since the package's own `updated` date can
+        // predate later pre-releases.
+        double? cadence = null;
+
+        if (history.Length > 1 && first is not null && last is not null)
+        {
+            var span = (last.Value - first.Value).TotalDays;
+            if (span > 0)
+                cadence = span / (history.Length - 1);
+        }
+
+        return new(week, month, first, history.Length, last, cadence);
     }
+}
+
+/// <summary>Details read from a distribution's .yak archive.</summary>
+public record DistributionInfo(Filters Type, long? SizeBytes, string? License)
+{
+    public static readonly DistributionInfo Empty = new(Filters.None, null, null);
 }
 
 public enum Update { None, New, Update, Remove }
@@ -47,9 +78,14 @@ public class Seeder
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
+    /// <summary>How many archives to read per run purely to backfill size and license.</summary>
+    const int BackfillLimit = 200;
+
     readonly HttpClient _client;
     readonly ILogger _logger;
     readonly IEnumerable<Package> _packages;
+
+    int _backfilled;
 
     public Seeder(ILogger logger, IEnumerable<Package> packages, HttpClient? client = null)
     {
@@ -107,7 +143,32 @@ public class Seeder
                         DownloadsMonth = stats.Month,
                         FirstReleased = stats.FirstReleased ?? package.FirstReleased,
                         VersionCount = stats.VersionCount > 0 ? stats.VersionCount : package.VersionCount,
+                        LastReleased = stats.LastReleased ?? package.LastReleased,
+                        ReleaseCadenceDays = stats.CadenceDays ?? package.ReleaseCadenceDays,
                     };
+
+                    // Size and license come from the archive, which is only
+                    // read when a package publishes a new version. Backfill a
+                    // bounded number of the remaining ones per run so existing
+                    // packages fill in over a few days instead of never.
+                    if (refreshed.SizeBytes is null && Interlocked.Increment(ref _backfilled) <= BackfillLimit)
+                    {
+                        try
+                        {
+                            var detail = await Get<PackageYak>($"versions/{entry.Name}/{entry.Version}");
+                            var contents = await ReadDistributions(detail.Distributions);
+
+                            refreshed = refreshed with
+                            {
+                                SizeBytes = contents.SizeBytes,
+                                License = contents.License ?? refreshed.License,
+                            };
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning("Failed to backfill {Name}: {Message}", entry.Name, ex.Message);
+                        }
+                    }
 
                     if (refreshed != package)
                     {
@@ -171,6 +232,7 @@ public class Seeder
 
         var package = packageTask.Result;
         var owners = ownersTask.Result;
+        var contents = await ReadDistributions(package.Distributions);
 
         return new
         (
@@ -184,18 +246,24 @@ public class Seeder
             Keywords: package.Keywords is null ? "" : string.Join(", ", package.Keywords),
             Prerelease: package.Prerelease,
             HomepageUrl: package.HomepageUrl,
-            Filters: await GetFilters(package.Distributions),
+            Filters: contents.Type,
             Owners: owners.Select(o => new Owner(o.Id, o.Name)).ToList(),
             DownloadsWeek: stats.Week,
             DownloadsMonth: stats.Month,
             FirstReleased: stats.FirstReleased,
-            VersionCount: stats.VersionCount
+            VersionCount: stats.VersionCount,
+            LastReleased: stats.LastReleased,
+            ReleaseCadenceDays: stats.CadenceDays,
+            SizeBytes: contents.SizeBytes,
+            License: contents.License
         );
     }
 
-    async Task<Filters> GetFilters(DistributionYak[] distributions)
+    async Task<DistributionInfo> ReadDistributions(DistributionYak[] distributions)
     {
         Filters filters = Filters.None;
+        long? size = null;
+        string? license = null;
 
         foreach (var distribution in distributions)
         {
@@ -215,20 +283,46 @@ public class Seeder
                 _ => Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8 | Filters.Rhino9
             };
 
-            filters |= await GetPluginType(distribution.Url);
+            var info = await ReadDistribution(distribution.Url);
+
+            filters |= info.Type;
+            license ??= info.License;
+
+            // Windows and Mac builds are alternatives, so report the largest
+            // rather than the sum: that is what a user actually downloads.
+            if (info.SizeBytes is not null && (size is null || info.SizeBytes > size))
+                size = info.SizeBytes;
         }
 
-        return filters;
+        return new(filters, size, license);
     }
 
-    async Task<Filters> GetPluginType(string url)
+    async Task<DistributionInfo> ReadDistribution(string url)
     {
         try
         {
-            using var stream = await _client.GetStreamAsync(url);
-            using ZipArchive zip = new(stream, ZipArchiveMode.Read);
+            using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var size = response.Content.Headers.ContentLength;
+
+            using var stream = await response.Content.ReadAsStreamAsync();
+
+            // ZipArchive reads the central directory from the end of the
+            // archive, so a forward-only network stream has to be buffered.
+            using MemoryStream? buffer = stream.CanSeek ? null : new();
+
+            if (buffer is not null)
+            {
+                await stream.CopyToAsync(buffer);
+                buffer.Position = 0;
+                size ??= buffer.Length;
+            }
+
+            using ZipArchive zip = new(buffer ?? stream, ZipArchiveMode.Read);
 
             Filters type = Filters.None;
+            ZipArchiveEntry? manifest = null;
 
             foreach (var entry in zip.Entries)
             {
@@ -240,15 +334,37 @@ public class Seeder
                     ".gha" => Filters.Grasshopper,
                     _ => Filters.None
                 };
+
+                if (entry.FullName.Equals("manifest.yml", StringComparison.OrdinalIgnoreCase))
+                    manifest = entry;
             }
 
-            return type;
+            return new(type, size, manifest is null ? null : await ReadLicense(manifest));
         }
         catch (Exception ex)
         {
             _logger.LogWarning("Failed to fetch plugin distribution {Url}: {Message}", url, ex.Message);
-            return Filters.None;
+            return DistributionInfo.Empty;
         }
+    }
+
+    // Most manifests omit a license, so a full YAML parser would be overkill:
+    // read the one top-level scalar we care about.
+    static async Task<string?> ReadLicense(ZipArchiveEntry manifest)
+    {
+        using var stream = manifest.Open();
+        using StreamReader reader = new(stream);
+
+        while (await reader.ReadLineAsync() is { } line)
+        {
+            if (!line.StartsWith("license:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var value = line["license:".Length..].Trim().Trim('"', '\'');
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
+        return null;
     }
 
     // The version endpoint reports the icon URL directly, so no extra request

@@ -182,7 +182,8 @@ public class SeederTests
                 DownloadsWeek: 0,
                 DownloadsMonth: 0,
                 FirstReleased: DateTime.Parse("2026-01-01T00:00:00Z"),
-                VersionCount: 1
+                VersionCount: 1,
+                LastReleased: DateTime.Parse("2026-01-01T00:00:00Z")
             )
         };
 
@@ -370,10 +371,222 @@ public class SeederTests
         Assert.Equal(40, updates[0].Package.DownloadsMonth);
     }
 
+    [Fact]
+    public async Task Run_ReadsSizeLicenseAndCadenceFromDistribution()
+    {
+        var packageName = "ManifestPackage";
+        var packageVersion = "2.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+        var winUrl = "https://files.example.test/manifest-package-win.yak";
+        var macUrl = "https://files.example.test/manifest-package-mac.yak";
+
+        var manifest = """
+            ---
+            name: ManifestPackage
+            version: 2.0.0
+            license: MIT
+            """;
+
+        var win = ZipWith(manifest, "plugin.gha", "extra.dll");
+        var mac = ZipWith(manifest, "plugin.gha");
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 10, "name": "ManifestPackage", "version": "2.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}/{packageVersion}"] = Json("""
+                {
+                  "created_at": "2026-02-10T00:00:00Z",
+                  "description": "Test package",
+                  "distributions": [
+                    {
+                      "filename": "ManifestPackage-2.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/manifest-package-win.yak"
+                    },
+                    {
+                      "filename": "ManifestPackage-2.0.0-rh8_0-mac.yak",
+                      "platform": "mac",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/manifest-package-mac.yak"
+                    }
+                  ],
+                  "keywords": [],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"packages/{packageName}/owners"] = Json("""
+                [ { "id": 3, "name": "Owner Three" } ]
+                """),
+            // Three releases spanning ten days: two gaps, so five days apart.
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  { "created_at": "2026-02-01T00:00:00Z", "version": "1.0.0", "distributions": [], "prerelease": false },
+                  { "created_at": "2026-02-06T00:00:00Z", "version": "1.5.0", "distributions": [], "prerelease": true },
+                  { "created_at": "2026-02-11T00:00:00Z", "version": "2.0.0", "distributions": [], "prerelease": false }
+                ]
+                """),
+            [winUrl] = win,
+            [macUrl] = mac,
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, [], client);
+
+        var updates = await seeder.Run();
+
+        var package = Assert.Single(updates).Package;
+        Assert.Equal("MIT", package.License);
+        // The larger of the two platform builds, not their sum.
+        Assert.Equal(win.Content.Headers.ContentLength, package.SizeBytes);
+        Assert.Equal(3, package.VersionCount);
+        Assert.Equal(5, package.ReleaseCadenceDays);
+        Assert.Equal(DateTime.Parse("2026-02-11T00:00:00Z"), package.LastReleased);
+        Assert.Equal(DateTime.Parse("2026-02-01T00:00:00Z"), package.FirstReleased);
+    }
+
+    [Fact]
+    public async Task Run_SameVersionMissingSize_BackfillsFromArchive()
+    {
+        var packageName = "BackfillPackage";
+        var packageVersion = "1.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+        var packageUrl = "https://files.example.test/backfill.yak";
+
+        var existing = new List<Package>
+        {
+            new(
+                Id: packageName,
+                Version: packageVersion,
+                Updated: new DateTime(2026, 1, 1),
+                Authors: "Unit Tester",
+                Downloads: 42,
+                IconUrl: "/icons/special/default.png",
+                Description: "Existing",
+                Keywords: "",
+                Prerelease: false,
+                HomepageUrl: null,
+                Filters: Filters.Windows,
+                Owners: [new Owner(1, "Owner One")],
+                FirstReleased: DateTime.Parse("2026-01-01T00:00:00Z"),
+                VersionCount: 1,
+                LastReleased: DateTime.Parse("2026-01-01T00:00:00Z")
+            )
+        };
+
+        var archive = ZipWith("license: Apache-2.0", "plugin.gha");
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 42, "name": "BackfillPackage", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}/{packageVersion}"] = Json("""
+                {
+                  "created_at": "2026-01-01T00:00:00Z",
+                  "description": "Existing",
+                  "distributions": [
+                    {
+                      "filename": "BackfillPackage-1.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/backfill.yak"
+                    }
+                  ],
+                  "keywords": [],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  { "created_at": "2026-01-01T00:00:00Z", "version": "1.0.0", "distributions": [], "prerelease": false }
+                ]
+                """),
+            [packageUrl] = archive,
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, existing, client);
+
+        var updates = await seeder.Run();
+
+        var package = Assert.Single(updates).Package;
+        Assert.Equal(Update.Update, updates[0].Update);
+        Assert.Equal(archive.Content.Headers.ContentLength, package.SizeBytes);
+        Assert.Equal("Apache-2.0", package.License);
+    }
+
+    [Fact]
+    public async Task Run_DistributionWithoutManifest_LeavesLicenseUnset()
+    {
+        var packageName = "NoManifestPackage";
+        var packageVersion = "1.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+        var packageUrl = "https://files.example.test/no-manifest.yak";
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 1, "name": "NoManifestPackage", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}/{packageVersion}"] = Json("""
+                {
+                  "created_at": "2026-02-10T00:00:00Z",
+                  "description": "Test package",
+                  "distributions": [
+                    {
+                      "filename": "NoManifestPackage-1.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/no-manifest.yak"
+                    }
+                  ],
+                  "keywords": [],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"packages/{packageName}/owners"] = Json("""
+                [ { "id": 4, "name": "Owner Four" } ]
+                """),
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  { "created_at": "2026-02-10T00:00:00Z", "version": "1.0.0", "distributions": [], "prerelease": false }
+                ]
+                """),
+            [packageUrl] = ZipWithEntries("plugin.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, [], client);
+
+        var package = Assert.Single(await seeder.Run()).Package;
+
+        Assert.Null(package.License);
+        // A single release has no gap to measure.
+        Assert.Null(package.ReleaseCadenceDays);
+    }
+
     static HttpResponseMessage Json(string json)
         => new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
     static HttpResponseMessage ZipWithEntries(params string[] entries)
+        => ZipWith(null, entries);
+
+    static HttpResponseMessage ZipWith(string? manifest, params string[] entries)
     {
         var ms = new MemoryStream();
         using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, true))
@@ -382,9 +595,19 @@ public class SeederTests
             {
                 zip.CreateEntry(entry);
             }
+
+            if (manifest is not null)
+            {
+                using var stream = zip.CreateEntry("manifest.yml").Open();
+                using StreamWriter writer = new(stream);
+                writer.Write(manifest);
+            }
         }
         ms.Position = 0;
-        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(ms) };
+
+        var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(ms) };
+        response.Content.Headers.ContentLength = ms.Length;
+        return response;
     }
 
     sealed class FakeHandler(Dictionary<string, HttpResponseMessage> responses) : HttpMessageHandler
@@ -401,26 +624,4 @@ public class SeederTests
         }
     }
 
-    sealed class WorkingDirectorySandbox : IDisposable
-    {
-        readonly string _previous;
-        readonly string _tempDir;
-
-        public WorkingDirectorySandbox()
-        {
-            _previous = Directory.GetCurrentDirectory();
-            _tempDir = Path.Combine(Path.GetTempPath(), "rhino-packages-tests-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(_tempDir);
-            Directory.SetCurrentDirectory(_tempDir);
-        }
-
-        public void Dispose()
-        {
-            Directory.SetCurrentDirectory(_previous);
-            if (Directory.Exists(_tempDir))
-            {
-                Directory.Delete(_tempDir, recursive: true);
-            }
-        }
-    }
 }

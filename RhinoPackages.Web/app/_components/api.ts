@@ -19,6 +19,10 @@ export interface Package {
   downloadsMonth?: number;
   firstReleased?: string | null;
   versionCount?: number;
+  lastReleased?: string | null;
+  releaseCadenceDays?: number | null;
+  sizeBytes?: number | null;
+  license?: string | null;
 }
 
 export interface Distribution {
