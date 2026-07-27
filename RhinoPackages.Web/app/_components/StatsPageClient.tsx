@@ -3,6 +3,7 @@
 import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, useApi } from "@/app/_components/api";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Spinner from "./Spinner";
@@ -13,13 +14,27 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authorQuery, setAuthorQuery] = useState(searchParams.get("author") ?? "");
+  const [risingQuery, setRisingQuery] = useState(searchParams.get("rising") ?? "");
 
-  // Keep the author filter shareable via /stats?author=...
+  // Keep both table filters shareable via /stats?author=...&rising=...
+  const syncQuery = (next: { author?: string; rising?: string }) => {
+    const params = new URLSearchParams();
+    const author = next.author ?? authorQuery;
+    const rising = next.rising ?? risingQuery;
+    if (author) params.set("author", author);
+    if (rising) params.set("rising", rising);
+    const query = params.toString();
+    router.replace(query ? `/stats?${query}` : "/stats", { scroll: false });
+  };
+
   const updateAuthorQuery = (value: string) => {
     setAuthorQuery(value);
-    router.replace(value ? `/stats?author=${encodeURIComponent(value)}` : "/stats", {
-      scroll: false,
-    });
+    syncQuery({ author: value });
+  };
+
+  const updateRisingQuery = (value: string) => {
+    setRisingQuery(value);
+    syncQuery({ rising: value });
   };
   const [totals, setTotals] = useState<TotalsPoint[] | null>(null);
 
@@ -51,6 +66,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
     const [startYear, startMonth] = keys[0].split("-").map(Number);
     const now = new Date();
     const values: number[] = [];
+    const labels: string[] = [];
     const januaries: { index: number; year: number }[] = [];
     let running = 0;
 
@@ -58,6 +74,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       if (m === 1) januaries.push({ index: values.length, year: y });
       running += months.get(`${y}-${String(m).padStart(2, "0")}`) ?? 0;
       values.push(running);
+      labels.push(`${y}-${String(m).padStart(2, "0")}`);
       m++;
       if (m > 12) {
         m = 1;
@@ -71,18 +88,24 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       .filter((j, i) => i % yearStep === 0)
       .map((j) => ({ position: values.length > 1 ? j.index / (values.length - 1) : 0, label: String(j.year) }));
 
-    return { values, start: keys[0], end: "today", ticks };
+    return { values, labels, start: keys[0], end: "today", ticks };
   }, [cache]);
 
   // Small packages gaining unusual momentum: weekly downloads as a share
   // of lifetime downloads.
-  const risingStars = useMemo(() => {
+  const risingAll = useMemo(() => {
     return cache
       .filter((p) => (p.downloadsWeek ?? 0) >= 20 && p.downloads >= 100)
       .map((p) => ({ pkg: p, ratio: (p.downloadsWeek ?? 0) / p.downloads }))
       .sort((a, b) => b.ratio - a.ratio)
-      .slice(0, 10);
+      .map((entry, i) => ({ ...entry, rank: i + 1 }));
   }, [cache]);
+
+  const risingStars = useMemo(() => {
+    const query = risingQuery.trim().toLowerCase();
+    const pool = query ? risingAll.filter((r) => r.pkg.id.toLowerCase().includes(query)) : risingAll;
+    return pool.slice(0, 10);
+  }, [risingAll, risingQuery]);
 
   const visibleAuthors = useMemo(() => {
     if (!stats) return [];
@@ -211,7 +234,14 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               {growth.values[growth.values.length - 1].toLocaleString()} packages · since {growth.start}
             </span>
           </div>
-          <LineChart values={growth.values} startLabel={growth.start} endLabel={growth.end} ticks={growth.ticks} />
+          <LineChart
+            values={growth.values}
+            labels={growth.labels}
+            unit="packages"
+            startLabel={growth.start}
+            endLabel={growth.end}
+            ticks={growth.ticks}
+          />
         </section>
       )}
 
@@ -231,6 +261,8 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           </div>
           <LineChart
             values={totals.map((t) => t.downloads)}
+            labels={totals.map((t) => t.date)}
+            unit="downloads"
             startLabel={totals[0].date}
             endLabel={totals[totals.length - 1].date}
           />
@@ -246,27 +278,13 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           >
             Top Authors by Downloads
           </h2>
-          <div className="group relative flex w-full sm:w-64">
-            <label htmlFor="author-filter" className="sr-only">
-              Filter authors
-            </label>
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <MagnifyingGlassIcon
-                className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400"
-                aria-hidden="true"
-              />
-            </div>
-            <input
-              id="author-filter"
-              type="text"
-              spellCheck={false}
-              autoComplete="off"
-              placeholder={`Search ${stats.authors.length.toLocaleString()} authors...`}
-              value={authorQuery}
-              onChange={(e) => updateAuthorQuery(e.target.value)}
-              className="w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
-            />
-          </div>
+          <TableSearch
+            id="author-filter"
+            label="Filter authors"
+            placeholder={`Search ${stats.authors.length.toLocaleString()} authors...`}
+            value={authorQuery}
+            onChange={updateAuthorQuery}
+          />
         </div>
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
           <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
@@ -274,7 +292,8 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               <tr>
                 <th scope="col" className="px-4 py-2">#</th>
                 <th scope="col" className="px-4 py-2">Author</th>
-                <th scope="col" className="px-4 py-2 text-right">Packages</th>
+                <th scope="col" className="px-4 py-2">Packages</th>
+                <th scope="col" className="px-4 py-2 text-right">Count</th>
                 <th scope="col" className="px-4 py-2 text-right">Downloads</th>
                 <th scope="col" className="px-4 py-2 text-right">This Week</th>
               </tr>
@@ -294,6 +313,26 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                       {author.name}
                     </Link>
                   </td>
+                  <td className="px-4 py-2">
+                    <div className="flex flex-wrap items-center gap-1">
+                      {author.items.slice(0, 12).map((item) => (
+                        <Link key={item.id} href={`/?p=${encodeURIComponent(item.id)}`} title={item.id}>
+                          <Image
+                            className="h-5 w-5 rounded-sm transition-transform hover:scale-125"
+                            src={item.iconUrl}
+                            width={20}
+                            height={20}
+                            alt={item.id}
+                          />
+                        </Link>
+                      ))}
+                      {author.items.length > 12 && (
+                        <span className="text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+                          +{author.items.length - 12}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-2 text-right tabular-nums">{author.packages.toLocaleString()}</td>
                   <td className="px-4 py-2 text-right tabular-nums">{author.downloads.toLocaleString()}</td>
                   <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
@@ -303,7 +342,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               ))}
               {visibleAuthors.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
+                  <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
                     No authors match &quot;{authorQuery}&quot;
                   </td>
                 </tr>
@@ -316,16 +355,25 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       {/* Rising stars */}
       {risingStars.length > 0 && (
         <section aria-labelledby="stats-rising">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2
-              id="stats-rising"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
-            >
-              Rising Stars
-            </h2>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">
-              Highest share of lifetime downloads earned this week
-            </span>
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-0.5">
+              <h2
+                id="stats-rising"
+                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+              >
+                Rising Stars
+              </h2>
+              <span className="text-xs text-gray-500 dark:text-zinc-400">
+                Highest share of lifetime downloads earned this week
+              </span>
+            </div>
+            <TableSearch
+              id="rising-filter"
+              label="Filter rising packages"
+              placeholder={`Search ${risingAll.length.toLocaleString()} packages...`}
+              value={risingQuery}
+              onChange={updateRisingQuery}
+            />
           </div>
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
             <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
@@ -339,16 +387,17 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
-                {risingStars.map(({ pkg, ratio }, i) => (
+                {risingStars.map(({ pkg, ratio, rank }) => (
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{i + 1}</td>
+                    <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{rank}</td>
                     <td className="px-4 py-2">
                       <Link
                         href={`/?p=${encodeURIComponent(pkg.id)}`}
                         title={`Show ${pkg.id}`}
-                        className="font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                        className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
-                        {pkg.id}
+                        <PackageIcon pkg={pkg} />
+                        <span className="truncate">{pkg.id}</span>
                       </Link>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
@@ -360,6 +409,13 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                     </td>
                   </tr>
                 ))}
+                {risingStars.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
+                      No packages match &quot;{risingQuery}&quot;
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -382,7 +438,10 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                   href={`/?p=${encodeURIComponent(pkg.id)}`}
                   className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
                 >
-                  <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PackageIcon pkg={pkg} />
+                    <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
+                  </span>
                   <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
                     {pkg.firstReleased ? formatDate(pkg.firstReleased) : ""}
                   </span>
@@ -406,12 +465,17 @@ function LineChart({
   startLabel,
   endLabel,
   ticks = [],
+  labels = [],
+  unit = "",
 }: {
   values: number[];
   startLabel: string;
   endLabel: string;
   ticks?: ChartTick[];
+  labels?: string[];
+  unit?: string;
 }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const width = 600;
   const height = 140;
   const min = Math.min(...values);
@@ -429,6 +493,13 @@ function LineChart({
   // Value at each quarter of the y range, for the gridline labels.
   const quarter = (f: number) => Math.round(min + span * f);
 
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    const index = Math.round(ratio * (values.length - 1));
+    setHoverIndex(Math.max(0, Math.min(values.length - 1, index)));
+  };
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-start justify-between text-xs tabular-nums text-gray-400 dark:text-zinc-500">
@@ -436,6 +507,7 @@ function LineChart({
         <span>{quarter(0.5).toLocaleString()}</span>
         <span className="opacity-0">.</span>
       </div>
+      <div className="relative" onMouseMove={onMouseMove} onMouseLeave={() => setHoverIndex(null)}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="h-36 w-full"
@@ -475,7 +547,29 @@ function LineChart({
           vectorEffect="non-scaling-stroke"
           className="stroke-brand-500 dark:stroke-brand-400"
         />
+        {hoverIndex !== null && (
+          <line
+            x1={coords[hoverIndex].x}
+            y1={0}
+            x2={coords[hoverIndex].x}
+            y2={height}
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+            className="stroke-gray-400 dark:stroke-zinc-500"
+          />
+        )}
       </svg>
+      {hoverIndex !== null && (
+        <div
+          className="pointer-events-none absolute -top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow dark:bg-zinc-100 dark:text-zinc-900"
+          style={{ left: `${Math.min(92, Math.max(8, (coords[hoverIndex].x / width) * 100))}%` }}
+        >
+          {labels[hoverIndex] ? `${labels[hoverIndex]} · ` : ""}
+          {values[hoverIndex].toLocaleString()}
+          {unit ? ` ${unit}` : ""}
+        </div>
+      )}
+      </div>
       {ticks.length > 0 && (
         <div className="relative h-4 text-[10px] tabular-nums text-gray-400 dark:text-zinc-500">
           {ticks.map((tick) => (
@@ -494,6 +588,57 @@ function LineChart({
         <span>{min.toLocaleString()} → {max.toLocaleString()}</span>
         <span>{endLabel}</span>
       </div>
+    </div>
+  );
+}
+
+function PackageIcon({ pkg }: { pkg: Package }) {
+  return (
+    <Image
+      className="h-5 w-5 flex-shrink-0 rounded-sm"
+      src={pkg.iconUrl}
+      width={20}
+      height={20}
+      alt=""
+      aria-hidden="true"
+    />
+  );
+}
+
+function TableSearch({
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="group relative flex w-full sm:w-64">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <MagnifyingGlassIcon
+          className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400"
+          aria-hidden="true"
+        />
+      </div>
+      <input
+        id={id}
+        type="text"
+        spellCheck={false}
+        autoComplete="off"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+      />
     </div>
   );
 }
@@ -571,6 +716,7 @@ interface AuthorStats {
   downloads: number;
   weekly: number;
   rank: number;
+  items: { id: string; iconUrl: string }[];
 }
 
 function getStats(cache: Package[]) {
@@ -632,10 +778,12 @@ function getStats(cache: Package[]) {
         downloads: 0,
         weekly: 0,
         rank: 0,
+        items: [],
       };
       entry.packages++;
       entry.downloads += pkg.downloads;
       entry.weekly += pkg.downloadsWeek ?? 0;
+      entry.items.push({ id: pkg.id, iconUrl: pkg.iconUrl });
       authors.set(owner.id, entry);
     }
   }
@@ -664,6 +812,6 @@ function getStats(cache: Package[]) {
     rhino8,
     rhino9,
     authors: rankedAuthors,
-    newThisMonth: newThisMonth.slice(0, 12),
+    newThisMonth: newThisMonth.slice(0, 15),
   };
 }
