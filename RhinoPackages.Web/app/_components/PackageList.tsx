@@ -620,30 +620,40 @@ const PackageCard = memo(function PackageCard({
                 </p>
               </div>
             )}
-            <div className="flex items-center gap-1" title="Last updated">
-              <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-              <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
-                <span className="sr-only">Last updated: </span>
-                {date}
-              </p>
+            {/* The copy button rides alongside the date rather than taking a
+                row of its own, where it read as an orphan on narrow cards. */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1" title="Last updated">
+                <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
+                <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
+                  <span className="sr-only">Last updated: </span>
+                  {date}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                title={copied ? "Copied to clipboard!" : `Copy link to ${pkg.id}`}
+                aria-label={`Copy link to ${pkg.id}`}
+                className={`flex flex-shrink-0 items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                  }`}
+              >
+                {copied ? (
+                  <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+                {/* The check icon carries the confirmation on its own where
+                    the label would push the row into the platform icons. */}
+                {copied && (
+                  <span className="hidden text-[10px] font-bold uppercase sm:inline" aria-hidden="true">
+                    Copied!
+                  </span>
+                )}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              title={copied ? "Copied to clipboard!" : `Copy link to ${pkg.id}`}
-              aria-label={`Copy link to ${pkg.id}`}
-              className={`mt-0.5 flex items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
-                ? "text-green-600 dark:text-green-400"
-                : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-                }`}
-            >
-              {copied ? (
-                <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : (
-                <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              {copied && <span className="text-[10px] font-bold uppercase" aria-hidden="true">Copied!</span>}
-            </button>
             <div aria-live="polite" className="sr-only">
               {copied ? "Link copied to clipboard!" : ""}
             </div>
