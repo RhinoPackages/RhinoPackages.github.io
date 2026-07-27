@@ -35,7 +35,9 @@ function ToggleMenu() {
     controls.filters !== defaultParams.filters ||
     controls.search !== defaultParams.search ||
     controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort;
+    controls.sort !== defaultParams.sort ||
+    controls.maintained !== defaultParams.maintained ||
+    controls.deprecated !== defaultParams.deprecated;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

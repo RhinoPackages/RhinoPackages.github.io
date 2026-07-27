@@ -14,7 +14,9 @@ export default function Sidebar() {
     controls.filters !== defaultParams.filters ||
     controls.search !== defaultParams.search ||
     controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort;
+    controls.sort !== defaultParams.sort ||
+    controls.maintained !== defaultParams.maintained ||
+    controls.deprecated !== defaultParams.deprecated;
 
   return (
     <form
@@ -44,6 +46,20 @@ export default function Sidebar() {
         <legend className="sr-only">Plugin types</legend>
         <CheckBox title="Rhino plugin" icon="/icons/rhp.png" filter={Filters.Rhino} />
         <CheckBox title="Grasshopper" icon="/icons/gha.png" filter={Filters.Grasshopper} />
+      </fieldset>
+      <Spacer />
+      <fieldset className="flex w-full flex-col gap-3">
+        <legend className="sr-only">Maintenance status</legend>
+        <StatusToggle
+          title="Maintained"
+          param="maintained"
+          hint="Released an update within the last year"
+        />
+        <StatusToggle
+          title="Deprecated"
+          param="deprecated"
+          hint="No build for the current Rhino release (Rhino 8)"
+        />
       </fieldset>
       <button
         type="button"
@@ -117,15 +133,18 @@ interface CheckProps {
 function CheckBox({ title, icon, filter }: CheckProps) {
   const { navigateFilter, controls, filterCounts } = usePackageContext();
   const isSvg = icon.endsWith(".svg");
-  const count = filterCounts.get(filter) ?? 0;
 
   const has = (constant: Filters) => {
     return constant === (controls.filters & constant);
   };
 
   return (
-    <Switch.Group as="div" className="flex w-full items-center justify-between">
-      <Switch.Label as="label" className="flex cursor-pointer items-center gap-2 pr-6">
+    <Toggle
+      title={title}
+      count={filterCounts.get(filter) ?? 0}
+      checked={has(filter)}
+      onChange={(checked) => navigateFilter(filter, checked)}
+      icon={
         <Image
           className={`inline h-[1.2rem] w-[1.2rem] opacity-80 ${isSvg ? "dark:invert" : ""}`}
           src={icon}
@@ -134,6 +153,52 @@ function CheckBox({ title, icon, filter }: CheckProps) {
           alt=""
           aria-hidden="true"
         />
+      }
+    />
+  );
+}
+
+function StatusToggle({
+  title,
+  param,
+  hint,
+}: {
+  title: string;
+  param: "maintained" | "deprecated";
+  hint: string;
+}) {
+  const { navigate, controls, statusCounts } = usePackageContext();
+
+  return (
+    <Toggle
+      title={title}
+      hint={hint}
+      count={statusCounts[param]}
+      checked={controls[param]}
+      onChange={(checked) => navigate({ [param]: checked })}
+    />
+  );
+}
+
+function Toggle({
+  title,
+  count,
+  checked,
+  onChange,
+  icon,
+  hint,
+}: {
+  title: string;
+  count: number;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  icon?: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <Switch.Group as="div" className="flex w-full items-center justify-between">
+      <Switch.Label as="label" className="flex cursor-pointer items-center gap-2 pr-6" title={hint}>
+        {icon}
         <span className="select-none text-right text-sm text-gray-900 dark:text-zinc-300">
           {title}
           {count > 0 && (
@@ -143,11 +208,7 @@ function CheckBox({ title, icon, filter }: CheckProps) {
           )}
         </span>
       </Switch.Label>
-      <Switch
-        as={Fragment}
-        checked={has(filter)}
-        onChange={(checked) => navigateFilter(filter, checked)}
-      >
+      <Switch as={Fragment} checked={checked} onChange={onChange}>
         {({ checked }) => (
           <button
             type="button"

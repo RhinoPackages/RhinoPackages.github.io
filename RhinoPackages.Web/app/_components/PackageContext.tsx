@@ -1,6 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filters, Owner, Package, Status, has, pageResults, useApi } from "./api";
+import {
+  Filters,
+  Owner,
+  Package,
+  Status,
+  has,
+  isDeprecated,
+  isMaintained,
+  pageResults,
+  useApi,
+} from "./api";
 
 export enum Sort {
   Downloads,
@@ -18,6 +28,10 @@ export interface Params {
   p?: string;
   /** When true, the pre-releases toggle is expanded by default (used with ?p= deep links). */
   pre: boolean;
+  /** Only show packages with a release in the last year. */
+  maintained: boolean;
+  /** Only show packages without support for the current Rhino release. */
+  deprecated: boolean;
 }
 
 export const defaultParams: Params = {
@@ -28,6 +42,8 @@ export const defaultParams: Params = {
   page: 0,
   p: undefined,
   pre: false,
+  maintained: false,
+  deprecated: false,
 };
 
 interface PackageContext {
@@ -43,6 +59,7 @@ interface PackageContext {
     weeklyDownloads: number;
   };
   filterCounts: Map<Filters, number>;
+  statusCounts: { maintained: number; deprecated: number };
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -165,6 +182,17 @@ export function PackageProvider({
     return counts;
   }, [cache]);
 
+  const statusCounts = useMemo(() => {
+    const now = Date.now();
+    let maintained = 0;
+    let deprecated = 0;
+    for (const pkg of cache ?? []) {
+      if (isMaintained(pkg, now)) maintained++;
+      if (isDeprecated(pkg)) deprecated++;
+    }
+    return { maintained, deprecated };
+  }, [cache]);
+
   const stats = useMemo(() => {
     let totalDownloads = 0;
     let recentUpdates = 0;
@@ -195,6 +223,7 @@ export function PackageProvider({
         controls,
         stats,
         filterCounts,
+        statusCounts,
         navigate,
         navigateFilter,
         setSearch,
@@ -206,8 +235,16 @@ export function PackageProvider({
 }
 
 function filter(packages: Package[], params: Params, trendingScores: Map<string, number>) {
-  const { owner, search, filters, sort, page } = params;
+  const { owner, search, filters, sort, page, maintained, deprecated } = params;
   let filtered = [...packages];
+
+  if (maintained) {
+    filtered = filtered.filter((pkg) => isMaintained(pkg));
+  }
+
+  if (deprecated) {
+    filtered = filtered.filter((pkg) => isDeprecated(pkg));
+  }
 
   if (owner !== undefined) {
     filtered = filtered.filter((p) => p.owners.some((o) => o.id === owner));
@@ -287,6 +324,8 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
 
   const p = searchParams.get("p") || undefined;
   const pre = searchParams.get("pre") === "true";
+  const maintained = searchParams.get("maintained") === "true";
+  const deprecated = searchParams.get("deprecated") === "true";
 
   return {
     owner,
@@ -296,6 +335,8 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
     page,
     p,
     pre,
+    maintained,
+    deprecated,
   };
 }
 

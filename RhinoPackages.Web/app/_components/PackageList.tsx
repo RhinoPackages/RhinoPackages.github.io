@@ -29,7 +29,9 @@ export default function PackageList() {
     controls.filters !== defaultParams.filters ||
     controls.search !== defaultParams.search ||
     controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort;
+    controls.sort !== defaultParams.sort ||
+    controls.maintained !== defaultParams.maintained ||
+    controls.deprecated !== defaultParams.deprecated;
 
   return (
     <div className="flex min-w-0 w-full flex-col">
@@ -339,10 +341,20 @@ const PackageCard = memo(function PackageCard({
     const spanDays = (last - first) / (1000 * 3600 * 24);
     const cadence = count > 1 && spanDays > 0 ? spanDays / (count - 1) : null;
 
-    return { count, first: new Date(first), cadence };
+    return { count, first: new Date(first), last: new Date(last), cadence };
   })();
-  const daysSinceUpdate = (Date.now() - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24);
+  // A package counts as maintained when it shipped anything — including a
+  // pre-release — within the last year. `updated` alone can lag the newest
+  // release, so take whichever is later once the history is available.
+  const lastReleaseTime = Math.max(
+    new Date(pkg.updated).getTime(),
+    releaseStats?.last.getTime() ?? 0,
+  );
+  const daysSinceUpdate = (Date.now() - lastReleaseTime) / (1000 * 3600 * 24);
   const isMaintained = daysSinceUpdate <= 365;
+  // Nothing published for the current Rhino release. Packages that target
+  // Rhino 9 only are forward-looking, not deprecated.
+  const isDeprecated = !has(Filters.Rhino8) && !has(Filters.Rhino9);
 
   // Share of downloads on the latest stable release.
   const adoption = (() => {
@@ -426,6 +438,23 @@ const PackageCard = memo(function PackageCard({
                   {/* Icon-only when other badges are present to avoid crowding the title row */}
                   <span aria-hidden="true">{pkg.prerelease || isNew ? "🔥" : "🔥 trending"}</span>
                   <span className="sr-only">Trending this week</span>
+                </span>
+              )}
+              {isDeprecated && (
+                <span
+                  title="Deprecated: no build for the current Rhino release (Rhino 8)"
+                  className="rounded-full bg-rose-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20"
+                >
+                  deprecated
+                </span>
+              )}
+              {!isMaintained && (
+                <span
+                  title={`Not actively maintained: no release since ${date}`}
+                  className="rounded-full bg-amber-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20"
+                >
+                  <span aria-hidden="true">inactive</span>
+                  <span className="sr-only">Not actively maintained</span>
                 </span>
               )}
               <p className="max-w-full break-all text-xs font-semibold text-gray-500 dark:text-zinc-400 md:whitespace-nowrap md:break-normal">
@@ -637,6 +666,11 @@ const PackageCard = memo(function PackageCard({
                 >
                   {isMaintained ? "Actively maintained" : "No release in over a year"}
                 </span>
+                {isDeprecated && (
+                  <span className="inline-flex w-fit items-center rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20">
+                    Deprecated · no Rhino 8 build
+                  </span>
+                )}
               </div>
 
               {/* Release history */}

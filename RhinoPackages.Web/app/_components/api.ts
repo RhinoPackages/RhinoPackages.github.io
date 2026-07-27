@@ -107,6 +107,19 @@ export function has(constant: Filters, pkg: Package) {
 
 export { TIME_ZONE, formatDate, formatDateTime } from "./format";
 
+// A package is considered maintained when it published a release within the
+// last year, and deprecated when it ships nothing for the current Rhino
+// release. Rhino 9 only targets are forward-looking, not deprecated.
+export const MAINTAINED_DAYS = 365;
+
+export function isMaintained(pkg: Package, now: number = Date.now()) {
+  return (now - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24) <= MAINTAINED_DAYS;
+}
+
+export function isDeprecated(pkg: Package) {
+  return !has(Filters.Rhino8, pkg) && !has(Filters.Rhino9, pkg);
+}
+
 export function useApi(initialCache: Package[] = []) {
   const [cache, setCache] = useState<Package[]>(initialCache);
   const [status, setStatus] = useState<Status>(Status.idle());
