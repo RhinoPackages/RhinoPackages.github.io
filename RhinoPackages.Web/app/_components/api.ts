@@ -137,10 +137,14 @@ export function matchesOwner(pkg: Package, ownerId: number, ownerName?: string) 
   // Second account belonging to the same person.
   if (pkg.owners.some((o) => normalizeName(o.name) === target)) return true;
 
-  // A lone short first name ("Aaron") is too ambiguous to credit.
-  if (!target.includes(" ") && target.length < 6) return false;
+  if (!isCreditableName(target)) return false;
 
   return pkg.authors.split(",").some((author) => normalizeName(author) === target);
+}
+
+/** A lone short first name ("Aaron") is too ambiguous to attribute. */
+export function isCreditableName(normalized: string) {
+  return normalized.includes(" ") || normalized.length >= 6;
 }
 
 export function useApi(initialCache: Package[] = []) {

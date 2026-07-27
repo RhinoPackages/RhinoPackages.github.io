@@ -1,6 +1,6 @@
 "use client";
 
-import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, normalizeName, useApi } from "@/app/_components/api";
+import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -293,7 +293,10 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                 <th scope="col" className="px-4 py-2">#</th>
                 <th scope="col" className="px-4 py-2">Author</th>
                 <th scope="col" className="px-4 py-2">Packages</th>
-                <th scope="col" className="px-4 py-2 text-right">Count</th>
+                <th scope="col" className="px-4 py-2 text-right">Owned</th>
+                <th scope="col" className="px-4 py-2 text-right" title="Packages this person is credited on but does not own">
+                  Credited
+                </th>
                 <th scope="col" className="px-4 py-2 text-right">Downloads</th>
                 <th scope="col" className="px-4 py-2 text-right">This Week</th>
               </tr>
@@ -331,9 +334,48 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                           +{author.items.length - 12}
                         </span>
                       )}
+                      {author.creditedItems.slice(0, 6).map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`/?p=${encodeURIComponent(item.id)}`}
+                          title={`${item.id} (credited, not owner)`}
+                        >
+                          <Image
+                            className="h-5 w-5 rounded-sm opacity-40 grayscale transition-all hover:scale-125 hover:opacity-100 hover:grayscale-0"
+                            src={item.iconUrl}
+                            width={20}
+                            height={20}
+                            alt={item.id}
+                          />
+                        </Link>
+                      ))}
+                      {author.creditedItems.length > 6 && (
+                        <span className="text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+                          +{author.creditedItems.length - 6}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-2 text-right tabular-nums">{author.packages.toLocaleString()}</td>
+                  <td
+                    className="px-4 py-2 text-right tabular-nums"
+                    title={
+                      author.credited > 0
+                        ? `Credited on ${author.credited} package${author.credited === 1 ? "" : "s"} owned by someone else, with ${author.creditedDownloads.toLocaleString()} downloads`
+                        : undefined
+                    }
+                  >
+                    {author.credited > 0 ? (
+                      <span className="flex flex-col items-end leading-tight">
+                        <span>{author.credited.toLocaleString()}</span>
+                        <span className="text-[0.65rem] text-gray-400 dark:text-zinc-500">
+                          {compact(author.creditedDownloads)}
+                        </span>
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-right tabular-nums">{author.downloads.toLocaleString()}</td>
                   <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
                     {author.weekly > 0 ? `+${author.weekly.toLocaleString()}` : "—"}
@@ -342,7 +384,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               ))}
               {visibleAuthors.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
+                  <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
                     No authors match &quot;{authorQuery}&quot;
                   </td>
                 </tr>
@@ -592,6 +634,10 @@ function LineChart({
   );
 }
 
+function compact(value: number) {
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+}
+
 function PackageIcon({ pkg }: { pkg: Package }) {
   return (
     <Image
@@ -717,6 +763,10 @@ interface AuthorStats {
   weekly: number;
   rank: number;
   items: { id: string; iconUrl: string }[];
+  /** Packages where the person is in the credit list but not the owner. */
+  credited: number;
+  creditedDownloads: number;
+  creditedItems: { id: string; iconUrl: string }[];
 }
 
 function getStats(cache: Package[]) {
@@ -782,12 +832,34 @@ function getStats(cache: Package[]) {
         weekly: 0,
         rank: 0,
         items: [],
+        credited: 0,
+        creditedDownloads: 0,
+        creditedItems: [],
       };
       entry.packages++;
       entry.downloads += pkg.downloads;
       entry.weekly += pkg.downloadsWeek ?? 0;
       entry.items.push({ id: pkg.id, iconUrl: pkg.iconUrl });
       authors.set(key, entry);
+    }
+  }
+
+  // Second pass: credit packages where someone is named in the author list
+  // but does not own the package. Kept apart from the owned totals so the
+  // download figures still add up to the ecosystem total.
+  for (const pkg of cache) {
+    const owned = new Set(pkg.owners.map((o) => normalizeName(o.name)));
+
+    for (const name of pkg.authors.split(",")) {
+      const key = normalizeName(name);
+      if (!key || owned.has(key) || !isCreditableName(key)) continue;
+
+      const entry = authors.get(key);
+      if (!entry) continue;
+
+      entry.credited++;
+      entry.creditedDownloads += pkg.downloads;
+      entry.creditedItems.push({ id: pkg.id, iconUrl: pkg.iconUrl });
     }
   }
 
