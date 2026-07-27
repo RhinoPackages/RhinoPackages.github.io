@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-27T16:20:38.407Z</lastmod>
+<lastmod>2026-07-27T19:09:04.323Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-27T16:20:38.407Z</lastmod>
+<lastmod>2026-07-27T19:09:04.323Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -6842,7 +6842,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Tiger</loc>
-<lastmod>2026-07-24T10:06:17.000Z</lastmod>
+<lastmod>2026-07-27T15:20:10.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6909,6 +6909,12 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=Cushion</loc>
 <lastmod>2026-07-27T12:47:48.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=murexmesh</loc>
+<lastmod>2026-07-27T03:05:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
