@@ -8,6 +8,8 @@ import {
   has,
   isDeprecated,
   isMaintained,
+  matchesOwner,
+  normalizeName,
   pageResults,
   useApi,
 } from "./api";
@@ -60,6 +62,8 @@ interface PackageContext {
   };
   filterCounts: Map<Filters, number>;
   statusCounts: { maintained: number; deprecated: number };
+  /** Normalized owner name to account id, for crediting listed authors. */
+  ownerIdByName: Map<string, number>;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -144,23 +148,43 @@ export function PackageProvider({
     return scores;
   }, [cache]);
 
-  const { visiblePackages: packages, totalFiltered: filteredCount } = useMemo(() => {
-    return filter(cache ?? [], params, trendingScores);
-  }, [cache, params, trendingScores]);
-
+  // People with more than one Yak account would otherwise appear twice in
+  // the picker with their packages split between the entries.
   const owners = useMemo(() => {
-    const set = new Set<number>();
+    const seen = new Set<string>();
     const owners: Owner[] = [];
 
     for (const pkg of cache) {
       for (const owner of pkg.owners) {
-        if (set.has(owner.id)) continue;
-        set.add(owner.id);
+        const key = normalizeName(owner.name);
+        if (seen.has(key)) continue;
+        seen.add(key);
         owners.push(owner);
       }
     }
     return owners.sort((a, b) => a.id - b.id);
   }, [cache]);
+
+  const ownerIdByName = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const owner of owners) {
+      map.set(normalizeName(owner.name), owner.id);
+    }
+    return map;
+  }, [owners]);
+
+  const ownerName = useMemo(() => {
+    if (params.owner === undefined) return undefined;
+    for (const pkg of cache ?? []) {
+      const match = pkg.owners.find((o) => o.id === params.owner);
+      if (match) return match.name;
+    }
+    return undefined;
+  }, [cache, params.owner]);
+
+  const { visiblePackages: packages, totalFiltered: filteredCount } = useMemo(() => {
+    return filter(cache ?? [], params, trendingScores, ownerName);
+  }, [cache, params, trendingScores, ownerName]);
 
   const filterCounts = useMemo(() => {
     const flags = [
@@ -224,6 +248,7 @@ export function PackageProvider({
         stats,
         filterCounts,
         statusCounts,
+        ownerIdByName,
         navigate,
         navigateFilter,
         setSearch,
@@ -234,7 +259,12 @@ export function PackageProvider({
   );
 }
 
-function filter(packages: Package[], params: Params, trendingScores: Map<string, number>) {
+function filter(
+  packages: Package[],
+  params: Params,
+  trendingScores: Map<string, number>,
+  ownerName?: string,
+) {
   const { owner, search, filters, sort, page, maintained, deprecated } = params;
   let filtered = [...packages];
 
@@ -247,7 +277,7 @@ function filter(packages: Package[], params: Params, trendingScores: Map<string,
   }
 
   if (owner !== undefined) {
-    filtered = filtered.filter((p) => p.owners.some((o) => o.id === owner));
+    filtered = filtered.filter((p) => matchesOwner(p, owner, ownerName));
   }
 
   if (search.length >= 3) {

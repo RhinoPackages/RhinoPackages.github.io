@@ -14,7 +14,7 @@ import {
   StarIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime } from "@/app/_components/api";
+import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
 import { Params, usePackageContext, defaultParams } from "./PackageContext";
 import Spinner from "./Spinner";
 
@@ -227,6 +227,7 @@ const PackageCard = memo(function PackageCard({
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   controls: Params;
 }) {
+  const { ownerIdByName } = usePackageContext();
 
   const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
   const [downloadHistory, setDownloadHistory] = useState<HistoryPoint[] | null>(null);
@@ -355,6 +356,19 @@ const PackageCard = memo(function PackageCard({
   // Nothing published for the current Rhino release. Packages that target
   // Rhino 9 only are forward-looking, not deprecated.
   const isDeprecated = !has(Filters.Rhino8) && !has(Filters.Rhino9);
+
+  // Credited authors often include people who publish under their own Yak
+  // account elsewhere; link those to the owner filter.
+  const creditedAuthors = (pkg.authors ?? "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name) => ({
+      name,
+      ownerId:
+        pkg.owners.find((o) => normalizeName(o.name) === normalizeName(name))?.id ??
+        ownerIdByName.get(normalizeName(name)),
+    }));
 
   // Share of downloads on the latest stable release.
   const adoption = (() => {
@@ -697,7 +711,29 @@ const PackageCard = memo(function PackageCard({
               {/* Authors */}
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Authors</span>
-                <span className="text-sm text-gray-900 dark:text-zinc-100">{pkg.authors || "—"}</span>
+                <span className="flex flex-wrap items-center gap-x-1 text-sm text-gray-900 dark:text-zinc-100">
+                  {creditedAuthors.length === 0 && "—"}
+                  {creditedAuthors.map((author, i) => (
+                    <span key={author.name}>
+                      {author.ownerId !== undefined ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate({ owner: author.ownerId });
+                          }}
+                          title={`Filter by author: ${author.name}`}
+                          className="rounded-sm underline decoration-dotted underline-offset-2 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
+                        >
+                          {author.name}
+                        </button>
+                      ) : (
+                        author.name
+                      )}
+                      {i < creditedAuthors.length - 1 ? "," : ""}
+                    </span>
+                  ))}
+                </span>
               </div>
 
               {/* Platform Compatibility */}

@@ -120,6 +120,29 @@ export function isDeprecated(pkg: Package) {
   return !has(Filters.Rhino8, pkg) && !has(Filters.Rhino9, pkg);
 }
 
+export function normalizeName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+// Yak tracks authorship two ways: the account that publishes a package (an
+// owner, with an id) and the free-text credit list. The same person is often
+// an owner on some packages and only credited on others, and a handful hold
+// more than one account, so match on the normalized name as well as the id.
+export function matchesOwner(pkg: Package, ownerId: number, ownerName?: string) {
+  if (pkg.owners.some((o) => o.id === ownerId)) return true;
+  if (!ownerName) return false;
+
+  const target = normalizeName(ownerName);
+
+  // Second account belonging to the same person.
+  if (pkg.owners.some((o) => normalizeName(o.name) === target)) return true;
+
+  // A lone short first name ("Aaron") is too ambiguous to credit.
+  if (!target.includes(" ") && target.length < 6) return false;
+
+  return pkg.authors.split(",").some((author) => normalizeName(author) === target);
+}
+
 export function useApi(initialCache: Package[] = []) {
   const [cache, setCache] = useState<Package[]>(initialCache);
   const [status, setStatus] = useState<Status>(Status.idle());

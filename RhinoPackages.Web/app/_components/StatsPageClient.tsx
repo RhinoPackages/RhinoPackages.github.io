@@ -1,6 +1,6 @@
 "use client";
 
-import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, useApi } from "@/app/_components/api";
+import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, normalizeName, useApi } from "@/app/_components/api";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -740,7 +740,7 @@ function getStats(cache: Package[]) {
   let rhino9 = 0;
   let lastUpdated = cache[0].updated;
 
-  const authors = new Map<number, AuthorStats>();
+  const authors = new Map<string, AuthorStats>();
   const newThisMonth: Package[] = [];
 
   for (const pkg of cache) {
@@ -770,8 +770,11 @@ function getStats(cache: Package[]) {
     if (has(Filters.Rhino8, pkg)) rhino8++;
     if (has(Filters.Rhino9, pkg)) rhino9++;
 
+    // Key by name, not id: a few people publish from more than one account
+    // and would otherwise show up as separate rows with split totals.
     for (const owner of pkg.owners) {
-      const entry = authors.get(owner.id) ?? {
+      const key = normalizeName(owner.name);
+      const entry = authors.get(key) ?? {
         id: owner.id,
         name: owner.name,
         packages: 0,
@@ -784,7 +787,7 @@ function getStats(cache: Package[]) {
       entry.downloads += pkg.downloads;
       entry.weekly += pkg.downloadsWeek ?? 0;
       entry.items.push({ id: pkg.id, iconUrl: pkg.iconUrl });
-      authors.set(owner.id, entry);
+      authors.set(key, entry);
     }
   }
 
