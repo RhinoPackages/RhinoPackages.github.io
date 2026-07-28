@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-28T08:16:14.251Z</lastmod>
+<lastmod>2026-07-28T13:31:36.489Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-28T08:16:14.251Z</lastmod>
+<lastmod>2026-07-28T13:31:36.489Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1772,7 +1772,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=fabricator</loc>
-<lastmod>2026-07-22T10:38:51.000Z</lastmod>
+<lastmod>2026-07-28T03:30:48.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -3020,7 +3020,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=LARGERslicer</loc>
-<lastmod>2026-07-27T01:57:25.000Z</lastmod>
+<lastmod>2026-07-28T12:04:01.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -4496,7 +4496,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Reer</loc>
-<lastmod>2026-07-23T01:01:26.000Z</lastmod>
+<lastmod>2026-07-28T12:02:56.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -6674,7 +6674,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=R4V3N</loc>
-<lastmod>2026-07-23T01:01:26.000Z</lastmod>
+<lastmod>2026-07-28T02:37:20.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6921,6 +6921,18 @@
 <url>
 <loc>https://rhinopackages.github.io/?p=Skeleton</loc>
 <lastmod>2026-07-28T02:37:20.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=cassis</loc>
+<lastmod>2026-07-28T02:22:58.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=FastenWorks</loc>
+<lastmod>2026-07-28T12:02:05.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
