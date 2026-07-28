@@ -31,12 +31,19 @@ export default function Page() {
     <>
       <HomePageClient initialCache={packages} />
 
-      {/* Static crawlable content for search engines */}
+      {/* Static crawlable content for search engines. Collapsed with native
+          <details> so the markup still ships in the HTML for crawlers while
+          staying out of the way for readers. */}
       <section className="mt-16 border-t border-gray-200 pt-10 dark:border-zinc-800">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-zinc-100">
-            Rhino 3D &amp; Grasshopper Plugin Directory
-          </h2>
+          <details className="group border-b border-gray-200 pb-4 dark:border-zinc-800">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                Rhino 3D &amp; Grasshopper Plugin Directory
+              </h2>
+              <Chevron />
+            </summary>
+            <div className="pt-4">
           <p className="mb-6 leading-relaxed text-gray-600 dark:text-zinc-400">
             Rhino Packages is the most comprehensive directory of{" "}
             <strong>Rhino 3D plugins</strong> and{" "}
@@ -64,10 +71,17 @@ export default function Page() {
             ))}
           </ul>
 
-          <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">
-            Frequently Asked Questions
-          </h3>
-          <dl className="mb-10 divide-y divide-gray-200 dark:divide-zinc-800">
+            </div>
+          </details>
+
+          <details className="group border-b border-gray-200 pb-4 dark:border-zinc-800">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                Frequently Asked Questions
+              </h2>
+              <Chevron />
+            </summary>
+            <dl className="divide-y divide-gray-200 pt-2 dark:divide-zinc-800">
             <div className="py-4">
               <dt className="font-medium text-gray-900 dark:text-zinc-100">
                 What is Rhino Packages?
@@ -134,9 +148,26 @@ export default function Page() {
                 version updates appear within 24 hours of publication.
               </dd>
             </div>
-          </dl>
+            </dl>
+          </details>
         </div>
       </section>
     </>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+      stroke="currentColor"
+      className="h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180 dark:text-zinc-500"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
   );
 }
