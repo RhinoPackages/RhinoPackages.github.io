@@ -37,6 +37,24 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
     syncQuery({ rising: value });
   };
   const [totals, setTotals] = useState<TotalsPoint[] | null>(null);
+  const [weight, setWeight] = useState<Weight>("downloads");
+
+  const distTotals = useMemo(
+    () => ({
+      packages: stats?.totalPackages ?? 0,
+      downloads: stats?.totalDownloads ?? 0,
+    }),
+    [stats],
+  );
+
+  // Biggest absolute gainers, as opposed to Rising Stars which ranks by
+  // momentum relative to a package's own history.
+  const movers = useMemo(() => {
+    return cache
+      .filter((p) => (p.downloadsWeek ?? 0) > 0)
+      .sort((a, b) => (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0))
+      .slice(0, 10);
+  }, [cache]);
 
   useEffect(() => {
     // Daily ecosystem snapshots; the chart appears once at least two
@@ -189,36 +207,71 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       </section>
 
       {/* Distribution bars */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <BarSection
-          title="Plugin Type"
-          rows={[
-            { label: "Grasshopper", count: stats.grasshopper },
-            { label: "Rhino", count: stats.rhino },
-            { label: "Both", count: stats.bothTypes },
-          ]}
-          total={stats.totalPackages}
-        />
-        <BarSection
-          title="Platform Support"
-          rows={[
-            { label: "Cross-platform", count: stats.crossPlatform },
-            { label: "Windows only", count: stats.windowsOnly },
-            { label: "Mac only", count: stats.macOnly },
-          ]}
-          total={stats.totalPackages}
-        />
-        <BarSection
-          title="Rhino Version Support"
-          rows={[
-            { label: "Rhino 6", count: stats.rhino6 },
-            { label: "Rhino 7", count: stats.rhino7 },
-            { label: "Rhino 8", count: stats.rhino8 },
-            { label: "Rhino 9 (WIP)", count: stats.rhino9 },
-          ]}
-          total={stats.totalPackages}
-        />
-      </div>
+      <section aria-labelledby="stats-distribution">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2
+            id="stats-distribution"
+            className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+          >
+            Ecosystem Breakdown
+          </h2>
+          <div
+            role="group"
+            aria-label="Weight the breakdown by"
+            className="flex rounded-md border border-gray-200 p-0.5 text-xs dark:border-zinc-800"
+          >
+            {(["packages", "downloads"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={weight === option}
+                onClick={() => setWeight(option)}
+                className={`rounded px-2.5 py-1 font-medium capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                  weight === option
+                    ? "bg-brand-500 text-white dark:bg-brand-600"
+                    : "text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                }`}
+              >
+                By {option}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <BarSection
+            title="Plugin Type"
+            weight={weight}
+            total={distTotals}
+            rows={[
+              { label: "Grasshopper", bucket: stats.dist.grasshopper },
+              { label: "Rhino", bucket: stats.dist.rhino },
+              { label: "Both", bucket: stats.dist.bothTypes },
+            ]}
+          />
+          <BarSection
+            title="Platform Support"
+            weight={weight}
+            total={distTotals}
+            rows={[
+              { label: "Cross-platform", bucket: stats.dist.crossPlatform },
+              { label: "Windows only", bucket: stats.dist.windowsOnly },
+              { label: "Mac only", bucket: stats.dist.macOnly },
+            ]}
+          />
+          <BarSection
+            title="Rhino Version Support"
+            weight={weight}
+            total={distTotals}
+            note={`Rhino 8 ready: ${share(stats.dist.rhino8.count, stats.totalPackages)}% of packages · ${share(stats.dist.rhino8.downloads, stats.totalDownloads)}% of downloads`}
+            rows={[
+              { label: "Rhino 6", bucket: stats.dist.rhino6 },
+              { label: "Rhino 7", bucket: stats.dist.rhino7 },
+              { label: "Rhino 8", bucket: stats.dist.rhino8 },
+              { label: "Rhino 9 (WIP)", bucket: stats.dist.rhino9 },
+            ]}
+          />
+        </div>
+      </section>
 
       {/* Directory growth */}
       {growth && (
@@ -416,6 +469,60 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           </table>
         </div>
       </section>
+
+      {/* Weekly movers */}
+      {movers.length > 0 && (
+        <section aria-labelledby="stats-movers">
+          <div className="mb-3 flex flex-col gap-0.5">
+            <h2
+              id="stats-movers"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            >
+              Weekly Movers
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-zinc-400">
+              Most downloads in the last 7 days
+            </span>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
+            <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
+              <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+                <tr>
+                  <th scope="col" className="px-4 py-2">#</th>
+                  <th scope="col" className="px-4 py-2">Package</th>
+                  <th scope="col" className="px-4 py-2 text-right">This Week</th>
+                  <th scope="col" className="px-4 py-2 text-right">This Month</th>
+                  <th scope="col" className="px-4 py-2 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
+                {movers.map((pkg, i) => (
+                  <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
+                    <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{i + 1}</td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={`/?p=${encodeURIComponent(pkg.id)}`}
+                        title={`Show ${pkg.id}`}
+                        className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                      >
+                        <PackageIcon pkg={pkg} />
+                        <span className="truncate">{pkg.id}</span>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
+                      +{(pkg.downloadsWeek ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">
+                      {(pkg.downloadsMonth ?? 0) > 0 ? `+${(pkg.downloadsMonth ?? 0).toLocaleString()}` : "—"}
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">{pkg.downloads.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* Rising stars */}
       {risingStars.length > 0 && (
@@ -661,6 +768,17 @@ function LineChart({
   );
 }
 
+interface Bucket {
+  count: number;
+  downloads: number;
+}
+
+type Weight = "packages" | "downloads";
+
+function share(value: number, total: number) {
+  return total > 0 ? Math.round((value / total) * 100) : 0;
+}
+
 function compact(value: number) {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
@@ -747,30 +865,38 @@ function BarSection({
   title,
   rows,
   total,
+  weight,
+  note,
 }: {
   title: string;
-  rows: { label: string; count: number }[];
-  total: number;
+  rows: { label: string; bucket: Bucket }[];
+  total: { packages: number; downloads: number };
+  weight: Weight;
+  note?: string;
 }) {
+  const denominator = weight === "packages" ? total.packages : total.downloads;
+
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
         {title}
-      </h2>
-      <ul className="flex flex-col gap-3">
+      </h3>
+      {note && <p className="mb-3 mt-1 text-xs text-gray-500 dark:text-zinc-400">{note}</p>}
+      <ul className={`flex flex-col gap-3 ${note ? "" : "mt-3"}`}>
         {rows.map((row) => {
-          const percent = total > 0 ? Math.round((row.count / total) * 100) : 0;
+          const value = weight === "packages" ? row.bucket.count : row.bucket.downloads;
+          const percent = share(value, denominator);
           return (
             <li key={row.label}>
               <div className="mb-1 flex items-center justify-between text-sm">
                 <span className="text-gray-700 dark:text-zinc-300">{row.label}</span>
                 <span className="tabular-nums text-gray-500 dark:text-zinc-400">
-                  {row.count.toLocaleString()} · {percent}%
+                  {weight === "downloads" ? compact(value) : value.toLocaleString()} · {percent}%
                 </span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
                 <div
-                  className="h-full rounded-full bg-brand-500 dark:bg-brand-600"
+                  className="h-full rounded-full bg-brand-500 transition-all duration-300 dark:bg-brand-600"
                   style={{ width: `${percent}%` }}
                 />
               </div>
@@ -806,17 +932,29 @@ function getStats(cache: Package[]) {
   let totalDownloads = 0;
   let weeklyDownloads = 0;
   let updatedThisMonth = 0;
-  let grasshopper = 0;
-  let rhino = 0;
-  let bothTypes = 0;
-  let windowsOnly = 0;
-  let macOnly = 0;
-  let crossPlatform = 0;
-  let rhino6 = 0;
-  let rhino7 = 0;
-  let rhino8 = 0;
-  let rhino9 = 0;
   let lastUpdated = cache[0].updated;
+
+  // Every bucket tracks packages and downloads so the bars can be shown
+  // either way: counting packages lets long-dead ones drown out the few
+  // that everybody actually installs.
+  const bucket = (): Bucket => ({ count: 0, downloads: 0 });
+  const dist = {
+    grasshopper: bucket(),
+    rhino: bucket(),
+    bothTypes: bucket(),
+    crossPlatform: bucket(),
+    windowsOnly: bucket(),
+    macOnly: bucket(),
+    rhino6: bucket(),
+    rhino7: bucket(),
+    rhino8: bucket(),
+    rhino9: bucket(),
+  };
+
+  const add = (b: Bucket, pkg: Package) => {
+    b.count++;
+    b.downloads += pkg.downloads;
+  };
 
   const authors = new Map<string, AuthorStats>();
   const newThisMonth: Package[] = [];
@@ -833,20 +971,20 @@ function getStats(cache: Package[]) {
 
     const isGh = has(Filters.Grasshopper, pkg);
     const isRh = has(Filters.Rhino, pkg);
-    if (isGh && isRh) bothTypes++;
-    else if (isGh) grasshopper++;
-    else if (isRh) rhino++;
+    if (isGh && isRh) add(dist.bothTypes, pkg);
+    else if (isGh) add(dist.grasshopper, pkg);
+    else if (isRh) add(dist.rhino, pkg);
 
     const win = has(Filters.Windows, pkg);
     const mac = has(Filters.Mac, pkg);
-    if (win && mac) crossPlatform++;
-    else if (win) windowsOnly++;
-    else if (mac) macOnly++;
+    if (win && mac) add(dist.crossPlatform, pkg);
+    else if (win) add(dist.windowsOnly, pkg);
+    else if (mac) add(dist.macOnly, pkg);
 
-    if (has(Filters.Rhino6, pkg)) rhino6++;
-    if (has(Filters.Rhino7, pkg)) rhino7++;
-    if (has(Filters.Rhino8, pkg)) rhino8++;
-    if (has(Filters.Rhino9, pkg)) rhino9++;
+    if (has(Filters.Rhino6, pkg)) add(dist.rhino6, pkg);
+    if (has(Filters.Rhino7, pkg)) add(dist.rhino7, pkg);
+    if (has(Filters.Rhino8, pkg)) add(dist.rhino8, pkg);
+    if (has(Filters.Rhino9, pkg)) add(dist.rhino9, pkg);
 
     // Key by name, not id: a few people publish from more than one account
     // and would otherwise show up as separate rows with split totals.
@@ -911,16 +1049,7 @@ function getStats(cache: Package[]) {
     weeklyDownloads,
     updatedThisMonth,
     lastUpdated: formatDateTime(lastUpdated),
-    grasshopper,
-    rhino,
-    bothTypes,
-    windowsOnly,
-    macOnly,
-    crossPlatform,
-    rhino6,
-    rhino7,
-    rhino8,
-    rhino9,
+    dist,
     authors: rankedAuthors,
     newThisMonth: newThisMonth.slice(0, 15),
   };
