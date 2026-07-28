@@ -12,7 +12,11 @@ export default function HomePageClient({ initialCache = [] }: { initialCache?: P
   // rendered once so cards are not mounted and diffed twice.
   return (
     <PackageProvider initialCache={initialCache}>
-      <div className="flex w-full items-start divide-x divide-gray-200 dark:divide-zinc-800">
+      {/* The divider belongs to the sidebar, which is hidden on phones. It
+          has to be gated on the breakpoint too: Tailwind's divide-x skips
+          elements with the hidden *attribute*, not the class, so on a phone
+          the rule still drew a full-height line beside the card borders. */}
+      <div className="flex w-full items-start md:divide-x md:divide-gray-200 dark:md:divide-zinc-800">
         <div className="hidden pr-6 pt-6 md:block">
           <Sidebar />
         </div>
