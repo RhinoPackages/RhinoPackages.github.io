@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
 import { Params, usePackageContext, defaultParams } from "./PackageContext";
+import PackageIcon from "./PackageIcon";
 import Spinner from "./Spinner";
 
 export default function PackageList() {
@@ -506,14 +507,7 @@ const PackageCard = memo(function PackageCard({
         onClick={onToggle}
       >
         <div className="flex min-w-0 flex-grow gap-x-4">
-          <Image
-            className="h-[2.5rem] w-[2.5rem]"
-            src={pkg.iconUrl}
-            width={40}
-            height={40}
-            alt=""
-            aria-hidden="true"
-          />
+          <PackageIcon className="h-[2.5rem] w-[2.5rem]" src={pkg.iconUrl} size={40} />
           <div className="flex min-w-0 flex-col">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <button

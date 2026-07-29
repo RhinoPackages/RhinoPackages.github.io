@@ -3,7 +3,7 @@
 import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import PackageIcon from "./PackageIcon";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Spinner from "./Spinner";
@@ -378,11 +378,10 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                     <div className="flex flex-wrap items-center gap-1">
                       {author.items.slice(0, 12).map((item) => (
                         <Link key={item.id} href={`/?p=${encodeURIComponent(item.id)}`} title={item.id}>
-                          <Image
+                          <PackageIcon
                             className="h-5 w-5 rounded-sm transition-transform hover:scale-125"
                             src={item.iconUrl}
-                            width={20}
-                            height={20}
+                            size={20}
                             alt={item.id}
                           />
                         </Link>
@@ -398,11 +397,10 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                           href={`/?p=${encodeURIComponent(item.id)}`}
                           title={`${item.id} (credited, not owner)`}
                         >
-                          <Image
+                          <PackageIcon
                             className="h-5 w-5 rounded-sm opacity-40 grayscale transition-all hover:scale-125 hover:opacity-100 hover:grayscale-0"
                             src={item.iconUrl}
-                            width={20}
-                            height={20}
+                            size={20}
                             alt={item.id}
                           />
                         </Link>
@@ -505,7 +503,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                         title={`Show ${pkg.id}`}
                         className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
-                        <PackageIcon pkg={pkg} />
+                        <PackageThumb pkg={pkg} />
                         <span className="truncate">{pkg.id}</span>
                       </Link>
                     </td>
@@ -568,7 +566,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                         title={`Show ${pkg.id}`}
                         className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
-                        <PackageIcon pkg={pkg} />
+                        <PackageThumb pkg={pkg} />
                         <span className="truncate">{pkg.id}</span>
                       </Link>
                     </td>
@@ -611,7 +609,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                   className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <PackageIcon pkg={pkg} />
+                    <PackageThumb pkg={pkg} />
                     <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
                   </span>
                   <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
@@ -783,17 +781,8 @@ function compact(value: number) {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
-function PackageIcon({ pkg }: { pkg: Package }) {
-  return (
-    <Image
-      className="h-5 w-5 flex-shrink-0 rounded-sm"
-      src={pkg.iconUrl}
-      width={20}
-      height={20}
-      alt=""
-      aria-hidden="true"
-    />
-  );
+function PackageThumb({ pkg }: { pkg: Package }) {
+  return <PackageIcon className="h-5 w-5 flex-shrink-0 rounded-sm" src={pkg.iconUrl} size={20} />;
 }
 
 function TableSearch({
