@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-28T19:08:33.707Z</lastmod>
+<lastmod>2026-07-29T01:42:58.938Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-28T19:08:33.707Z</lastmod>
+<lastmod>2026-07-29T01:42:58.938Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -5264,7 +5264,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=signcadrhino</loc>
-<lastmod>2026-07-24T01:19:33.000Z</lastmod>
+<lastmod>2026-07-28T11:49:18.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6674,7 +6674,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=R4V3N</loc>
-<lastmod>2026-07-28T12:02:05.000Z</lastmod>
+<lastmod>2026-07-28T02:22:58.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6842,7 +6842,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Tiger</loc>
-<lastmod>2026-07-27T15:20:10.000Z</lastmod>
+<lastmod>2026-07-28T12:02:05.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6932,6 +6932,18 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=FastenWorks</loc>
+<lastmod>2026-07-28T12:02:05.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=MantisPlus</loc>
+<lastmod>2026-07-28T12:04:01.000Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.5</priority>
+</url>
+<url>
+<loc>https://rhinopackages.github.io/?p=Selectinator</loc>
 <lastmod>2026-07-28T12:02:05.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
