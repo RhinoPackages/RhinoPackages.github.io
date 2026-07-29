@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://rhinopackages.github.io/</loc>
-<lastmod>2026-07-29T01:42:58.938Z</lastmod>
+<lastmod>2026-07-29T08:21:19.842Z</lastmod>
 <changefreq>daily</changefreq>
 <priority>1</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/stats</loc>
-<lastmod>2026-07-29T01:42:58.938Z</lastmod>
+<lastmod>2026-07-29T08:21:19.842Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -1492,7 +1492,7 @@
 <loc>https://rhinopackages.github.io/?p=Dlubal-plugin</loc>
 <lastmod>2026-07-06T22:25:49.000Z</lastmod>
 <changefreq>weekly</changefreq>
-<priority>0.6</priority>
+<priority>0.7</priority>
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=DOCOgrade</loc>
@@ -2216,7 +2216,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=GhGumball</loc>
-<lastmod>2026-07-25T02:18:01.000Z</lastmod>
+<lastmod>2026-07-28T02:22:58.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -2294,7 +2294,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=GhSpaceGass</loc>
-<lastmod>2026-07-13T01:05:51.000Z</lastmod>
+<lastmod>2026-07-29T03:11:25.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6854,7 +6854,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=commandmoment</loc>
-<lastmod>2026-07-24T01:19:33.000Z</lastmod>
+<lastmod>2026-07-29T03:11:25.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
@@ -6920,7 +6920,7 @@
 </url>
 <url>
 <loc>https://rhinopackages.github.io/?p=Skeleton</loc>
-<lastmod>2026-07-28T02:37:20.000Z</lastmod>
+<lastmod>2026-07-29T03:04:43.000Z</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.5</priority>
 </url>
