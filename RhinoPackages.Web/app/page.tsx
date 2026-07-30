@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import HomePageClient from "./_components/HomePageClient";
+import Spinner from "./_components/Spinner";
 import type { Package } from "./_components/api";
 
 export const metadata: Metadata = {
@@ -29,7 +31,18 @@ export default function Page() {
 
   return (
     <>
-      <HomePageClient initialCache={packages} />
+      {/* The list reads its state from the query string, which opts it out of
+          static rendering. Keeping the boundary this tight means the section
+          below still ships in the exported HTML. */}
+      <Suspense
+        fallback={
+          <div className="mt-10 flex justify-center">
+            <Spinner />
+          </div>
+        }
+      >
+        <HomePageClient initialCache={packages} />
+      </Suspense>
 
       {/* Static crawlable content for search engines. Collapsed with native
           <details> so the markup still ships in the HTML for crawlers while

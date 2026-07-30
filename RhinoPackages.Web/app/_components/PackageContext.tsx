@@ -8,6 +8,7 @@ import {
   has,
   isDeprecated,
   isMaintained,
+  matchesFilters,
   matchesOwner,
   normalizeName,
   pageResults,
@@ -24,6 +25,8 @@ export enum Sort {
 export interface Params {
   owner?: number;
   search: string;
+  /** Exact keyword match, set by the tag chips on a card. */
+  tag?: string;
   filters: Filters;
   sort: Sort;
   page: number;
@@ -39,6 +42,7 @@ export interface Params {
 export const defaultParams: Params = {
   owner: undefined,
   search: "",
+  tag: undefined,
   filters: Filters.None,
   sort: Sort.Trending,
   page: 0,
@@ -47,6 +51,18 @@ export const defaultParams: Params = {
   maintained: false,
   deprecated: false,
 };
+
+/**
+ * Whether anything is narrowing the list. Shared by the sidebar's reset
+ * button, the mobile filter badge and the empty state, which each used to
+ * carry their own copy of this check and drifted apart as params were added.
+ * Page and expanded package are navigation state, not filters.
+ */
+export function hasActiveFilters(controls: Params) {
+  return (["search", "tag", "owner", "filters", "sort", "maintained", "deprecated"] as const).some(
+    (key) => controls[key] !== defaultParams[key],
+  );
+}
 
 export interface OwnerSummary {
   name: string;
@@ -319,8 +335,18 @@ function filter(
   trendingScores: Map<string, number>,
   ownerName?: string,
 ) {
-  const { owner, search, filters, sort, page, maintained, deprecated } = params;
+  const { owner, search, tag, filters, sort, page, maintained, deprecated } = params;
   let filtered = [...packages];
+
+  // Exact keyword match, unlike free-text search: the chips advertise a
+  // specific tag, and short ones ("ai", "cnc") are both below the search
+  // minimum length and prone to matching unrelated substrings.
+  if (tag) {
+    const wanted = tag.trim().toLowerCase();
+    filtered = filtered.filter((pkg) =>
+      pkg.keywords.split(",").some((keyword) => keyword.trim().toLowerCase() === wanted),
+    );
+  }
 
   if (maintained) {
     filtered = filtered.filter((pkg) => isMaintained(pkg));
@@ -346,7 +372,7 @@ function filter(
   }
 
   if (filters !== Filters.None) {
-    filtered = filtered.filter((pkg) => has(filters, pkg));
+    filtered = filtered.filter((pkg) => matchesFilters(filters, pkg));
   }
 
   if (sort === Sort.Date) {
@@ -401,6 +427,7 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
   const owner = toInt("owner", NaN) || undefined;
 
   const search = searchParams.get("search") ?? "";
+  const tag = searchParams.get("tag") || undefined;
 
   const filters = toInt("filters", Filters.None);
   const sort = toInt("sort", Sort.Trending);
@@ -414,6 +441,7 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
   return {
     owner,
     search,
+    tag,
     filters,
     sort,
     page,

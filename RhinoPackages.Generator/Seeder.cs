@@ -81,6 +81,12 @@ public class Seeder
     /// <summary>How many archives to read per run purely to backfill size and license.</summary>
     const int BackfillLimit = 200;
 
+    /// <summary>Attempts per API request, including the first.</summary>
+    const int MaxAttempts = 3;
+
+    /// <summary>Base delay before a retry; doubles per attempt.</summary>
+    const int RetryDelayMs = 500;
+
     readonly HttpClient _client;
     readonly ILogger _logger;
     readonly IEnumerable<Package> _packages;
@@ -115,77 +121,108 @@ public class Seeder
         {
             var (entry, index) = item;
 
-            // The version history doubles as the source for rolling download
-            // windows, first release date and version count, so fetch it up
-            // front and reuse it below.
-            YakVersionHistoryItem[] history = [];
-
             try
             {
-                history = await Get<YakVersionHistoryItem[]>($"versions/{entry.Name}");
-                await SaveVersionHistory(entry.Name, history);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Failed to fetch version history for {Name}: {Message}", entry.Name, ex.Message);
-            }
+                // The version history doubles as the source for rolling download
+                // windows, first release date and version count, so fetch it up
+                // front and reuse it below.
+                YakVersionHistoryItem[] history = [];
+                var historyFetched = false;
 
-            var stats = HistoryStats.From(history);
-
-            if (packagesMap.TryGetValue(entry.Name, out var package))
-            {
-                if (package.Version == entry.Version)
+                try
                 {
-                    var refreshed = package with
-                    {
-                        Downloads = entry.DownloadCount,
-                        DownloadsWeek = stats.Week,
-                        DownloadsMonth = stats.Month,
-                        FirstReleased = stats.FirstReleased ?? package.FirstReleased,
-                        VersionCount = stats.VersionCount > 0 ? stats.VersionCount : package.VersionCount,
-                        LastReleased = stats.LastReleased ?? package.LastReleased,
-                        ReleaseCadenceDays = stats.CadenceDays ?? package.ReleaseCadenceDays,
-                    };
+                    history = await Get<YakVersionHistoryItem[]>($"versions/{entry.Name}");
+                    historyFetched = true;
+                    await SaveVersionHistory(entry.Name, history);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Failed to fetch version history for {Name}: {Message}", entry.Name, ex.Message);
+                }
 
-                    // Size and license come from the archive, which is only
-                    // read when a package publishes a new version. Backfill a
-                    // bounded number of the remaining ones per run so existing
-                    // packages fill in over a few days instead of never.
-                    if (refreshed.SizeBytes is null && Interlocked.Increment(ref _backfilled) <= BackfillLimit)
+                var stats = HistoryStats.From(history);
+
+                if (packagesMap.TryGetValue(entry.Name, out var package))
+                {
+                    if (package.Version == entry.Version)
                     {
-                        try
+                        var refreshed = package with
                         {
-                            var detail = await Get<PackageYak>($"versions/{entry.Name}/{entry.Version}");
-                            var contents = await ReadDistributions(detail.Distributions);
+                            Downloads = entry.DownloadCount,
+                            // A failed history fetch means "unknown", not zero.
+                            // Publishing zeros here would differ from the stored
+                            // record, so it would be saved and SaveSnapshots would
+                            // chart a dip that never happened — and the point stays
+                            // in the history after the next successful run.
+                            DownloadsWeek = historyFetched ? stats.Week : package.DownloadsWeek,
+                            DownloadsMonth = historyFetched ? stats.Month : package.DownloadsMonth,
+                            FirstReleased = stats.FirstReleased ?? package.FirstReleased,
+                            VersionCount = stats.VersionCount > 0 ? stats.VersionCount : package.VersionCount,
+                            LastReleased = stats.LastReleased ?? package.LastReleased,
+                            ReleaseCadenceDays = stats.CadenceDays ?? package.ReleaseCadenceDays,
+                        };
 
-                            refreshed = refreshed with
+                        // Size and license come from the archive, which is only
+                        // read when a package publishes a new version. Backfill a
+                        // bounded number of the remaining ones per run so existing
+                        // packages fill in over a few days instead of never.
+                        if (refreshed.SizeBytes is null && Interlocked.Increment(ref _backfilled) <= BackfillLimit)
+                        {
+                            try
                             {
-                                SizeBytes = contents.SizeBytes,
-                                License = contents.License ?? refreshed.License,
-                            };
+                                var detail = await Get<PackageYak>($"versions/{entry.Name}/{entry.Version}");
+                                var contents = await ReadDistributions(detail.Distributions);
+
+                                refreshed = refreshed with
+                                {
+                                    SizeBytes = contents.SizeBytes,
+                                    License = contents.License ?? refreshed.License,
+                                };
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning("Failed to backfill {Name}: {Message}", entry.Name, ex.Message);
+                            }
                         }
-                        catch (Exception ex)
+
+                        if (refreshed != package)
                         {
-                            _logger.LogWarning("Failed to backfill {Name}: {Message}", entry.Name, ex.Message);
+                            updates[index] = (Update.Update, refreshed);
                         }
                     }
-
-                    if (refreshed != package)
+                    else
                     {
-                        updates[index] = (Update.Update, refreshed);
+                        var published = await MakePackage(entry, stats);
+
+                        // Same reasoning as the refresh above: keep the last known
+                        // windows rather than publishing zeros for them.
+                        if (!historyFetched)
+                        {
+                            published = published with
+                            {
+                                DownloadsWeek = package.DownloadsWeek,
+                                DownloadsMonth = package.DownloadsMonth,
+                            };
+                        }
+
+                        updates[index] = (Update.Update, published);
                     }
                 }
                 else
                 {
-                    updates[index] = (Update.Update, await MakePackage(entry, stats));
+                    updates[index] = (Update.New, await MakePackage(entry, stats));
                 }
-            }
-            else
-            {
-                updates[index] = (Update.New, await MakePackage(entry, stats));
-            }
 
-            _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
+                _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
+            }
+            // A package deleted between the listing and the detail fetch, an
+            // unparseable date, a truncated archive: any one of these used to
+            // propagate out of the parallel loop and abandon the whole refresh.
+            // Update.None leaves this package's stored record untouched.
+            catch (Exception ex)
+            {
+                _logger.LogError("Skipped {Name}: {Message}", entry.Name, ex.Message);
+            }
         });
 
         var result = updates.Where(p => p.Update != Update.None).ToList();
@@ -215,13 +252,61 @@ public class Seeder
         return result;
     }
 
+    /// <summary>
+    /// Reads JSON from the yak API, retrying transient failures. A run makes
+    /// upwards of 2,500 requests and happens four times a day, so a dropped
+    /// connection or a brief 5xx is a certainty rather than an edge case.
+    /// </summary>
     async Task<T> Get<T>(string route)
     {
         var url = "https://yak.rhino3d.com/" + route;
 
-        return await _client.GetFromJsonAsync<T>(url, _options)
-            ?? throw new("Could not get package list.");
+        for (var attempt = 1; ; attempt++)
+        {
+            var lastAttempt = attempt == MaxAttempts;
+            string failure;
+
+            try
+            {
+                using var response = await _client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<T>(_options)
+                        ?? throw new($"{route} returned an empty body.");
+                }
+
+                // A 4xx will not fix itself — a deleted package stays deleted —
+                // so only server errors are worth another attempt.
+                if ((int)response.StatusCode < 500)
+                {
+                    throw new HttpRequestException(
+                        $"{route} returned {(int)response.StatusCode} {response.ReasonPhrase}.",
+                        null,
+                        response.StatusCode);
+                }
+
+                failure = $"HTTP {(int)response.StatusCode}";
+            }
+            catch (Exception ex) when (!lastAttempt && IsTransient(ex))
+            {
+                failure = ex.Message;
+            }
+
+            if (lastAttempt)
+                throw new HttpRequestException($"{route} failed after {MaxAttempts} attempts: {failure}");
+
+            var delay = TimeSpan.FromMilliseconds(RetryDelayMs * Math.Pow(2, attempt - 1));
+            _logger.LogWarning("Retrying {Route} in {Delay}ms after {Failure}", route, delay.TotalMilliseconds, failure);
+            await Task.Delay(delay);
+        }
     }
+
+    // Connection resets and timeouts, as opposed to a response the server
+    // meant to send. HttpRequestException carries a status code only when it
+    // came from a response, so a null one is a transport failure.
+    static bool IsTransient(Exception ex) =>
+        ex is HttpRequestException { StatusCode: null } or TaskCanceledException or TimeoutException;
 
     async Task<Package> MakePackage(EntryYak entry, HistoryStats stats)
     {

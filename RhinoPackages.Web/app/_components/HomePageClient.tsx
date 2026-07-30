@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/20/solid";
-import { PackageProvider, usePackageContext, defaultParams } from "./PackageContext";
+import { PackageProvider, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageList from "./PackageList";
 import Sidebar from "./Sidebar";
 import type { Package } from "./api";
@@ -37,13 +37,7 @@ function ToggleMenu() {
   const Icon = open ? XMarkIcon : Bars3Icon;
   const { controls } = usePackageContext();
 
-  const hasFilters =
-    controls.filters !== defaultParams.filters ||
-    controls.search !== defaultParams.search ||
-    controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort ||
-    controls.maintained !== defaultParams.maintained ||
-    controls.deprecated !== defaultParams.deprecated;
+  const hasFilters = hasActiveFilters(controls);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

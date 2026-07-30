@@ -6,6 +6,7 @@ import {
   ArrowLongRightIcon,
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
+  ClipboardDocumentIcon,
   EnvelopeIcon,
   ChevronDownIcon,
   CheckIcon,
@@ -13,9 +14,11 @@ import {
   MagnifyingGlassIcon,
   StarIcon,
   UserIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
-import { Params, usePackageContext, defaultParams } from "./PackageContext";
+import { nearestIndex, timePositions } from "./chart";
+import { Params, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
 import Spinner from "./Spinner";
 
@@ -27,13 +30,7 @@ export default function PackageList() {
 
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
-  const hasFilters =
-    controls.filters !== defaultParams.filters ||
-    controls.search !== defaultParams.search ||
-    controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort ||
-    controls.maintained !== defaultParams.maintained ||
-    controls.deprecated !== defaultParams.deprecated;
+  const hasFilters = hasActiveFilters(controls);
 
   // A ?p= deep link expands its package but leaves the reader at the top of
   // the page, with the card itself often thousands of pixels down. Bring it
@@ -119,6 +116,20 @@ export default function PackageList() {
                   ? "No packages found matching your criteria."
                   : `Showing ${packages.length} of ${filteredCount} packages`}
           </p>
+          {/* The keyword chips live on the cards, so without this the only
+              cue that a tag is filtering the list is the URL. */}
+          {controls.tag && (
+            <button
+              type="button"
+              onClick={() => navigate({ tag: undefined })}
+              title={`Remove keyword filter: ${controls.tag}`}
+              aria-label={`Remove keyword filter: ${controls.tag}`}
+              className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
+            >
+              Keyword: {controls.tag}
+              <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
         </div>
         <a
           href="/stats"
@@ -163,7 +174,11 @@ export default function PackageList() {
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
           <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
           <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">
-            {controls.search ? `No results for "${controls.search}"` : "No packages found"}
+            {controls.search
+              ? `No results for "${controls.search}"`
+              : controls.tag
+                ? `No packages tagged "${controls.tag}"`
+                : "No packages found"}
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
             {controls.search ? "Check for typos or try adjusting your search and filters." : "Try adjusting your search or filters to find what you're looking for."}
@@ -176,7 +191,7 @@ export default function PackageList() {
                   navigate(defaultParams);
                   document.getElementById("main-content")?.focus({ preventScroll: true });
                 }}
-                className="inline-flex items-center rounded-md bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
+                className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
               >
                 Clear all filters
               </button>
@@ -331,6 +346,7 @@ const PackageCard = memo(function PackageCard({
     isExpanded && controls.pre
   );
   const [copied, setCopied] = useState(false);
+  const [copiedName, setCopiedName] = useState(false);
   const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
 
   // Keep showPrereleases in sync when navigating via deep link after first render.
@@ -353,6 +369,13 @@ const PackageCard = memo(function PackageCard({
     navigator.clipboard.writeText(url.toString());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyName = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(pkg.id);
+    setCopiedName(true);
+    setTimeout(() => setCopiedName(false), 2000);
   };
 
   useEffect(() => {
@@ -721,7 +744,7 @@ const PackageCard = memo(function PackageCard({
         <div className="mt-4 flex flex-wrap place-items-center items-start gap-2">
           <span className="sr-only">Keywords: </span>
           {tags.map((tag) => {
-            const isActive = (controls.search || '').toLowerCase() === tag.toLowerCase();
+            const isActive = (controls.tag ?? "").toLowerCase() === tag.toLowerCase();
             return (
             <button
               key={tag}
@@ -731,7 +754,7 @@ const PackageCard = memo(function PackageCard({
               aria-label={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
               onClick={(e) => {
                 e.stopPropagation();
-                navigate({ search: isActive ? "" : tag });
+                navigate({ tag: isActive ? undefined : tag });
               }}
               className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${
                 isActive
@@ -890,7 +913,7 @@ const PackageCard = memo(function PackageCard({
                 href={link}
                 aria-label={`Install ${pkg.id} in Rhino`}
                 title={`Install ${pkg.id} in Rhino`}
-                className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 active:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
+                className="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
                 Install in Rhino
@@ -919,7 +942,33 @@ const PackageCard = memo(function PackageCard({
                   Email
                 </a>
               )}
+              <button
+                type="button"
+                onClick={handleCopyName}
+                aria-label={`Copy the package name ${pkg.id}`}
+                title="Copy the package name to search for in Rhino's Package Manager"
+                className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+              >
+                {copiedName ? (
+                  <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-500" aria-hidden="true" />
+                ) : (
+                  <ClipboardDocumentIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                )}
+                {copiedName ? "Copied" : "Copy name"}
+              </button>
             </div>
+            {/* The install button is a rhino:// link, so it does nothing at
+                all on a machine without Rhino — every phone, for a start —
+                and the browser gives no feedback. Say what it does and how
+                to install by hand instead of leaving people stuck. */}
+            <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-zinc-400">
+              Install opens Rhino&apos;s Package Manager on this computer. Nothing happening?
+              Rhino is not installed here — run{" "}
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-800 dark:text-zinc-300">
+                _PackageManager
+              </code>{" "}
+              inside Rhino and search for <span className="font-semibold">{pkg.id}</span>.
+            </p>
 
             {/* Download growth over time (daily snapshots) */}
             {downloadHistory && downloadHistory.length >= 2 && (
@@ -1171,10 +1220,10 @@ function Sparkline({ points }: { points: HistoryPoint[] }) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
-  const step = width / (points.length - 1);
+  const positions = timePositions(points.map((p) => p.date));
 
   const coords = values.map((v, i) => ({
-    x: i * step,
+    x: positions[i] * width,
     y: height - 4 - ((v - min) / span) * (height - 8),
   }));
   const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
@@ -1183,8 +1232,7 @@ function Sparkline({ points }: { points: HistoryPoint[] }) {
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
-    const index = Math.round(ratio * (points.length - 1));
-    setHoverIndex(Math.max(0, Math.min(points.length - 1, index)));
+    setHoverIndex(nearestIndex(positions, ratio));
   };
 
   const hover = hoverIndex !== null ? points[hoverIndex] : null;

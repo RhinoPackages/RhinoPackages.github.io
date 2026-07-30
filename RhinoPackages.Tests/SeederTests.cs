@@ -580,6 +580,186 @@ public class SeederTests
         Assert.Null(package.ReleaseCadenceDays);
     }
 
+    [Fact]
+    public async Task Run_HistoryFetchFails_KeepsPreviousDownloadWindows()
+    {
+        var packageName = "FlakyHistoryPackage";
+        var packageVersion = "2.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+
+        var existing = new List<Package>
+        {
+            new(
+                Id: packageName,
+                Version: packageVersion,
+                Updated: new DateTime(2026, 1, 1),
+                Authors: "Unit Tester",
+                Downloads: 99,
+                IconUrl: "/icons/special/default.png",
+                Description: "Existing",
+                Keywords: "",
+                Prerelease: false,
+                HomepageUrl: null,
+                Filters: Filters.Windows,
+                Owners: [new Owner(1, "Owner One")],
+                DownloadsWeek: 7,
+                DownloadsMonth: 30,
+                FirstReleased: DateTime.Parse("2026-01-01T00:00:00Z"),
+                VersionCount: 1,
+                LastReleased: DateTime.Parse("2026-01-01T00:00:00Z"),
+                SizeBytes: 1024
+            )
+        };
+
+        // No response for versions/{name}: the history fetch fails the way a
+        // transient API error would.
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 150, "name": "FlakyHistoryPackage", "version": "2.0.0" }
+                ]
+                """),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, existing, client);
+
+        var package = Assert.Single(await seeder.Run()).Package;
+
+        // The lifetime count came from the package listing, so it still updates.
+        Assert.Equal(150, package.Downloads);
+
+        // The rolling windows are only known from the history. Zeroing them here
+        // would write a dip into the charted download history that never
+        // happened, and it would outlive the next successful run.
+        Assert.Equal(7, package.DownloadsWeek);
+        Assert.Equal(30, package.DownloadsMonth);
+    }
+
+    [Fact]
+    public async Task Run_OnePackageFails_StillReturnsTheOthers()
+    {
+        var yakBase = "https://yak.rhino3d.com/";
+        var goodUrl = "https://files.example.test/good.yak";
+
+        // BrokenPackage has no detail response, mimicking a package deleted
+        // between the listing and the detail fetch.
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 1, "name": "BrokenPackage", "version": "1.0.0" },
+                  { "authors": "Unit Tester", "download_count": 2, "name": "GoodPackage", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + "versions/GoodPackage/1.0.0"] = Json("""
+                {
+                  "created_at": "2026-03-01T00:00:00Z",
+                  "description": "Fine",
+                  "distributions": [
+                    {
+                      "filename": "GoodPackage-1.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/good.yak"
+                    }
+                  ],
+                  "keywords": [],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + "packages/GoodPackage/owners"] = Json("""
+                [ { "id": 2, "name": "Owner Two" } ]
+                """),
+            [yakBase + "versions/GoodPackage"] = Json("""
+                [
+                  { "created_at": "2026-03-01T00:00:00Z", "version": "1.0.0", "distributions": [], "prerelease": false }
+                ]
+                """),
+            [yakBase + "versions/BrokenPackage"] = Json("""
+                [
+                  { "created_at": "2026-03-01T00:00:00Z", "version": "1.0.0", "distributions": [], "prerelease": false }
+                ]
+                """),
+            [goodUrl] = ZipWithEntries("good.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, [], client);
+
+        var package = Assert.Single(await seeder.Run()).Package;
+
+        Assert.Equal("GoodPackage", package.Id);
+    }
+
+    [Fact]
+    public async Task Run_ServerErrorThenSuccess_RetriesTheRequest()
+    {
+        var packageName = "RetryPackage";
+        var yakBase = "https://yak.rhino3d.com/";
+        var packageUrl = "https://files.example.test/retry.yak";
+        var flakyUrl = yakBase + $"versions/{packageName}";
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 3, "name": "RetryPackage", "version": "1.0.0" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}/1.0.0"] = Json("""
+                {
+                  "created_at": "2026-04-01T00:00:00Z",
+                  "description": "Retried",
+                  "distributions": [
+                    {
+                      "filename": "RetryPackage-1.0.0-rh8_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh8_0",
+                      "url": "https://files.example.test/retry.yak"
+                    }
+                  ],
+                  "keywords": [],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"packages/{packageName}/owners"] = Json("""
+                [ { "id": 3, "name": "Owner Three" } ]
+                """),
+            [flakyUrl] = Json("""
+                [
+                  {
+                    "created_at": "2026-04-01T00:00:00Z",
+                    "version": "1.0.0",
+                    "distributions": [],
+                    "prerelease": false,
+                    "downloads": { "last_day": 1, "last_week": 4, "last_month": 9 }
+                  }
+                ]
+                """),
+            [packageUrl] = ZipWithEntries("retry.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        var handler = new FlakyHandler(responses, flakyUrl, failures: 2);
+        using var client = new HttpClient(handler);
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, [], client);
+
+        var package = Assert.Single(await seeder.Run()).Package;
+
+        Assert.Equal(3, handler.Attempts);
+
+        // The windows prove the retried response was the one that got used.
+        Assert.Equal(4, package.DownloadsWeek);
+        Assert.Equal(9, package.DownloadsMonth);
+    }
+
     static HttpResponseMessage Json(string json)
         => new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
@@ -615,6 +795,35 @@ public class SeederTests
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var url = request.RequestUri?.ToString() ?? string.Empty;
+            if (!responses.TryGetValue(url, out var response))
+            {
+                throw new InvalidOperationException($"No fake response configured for URL: {url}");
+            }
+
+            return Task.FromResult(response);
+        }
+    }
+
+    /// <summary>Answers one URL with 503 a few times before letting it through.</summary>
+    sealed class FlakyHandler(Dictionary<string, HttpResponseMessage> responses, string flakyUrl, int failures)
+        : HttpMessageHandler
+    {
+        int _served;
+
+        public int Attempts { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var url = request.RequestUri?.ToString() ?? string.Empty;
+
+            if (url == flakyUrl)
+            {
+                Attempts++;
+
+                if (_served++ < failures)
+                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+            }
+
             if (!responses.TryGetValue(url, out var response))
             {
                 throw new InvalidOperationException($"No fake response configured for URL: {url}");

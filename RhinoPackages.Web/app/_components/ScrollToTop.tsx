@@ -43,7 +43,7 @@ export default function ScrollToTop() {
         onClick={scrollToTop}
         aria-label="Scroll to top"
         title="Scroll to top"
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white shadow-md transition-all hover:bg-brand-600 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-offset-zinc-950"
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white shadow-md transition-all hover:bg-brand-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-offset-zinc-950"
       >
         <ArrowUpIcon className="h-5 w-5" aria-hidden="true" />
       </button>
