@@ -6,6 +6,7 @@ import {
   ArrowLongRightIcon,
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
+  ClipboardDocumentIcon,
   EnvelopeIcon,
   ChevronDownIcon,
   CheckIcon,
@@ -344,6 +345,7 @@ const PackageCard = memo(function PackageCard({
     isExpanded && controls.pre
   );
   const [copied, setCopied] = useState(false);
+  const [copiedName, setCopiedName] = useState(false);
   const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
 
   // Keep showPrereleases in sync when navigating via deep link after first render.
@@ -366,6 +368,13 @@ const PackageCard = memo(function PackageCard({
     navigator.clipboard.writeText(url.toString());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyName = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(pkg.id);
+    setCopiedName(true);
+    setTimeout(() => setCopiedName(false), 2000);
   };
 
   useEffect(() => {
@@ -932,7 +941,33 @@ const PackageCard = memo(function PackageCard({
                   Email
                 </a>
               )}
+              <button
+                type="button"
+                onClick={handleCopyName}
+                aria-label={`Copy the package name ${pkg.id}`}
+                title="Copy the package name to search for in Rhino's Package Manager"
+                className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+              >
+                {copiedName ? (
+                  <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-500" aria-hidden="true" />
+                ) : (
+                  <ClipboardDocumentIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                )}
+                {copiedName ? "Copied" : "Copy name"}
+              </button>
             </div>
+            {/* The install button is a rhino:// link, so it does nothing at
+                all on a machine without Rhino — every phone, for a start —
+                and the browser gives no feedback. Say what it does and how
+                to install by hand instead of leaving people stuck. */}
+            <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-zinc-400">
+              Install opens Rhino&apos;s Package Manager on this computer. Nothing happening?
+              Rhino is not installed here — run{" "}
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-800 dark:text-zinc-300">
+                _PackageManager
+              </code>{" "}
+              inside Rhino and search for <span className="font-semibold">{pkg.id}</span>.
+            </p>
 
             {/* Download growth over time (daily snapshots) */}
             {downloadHistory && downloadHistory.length >= 2 && (
