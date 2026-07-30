@@ -1,20 +1,18 @@
-import fs from "fs";
-import path from "path";
 import type { MetadataRoute } from "next";
 
 export const dynamic = "force-static";
 
-interface PackageEntry {
-  id: string;
-  updated: string;
-  downloads: number;
-}
-
+// Only the two real documents are listed. This used to advertise a
+// "/?p=<id>" URL per package, but every one of them serves index.html, whose
+// canonical is "/" — so Google discarded all 1,156 as duplicates and the
+// sitemap was telling it the site is mostly boilerplate. Deep links still work
+// and stay crawlable through the on-page links; they earn sitemap entries once
+// each package has a document of its own to point at.
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = "https://rhinopackages.github.io";
   const lastModified = new Date();
 
-  const entries: MetadataRoute.Sitemap = [
+  return [
     {
       url: `${siteUrl}/`,
       lastModified,
@@ -28,23 +26,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
   ];
-
-  try {
-    const dataPath = path.join(process.cwd(), "public", "data.json");
-    const raw = fs.readFileSync(dataPath, "utf-8");
-    const packages = JSON.parse(raw) as PackageEntry[];
-
-    for (const pkg of packages) {
-      entries.push({
-        url: `${siteUrl}/?p=${encodeURIComponent(pkg.id)}`,
-        lastModified: new Date(pkg.updated),
-        changeFrequency: "weekly",
-        priority: pkg.downloads > 10000 ? 0.7 : pkg.downloads > 1000 ? 0.6 : 0.5,
-      });
-    }
-  } catch {
-    // data.json not available at build time — return base entries only
-  }
-
-  return entries;
 }

@@ -262,16 +262,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ThemeToggle />
               </div>
             </div>
+            {/* No Suspense boundary here: useSearchParams() bails out to the
+                nearest one, and a boundary around the whole page meant every
+                statically rendered part of it — the directory intro, the top
+                package list, the FAQ — was replaced by the fallback spinner in
+                the exported HTML. Each page wraps its own client subtree. */}
             <div id="main-content" tabIndex={-1} className="outline-none">
-              <Suspense
-                fallback={
-                  <div className="mt-10 flex justify-center">
-                    <Spinner />
-                  </div>
-                }
-              >
-                {children}
-              </Suspense>
+              {children}
             </div>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
               <p>Site Generated: {formatDateTime(new Date())}</p>

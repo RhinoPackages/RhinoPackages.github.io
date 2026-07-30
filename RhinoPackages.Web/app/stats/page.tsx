@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
+import Spinner from "../_components/Spinner";
 import StatsPageClient from "../_components/StatsPageClient";
 
 export const metadata: Metadata = {
@@ -22,5 +24,17 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <StatsPageClient />;
+  // Reads ?author= and ?rising= from the query string, so it needs its own
+  // boundary now that the layout no longer provides one.
+  return (
+    <Suspense
+      fallback={
+        <div className="mt-10 flex justify-center">
+          <Spinner />
+        </div>
+      }
+    >
+      <StatsPageClient />
+    </Suspense>
+  );
 }
