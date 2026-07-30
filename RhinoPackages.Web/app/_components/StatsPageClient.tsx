@@ -3,6 +3,7 @@
 import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { nearestIndex, timePositions } from "./chart";
 import PackageIcon from "./PackageIcon";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
@@ -315,6 +316,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           <LineChart
             values={totals.map((t) => t.downloads)}
             labels={totals.map((t) => t.date)}
+            dates={totals.map((t) => t.date)}
             unit="downloads"
             startLabel={totals[0].date}
             endLabel={totals[totals.length - 1].date}
@@ -636,6 +638,7 @@ function LineChart({
   endLabel,
   ticks = [],
   labels = [],
+  dates,
   unit = "",
 }: {
   values: number[];
@@ -643,6 +646,8 @@ function LineChart({
   endLabel: string;
   ticks?: ChartTick[];
   labels?: string[];
+  /** Point dates, for series whose samples are not evenly spaced in time. */
+  dates?: string[];
   unit?: string;
 }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -651,10 +656,12 @@ function LineChart({
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
-  const step = values.length > 1 ? width / (values.length - 1) : width;
+  const positions = dates
+    ? timePositions(dates)
+    : values.map((_, i) => (values.length > 1 ? i / (values.length - 1) : 0));
 
   const coords = values.map((v, i) => ({
-    x: i * step,
+    x: positions[i] * width,
     y: height - 6 - ((v - min) / span) * (height - 12),
   }));
   const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
@@ -666,8 +673,7 @@ function LineChart({
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
-    const index = Math.round(ratio * (values.length - 1));
-    setHoverIndex(Math.max(0, Math.min(values.length - 1, index)));
+    setHoverIndex(nearestIndex(positions, ratio));
   };
 
   return (

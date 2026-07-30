@@ -17,6 +17,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
+import { nearestIndex, timePositions } from "./chart";
 import { Params, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
 import Spinner from "./Spinner";
@@ -1219,10 +1220,10 @@ function Sparkline({ points }: { points: HistoryPoint[] }) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
-  const step = width / (points.length - 1);
+  const positions = timePositions(points.map((p) => p.date));
 
   const coords = values.map((v, i) => ({
-    x: i * step,
+    x: positions[i] * width,
     y: height - 4 - ((v - min) / span) * (height - 8),
   }));
   const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
@@ -1231,8 +1232,7 @@ function Sparkline({ points }: { points: HistoryPoint[] }) {
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
-    const index = Math.round(ratio * (points.length - 1));
-    setHoverIndex(Math.max(0, Math.min(points.length - 1, index)));
+    setHoverIndex(nearestIndex(positions, ratio));
   };
 
   const hover = hoverIndex !== null ? points[hoverIndex] : null;
