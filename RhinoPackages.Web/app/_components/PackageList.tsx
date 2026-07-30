@@ -13,9 +13,10 @@ import {
   MagnifyingGlassIcon,
   StarIcon,
   UserIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
-import { Params, usePackageContext, defaultParams } from "./PackageContext";
+import { Params, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
 import Spinner from "./Spinner";
 
@@ -27,13 +28,7 @@ export default function PackageList() {
 
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
-  const hasFilters =
-    controls.filters !== defaultParams.filters ||
-    controls.search !== defaultParams.search ||
-    controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort ||
-    controls.maintained !== defaultParams.maintained ||
-    controls.deprecated !== defaultParams.deprecated;
+  const hasFilters = hasActiveFilters(controls);
 
   // A ?p= deep link expands its package but leaves the reader at the top of
   // the page, with the card itself often thousands of pixels down. Bring it
@@ -119,6 +114,20 @@ export default function PackageList() {
                   ? "No packages found matching your criteria."
                   : `Showing ${packages.length} of ${filteredCount} packages`}
           </p>
+          {/* The keyword chips live on the cards, so without this the only
+              cue that a tag is filtering the list is the URL. */}
+          {controls.tag && (
+            <button
+              type="button"
+              onClick={() => navigate({ tag: undefined })}
+              title={`Remove keyword filter: ${controls.tag}`}
+              aria-label={`Remove keyword filter: ${controls.tag}`}
+              className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
+            >
+              Keyword: {controls.tag}
+              <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
         </div>
         <a
           href="/stats"
@@ -163,7 +172,11 @@ export default function PackageList() {
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
           <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
           <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">
-            {controls.search ? `No results for "${controls.search}"` : "No packages found"}
+            {controls.search
+              ? `No results for "${controls.search}"`
+              : controls.tag
+                ? `No packages tagged "${controls.tag}"`
+                : "No packages found"}
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
             {controls.search ? "Check for typos or try adjusting your search and filters." : "Try adjusting your search or filters to find what you're looking for."}
@@ -721,7 +734,7 @@ const PackageCard = memo(function PackageCard({
         <div className="mt-4 flex flex-wrap place-items-center items-start gap-2">
           <span className="sr-only">Keywords: </span>
           {tags.map((tag) => {
-            const isActive = (controls.search || '').toLowerCase() === tag.toLowerCase();
+            const isActive = (controls.tag ?? "").toLowerCase() === tag.toLowerCase();
             return (
             <button
               key={tag}
@@ -731,7 +744,7 @@ const PackageCard = memo(function PackageCard({
               aria-label={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
               onClick={(e) => {
                 e.stopPropagation();
-                navigate({ search: isActive ? "" : tag });
+                navigate({ tag: isActive ? undefined : tag });
               }}
               className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${
                 isActive

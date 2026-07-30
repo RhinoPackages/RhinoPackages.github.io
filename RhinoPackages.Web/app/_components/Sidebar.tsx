@@ -4,19 +4,13 @@ import { Switch } from "@headlessui/react";
 import { BarsArrowDownIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Filters } from "@/app/_components/api";
-import { defaultParams, usePackageContext } from "./PackageContext";
+import { defaultParams, hasActiveFilters, usePackageContext } from "./PackageContext";
 import OwnersControl from "./OwnersControl";
 
 export default function Sidebar() {
   const { navigate, status, controls } = usePackageContext();
 
-  const hasFilters =
-    controls.filters !== defaultParams.filters ||
-    controls.search !== defaultParams.search ||
-    controls.owner !== defaultParams.owner ||
-    controls.sort !== defaultParams.sort ||
-    controls.maintained !== defaultParams.maintained ||
-    controls.deprecated !== defaultParams.deprecated;
+  const hasFilters = hasActiveFilters(controls);
 
   return (
     <form
