@@ -109,6 +109,26 @@ export function has(constant: Filters, pkg: Package) {
   return constant === (pkg.filters & constant);
 }
 
+/** The sidebar's checkbox groups, as one bitmask per group. */
+export const filterGroups: Filters[] = [
+  Filters.Windows | Filters.Mac,
+  Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8 | Filters.Rhino9,
+  Filters.Rhino | Filters.Grasshopper,
+];
+
+// Faceted filtering: a package has to match at least one of the boxes checked
+// within a group, and every group that has a box checked. Testing the whole
+// selection with has() instead would demand all of them, so "Rhino 7 + Rhino 8"
+// used to mean "supports both" rather than "supports either".
+export function matchesFilters(selected: Filters, pkg: Package) {
+  for (const group of filterGroups) {
+    const wanted = selected & group;
+    if (wanted === Filters.None) continue;
+    if ((pkg.filters & wanted) === Filters.None) return false;
+  }
+  return true;
+}
+
 export { TIME_ZONE, formatDate, formatDateTime } from "./format";
 
 // A package is considered maintained when it published a release within the

@@ -8,6 +8,7 @@ import {
   has,
   isDeprecated,
   isMaintained,
+  matchesFilters,
   matchesOwner,
   normalizeName,
   pageResults,
@@ -346,7 +347,7 @@ function filter(
   }
 
   if (filters !== Filters.None) {
-    filtered = filtered.filter((pkg) => has(filters, pkg));
+    filtered = filtered.filter((pkg) => matchesFilters(filters, pkg));
   }
 
   if (sort === Sort.Date) {
