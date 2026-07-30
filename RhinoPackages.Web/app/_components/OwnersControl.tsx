@@ -116,7 +116,7 @@ export default function OwnersControl() {
                 value={person}
                 className={({ selected, active }) =>
                   `truncate py-2 pl-3 cursor-pointer
-                    ${active ? "bg-brand-500 text-white dark:bg-brand-600" : "text-gray-900 dark:text-zinc-300"}
+                    ${active ? "bg-brand-600 text-white" : "text-gray-900 dark:text-zinc-300"}
                     ${selected ? "font-semibold" : "font-normal"}
                     ${selected && !active ? "text-brand-700 dark:text-brand-400" : ""}`
                 }
