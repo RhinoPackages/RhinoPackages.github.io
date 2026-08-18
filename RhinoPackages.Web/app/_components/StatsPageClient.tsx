@@ -16,14 +16,17 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   const searchParams = useSearchParams();
   const [authorQuery, setAuthorQuery] = useState(searchParams.get("author") ?? "");
   const [risingQuery, setRisingQuery] = useState(searchParams.get("rising") ?? "");
+  const [moversQuery, setMoversQuery] = useState(searchParams.get("movers") ?? "");
 
-  // Keep both table filters shareable via /stats?author=...&rising=...
-  const syncQuery = (next: { author?: string; rising?: string }) => {
+  // Keep all three table filters shareable via /stats?author=...&rising=...&movers=...
+  const syncQuery = (next: { author?: string; rising?: string; movers?: string }) => {
     const params = new URLSearchParams();
     const author = next.author ?? authorQuery;
     const rising = next.rising ?? risingQuery;
+    const movers = next.movers ?? moversQuery;
     if (author) params.set("author", author);
     if (rising) params.set("rising", rising);
+    if (movers) params.set("movers", movers);
     const query = params.toString();
     router.replace(query ? `/stats?${query}` : "/stats", { scroll: false });
   };
@@ -36,6 +39,11 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   const updateRisingQuery = (value: string) => {
     setRisingQuery(value);
     syncQuery({ rising: value });
+  };
+
+  const updateMoversQuery = (value: string) => {
+    setMoversQuery(value);
+    syncQuery({ movers: value });
   };
   const [totals, setTotals] = useState<TotalsPoint[] | null>(null);
   const [weight, setWeight] = useState<Weight>("downloads");
@@ -50,12 +58,17 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
 
   // Biggest absolute gainers, as opposed to Rising Stars which ranks by
   // momentum relative to a package's own history.
-  const movers = useMemo(() => {
+  const moversAll = useMemo(() => {
     return cache
       .filter((p) => (p.downloadsWeek ?? 0) > 0)
-      .sort((a, b) => (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0))
-      .slice(0, 10);
+      .sort((a, b) => (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0));
   }, [cache]);
+
+  const movers = useMemo(() => {
+    const query = moversQuery.trim().toLowerCase();
+    const pool = query ? moversAll.filter((p) => p.id.toLowerCase().includes(query)) : moversAll;
+    return pool.slice(0, 10);
+  }, [moversAll, moversQuery]);
 
   useEffect(() => {
     // Daily ecosystem snapshots; the chart appears once at least two
@@ -471,18 +484,27 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       </section>
 
       {/* Weekly movers */}
-      {movers.length > 0 && (
+      {moversAll.length > 0 && (
         <section aria-labelledby="stats-movers">
-          <div className="mb-3 flex flex-col gap-0.5">
-            <h2
-              id="stats-movers"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
-            >
-              Weekly Movers
-            </h2>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">
-              Most downloads in the last 7 days
-            </span>
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-0.5">
+              <h2
+                id="stats-movers"
+                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+              >
+                Weekly Movers
+              </h2>
+              <span className="text-xs text-gray-500 dark:text-zinc-400">
+                Most downloads in the last 7 days
+              </span>
+            </div>
+            <TableSearch
+              id="movers-filter"
+              label="Filter weekly movers"
+              placeholder={`Search ${moversAll.length.toLocaleString()} packages...`}
+              value={moversQuery}
+              onChange={updateMoversQuery}
+            />
           </div>
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
             <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
@@ -518,6 +540,13 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                     <td className="px-4 py-2 text-right tabular-nums">{pkg.downloads.toLocaleString()}</td>
                   </tr>
                 ))}
+                {movers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
+                      No packages match &quot;{moversQuery}&quot;
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
