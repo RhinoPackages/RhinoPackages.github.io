@@ -525,7 +525,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       )}
 
       {/* Rising stars */}
-      {risingStars.length > 0 && (
+      {risingAll.length > 0 && (
         <section aria-labelledby="stats-rising">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-0.5">
