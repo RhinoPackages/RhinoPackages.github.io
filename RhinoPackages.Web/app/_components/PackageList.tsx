@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { Menu } from "@headlessui/react";
 import {
   ArrowDownTrayIcon,
   ArrowLongLeftIcon,
@@ -1090,15 +1091,48 @@ const PackageCard = memo(function PackageCard({
                                 {row.downloadCount > 0 ? row.downloadCount.toLocaleString() : "—"}
                               </td>
                               <td className="px-4 py-2 text-right">
-                                <a
-                                  href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
-                                  aria-label={`Install ${pkg.id} version ${row.installVersion}`}
-                                  title={`Install ${pkg.id} version ${row.installVersion}`}
-                                  className="inline-flex items-center gap-1 rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
-                                >
-                                  <ArrowDownTrayIcon className="h-3 w-3" aria-hidden="true" />
-                                  Install
-                                </a>
+                                <Menu as="div" className="relative inline-flex text-left">
+                                  <a
+                                    href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
+                                    aria-label={`Install ${pkg.id} version ${row.installVersion ?? row.version}`}
+                                    title={`Install ${pkg.id} version ${row.installVersion ?? row.version}`}
+                                    className="inline-flex items-center gap-1 rounded-l bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
+                                  >
+                                    <ArrowDownTrayIcon className="h-3 w-3" aria-hidden="true" />
+                                    Install
+                                  </a>
+                                  <Menu.Button
+                                    aria-label={`Download ${pkg.id} version ${row.version}`}
+                                    title="Download package file"
+                                    className="inline-flex items-center rounded-r border-l border-brand-200 bg-brand-50 px-1.5 text-brand-700 transition-colors hover:bg-brand-100 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
+                                  >
+                                    <ChevronDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                                  </Menu.Button>
+                                  <Menu.Items className="absolute right-0 top-full z-30 mt-1 w-72 origin-top-right rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800 dark:ring-white/10">
+                                    <div className="px-2 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+                                      Download package
+                                    </div>
+                                    {row.distributions.map((distribution) => (
+                                      <Menu.Item key={distribution.url}>
+                                        {({ active }) => (
+                                          <a
+                                            href={distribution.url}
+                                            download={distribution.filename}
+                                            className={`flex items-start gap-2 rounded px-2 py-2 text-left text-xs ${active ? "bg-brand-50 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300" : "text-gray-700 dark:text-zinc-200"}`}
+                                          >
+                                            <ArrowDownTrayIcon className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
+                                            <span className="min-w-0">
+                                              <span className="block truncate font-medium">{distribution.filename}</span>
+                                              <span className="mt-0.5 block text-[0.65rem] text-gray-500 dark:text-zinc-400">
+                                                {formatDistributionTarget(distribution)}
+                                              </span>
+                                            </span>
+                                          </a>
+                                        )}
+                                      </Menu.Item>
+                                    ))}
+                                  </Menu.Items>
+                                </Menu>
                               </td>
                             </tr>
                           );
@@ -1114,6 +1148,19 @@ const PackageCard = memo(function PackageCard({
     </li>
   );
 });
+
+function formatDistributionTarget(distribution: Distribution): string {
+  const platform = distribution.platform === "win"
+    ? "Windows"
+    : distribution.platform === "mac"
+      ? "Mac"
+      : "Windows & Mac";
+  const rhinoVersion = distribution.rhinoVersion === "any"
+    ? "Any Rhino version"
+    : `Rhino ${distribution.rhinoVersion.replace(/^rh/, "").replace("_", ".")}`;
+
+  return `${platform} · ${rhinoVersion}`;
+}
 
 function Badge({ label, active }: { label: string; active: boolean }) {
   return (
