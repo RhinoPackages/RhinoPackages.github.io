@@ -19,6 +19,13 @@ permissions:
   pages: write
   id-token: write
 
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_XMLDOC_MODE: skip
+  NEXT_TELEMETRY_DISABLED: 1
+
 jobs:
   update-data:
     if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
@@ -36,6 +43,22 @@ jobs:
             8.0.x
             9.0.x
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Build.props', 'RhinoPackages.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Cache .NET build output
+        uses: actions/cache@v4
+        with:
+          path: artifacts
+          key: ${{ runner.os }}-dotnet-build-${{ hashFiles('**/*.cs', '**/*.csproj', 'Directory.Build.props', 'RhinoPackages.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-build-
+
       - name: Restore dependencies
         run: dotnet restore RhinoPackages.sln
 
@@ -44,7 +67,7 @@ jobs:
 
       - name: Run Backend Generator
         working-directory: ./RhinoPackages.Generator
-        run: dotnet run
+        run: dotnet run --configuration Release --no-restore
 
       - name: Detect data changes
         id: detect-changes
@@ -124,10 +147,29 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: RhinoPackages.Web/package-lock.json
+
+      - name: Cache node_modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: RhinoPackages.Web/node_modules
+          key: ${{ runner.os }}-node24-modules-${{ hashFiles('RhinoPackages.Web/package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         working-directory: ./RhinoPackages.Web
-        run: npm install
+        run: npm ci
+
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: RhinoPackages.Web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('RhinoPackages.Web/package-lock.json') }}-${{ hashFiles('RhinoPackages.Web/app/**', 'RhinoPackages.Web/next.config.js', 'RhinoPackages.Web/tailwind.config.ts', 'RhinoPackages.Web/postcss.config.js', 'RhinoPackages.Web/tsconfig.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('RhinoPackages.Web/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
 
       - name: Generate Version Tag
         id: version
