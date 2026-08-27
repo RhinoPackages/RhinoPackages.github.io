@@ -11,7 +11,7 @@ on:
       - reopened
       - ready_for_review
   schedule:
-    - cron: '0 */6 * * *' # Run daily at midnight to update packages
+    - cron: '0 */3 * * *' # Run every 3 hours to update packages
   workflow_dispatch:
 
 permissions:
@@ -62,12 +62,15 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore RhinoPackages.sln
 
+      - name: Build solution
+        run: dotnet build RhinoPackages.sln --configuration Release --no-restore
+
       - name: Run backend unit tests
-        run: dotnet test RhinoPackages.Tests/RhinoPackages.Tests.csproj --configuration Release --no-restore
+        run: dotnet test RhinoPackages.Tests/RhinoPackages.Tests.csproj --configuration Release --no-restore --no-build
 
       - name: Run Backend Generator
         working-directory: ./RhinoPackages.Generator
-        run: dotnet run --configuration Release --no-restore
+        run: dotnet run --configuration Release --no-restore --no-build
 
       - name: Detect data changes
         id: detect-changes
@@ -193,8 +196,17 @@ jobs:
         run: zip -r ../site-export.zip out/
 
 
+      - name: Check release day
+        id: release-day
+        run: |
+          if [ "$(date -u +%d)" = "01" ]; then
+            echo "is_release_day=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release_day=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release
-        if: github.event_name != 'pull_request' && steps.detect-structural-changes.outputs.structural_changed == 'true'
+        if: github.event_name != 'pull_request' && steps.detect-structural-changes.outputs.structural_changed == 'true' && steps.release-day.outputs.is_release_day == 'true'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "site-export.zip"
