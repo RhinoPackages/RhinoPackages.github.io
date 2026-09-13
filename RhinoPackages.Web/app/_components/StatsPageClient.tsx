@@ -652,6 +652,37 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           </ul>
         </section>
       )}
+
+      {/* Updated packages, excluding anything already listed as new above */}
+      {stats.updatedThisMonthList.length > 0 && (
+        <section aria-labelledby="stats-updated">
+          <h2
+            id="stats-updated"
+            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+          >
+            Updated This Month
+          </h2>
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {stats.updatedThisMonthList.map((pkg) => (
+              <li key={pkg.id}>
+                <Link
+                  href={`/?p=${encodeURIComponent(pkg.id)}`}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PackageThumb pkg={pkg} />
+                    <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
+                    <span className="flex-shrink-0 text-xs text-gray-400 dark:text-zinc-500">v{pkg.version}</span>
+                  </span>
+                  <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
+                    {formatDate(pkg.updated)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
@@ -982,14 +1013,24 @@ function getStats(cache: Package[]) {
 
   const authors = new Map<string, AuthorStats>();
   const newThisMonth: Package[] = [];
+  const updatedThisMonthList: Package[] = [];
 
   for (const pkg of cache) {
     totalDownloads += pkg.downloads;
     weeklyDownloads += pkg.downloadsWeek ?? 0;
 
     if (pkg.updated > lastUpdated) lastUpdated = pkg.updated;
-    if (now - new Date(pkg.updated).getTime() <= monthMs) updatedThisMonth++;
-    if (pkg.firstReleased && now - new Date(pkg.firstReleased).getTime() <= monthMs) {
+    // A package's first version also counts as an "update" the day it
+    // ships, so a brand-new package would otherwise show up in both lists.
+    // Keep them mutually exclusive: something first released this month
+    // belongs in "New", not "Updated".
+    const isNewThisMonth =
+      !!pkg.firstReleased && now - new Date(pkg.firstReleased).getTime() <= monthMs;
+    if (now - new Date(pkg.updated).getTime() <= monthMs) {
+      updatedThisMonth++;
+      if (!isNewThisMonth) updatedThisMonthList.push(pkg);
+    }
+    if (isNewThisMonth) {
       newThisMonth.push(pkg);
     }
 
@@ -1066,6 +1107,9 @@ function getStats(cache: Package[]) {
   newThisMonth.sort(
     (a, b) => new Date(b.firstReleased!).getTime() - new Date(a.firstReleased!).getTime(),
   );
+  updatedThisMonthList.sort(
+    (a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime(),
+  );
 
   return {
     totalPackages: cache.length,
@@ -1076,5 +1120,6 @@ function getStats(cache: Package[]) {
     dist,
     authors: rankedAuthors,
     newThisMonth: newThisMonth.slice(0, 15),
+    updatedThisMonthList: updatedThisMonthList.slice(0, 15),
   };
 }
