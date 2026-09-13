@@ -8,9 +8,7 @@ import { defaultParams, hasActiveFilters, usePackageContext } from "./PackageCon
 import OwnersControl from "./OwnersControl";
 
 export default function Sidebar() {
-  const { navigate, status, controls } = usePackageContext();
-
-  const hasFilters = hasActiveFilters(controls);
+  const { navigate } = usePackageContext();
 
   return (
     <form
@@ -19,6 +17,25 @@ export default function Sidebar() {
       className="sticky top-6 flex w-[14rem] flex-shrink-0 flex-col items-start gap-3"
     >
       <SearchBar />
+      <SidebarFilters />
+    </form>
+  );
+}
+
+/**
+ * Everything but the search box: sort, platform/version/type filters,
+ * maintenance status, and the reset/archive links. Split out from the
+ * search box so the mobile sticky bar can show search directly and put
+ * the rest behind a "Filters" sheet instead of hiding both behind one
+ * hamburger toggle.
+ */
+export function SidebarFilters() {
+  const { navigate, status, controls } = usePackageContext();
+
+  const hasFilters = hasActiveFilters(controls);
+
+  return (
+    <div className="flex w-full flex-col items-start gap-3">
       <OwnersControl />
       <Sort />
       <Spacer />
@@ -110,7 +127,7 @@ export default function Sidebar() {
           </p>
         </div>
       )}
-    </form>
+    </div>
   );
 }
 
@@ -224,7 +241,7 @@ function Toggle({
   );
 }
 
-function SearchBar() {
+export function SearchBar() {
   const { controls, navigate } = usePackageContext();
   const [localSearch, setLocalSearch] = useState(controls.search);
   const inputRef = useRef<HTMLInputElement>(null);
