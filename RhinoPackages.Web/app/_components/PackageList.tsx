@@ -451,6 +451,21 @@ const PackageCard = memo(function PackageCard({
     commandPlatform && commandPlatforms.includes(commandPlatform) ? commandPlatform : defaultPlatform;
   const rhinoRelease = yakRhinoRelease(pkg);
   const installCommand = yakInstallCommand(shownPlatform, rhinoRelease, pkg.id);
+
+  // Builds for the version this card is showing. The pre-release toggle only
+  // governs the history table, so resolve against pkg.version rather than
+  // reusing versionRows, and fall back to the newest stable release when the
+  // history has no exact match.
+  const latestDistributions = (() => {
+    if (!versionHistory || versionHistory.length === 0) return [];
+    const exact = versionHistory.find((entry) => entry.version === pkg.version);
+    if (exact) return exact.distributions;
+    const newestStable = versionHistory
+      .filter((entry) => !entry.prerelease)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    return (newestStable ?? versionHistory[0]).distributions;
+  })();
+  const orderedLatest = orderDistributionsForHost(latestDistributions, hostPlatform);
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
   const date = formatDate(pkg.updated);
   const downloads = pkg.downloads.toLocaleString();
@@ -950,6 +965,39 @@ const PackageCard = memo(function PackageCard({
                 <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
                 Install in Rhino
               </a>
+              {/* Dragging a .yak onto Rhino installs it on both platforms, which
+                  is the one route that needs neither the protocol handler nor
+                  a terminal. A single build needs no menu. */}
+              {orderedLatest.length === 1 ? (
+                <a
+                  href={orderedLatest[0].url}
+                  download={orderedLatest[0].filename}
+                  aria-label={`Download ${orderedLatest[0].filename}`}
+                  title={`Download ${orderedLatest[0].filename} (${formatDistributionTarget(orderedLatest[0])})`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                  Download .yak
+                </a>
+              ) : orderedLatest.length > 1 ? (
+                <Menu as="div" className="relative inline-flex text-left">
+                  <Menu.Button
+                    aria-label={`Download a .yak file for ${pkg.id} ${pkg.version}`}
+                    title="Download the package file"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+                  >
+                    <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                    Download .yak
+                    <ChevronDownIcon className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                  </Menu.Button>
+                  <Menu.Items className="absolute left-0 top-full z-30 mt-1 w-72 origin-top-left rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800 dark:ring-white/10">
+                    <DistributionMenuItems
+                      distributions={latestDistributions}
+                      hostPlatform={hostPlatform}
+                    />
+                  </Menu.Items>
+                </Menu>
+              ) : null}
               {websiteHref && (
                 <a
                   href={websiteHref}
@@ -1066,6 +1114,10 @@ const PackageCard = memo(function PackageCard({
               <p className="mt-2 text-[0.7rem] leading-relaxed text-gray-500 dark:text-zinc-500">
                 Assumes a default Rhino {rhinoRelease} installation — yak is not on your PATH, so
                 the full path is part of the command. Restart Rhino once it finishes.
+                {orderedLatest.length > 0 && (
+                  <> Or drag a downloaded .yak onto an open Rhino window, which behaves the same on
+                  Windows and macOS.</>
+                )}
               </p>
             </div>
 
@@ -1207,28 +1259,10 @@ const PackageCard = memo(function PackageCard({
                                     <ChevronDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
                                   </Menu.Button>
                                   <Menu.Items className="absolute right-0 top-full z-30 mt-1 w-72 origin-top-right rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800 dark:ring-white/10">
-                                    <div className="px-2 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
-                                      Download package
-                                    </div>
-                                    {row.distributions.map((distribution) => (
-                                      <Menu.Item key={distribution.url}>
-                                        {({ active }) => (
-                                          <a
-                                            href={distribution.url}
-                                            download={distribution.filename}
-                                            className={`flex items-start gap-2 rounded px-2 py-2 text-left text-xs ${active ? "bg-brand-50 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300" : "text-gray-700 dark:text-zinc-200"}`}
-                                          >
-                                            <ArrowDownTrayIcon className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
-                                            <span className="min-w-0">
-                                              <span className="block truncate font-medium">{distribution.filename}</span>
-                                              <span className="mt-0.5 block text-[0.65rem] text-gray-500 dark:text-zinc-400">
-                                                {formatDistributionTarget(distribution)}
-                                              </span>
-                                            </span>
-                                          </a>
-                                        )}
-                                      </Menu.Item>
-                                    ))}
+                                    <DistributionMenuItems
+                                      distributions={row.distributions}
+                                      hostPlatform={hostPlatform}
+                                    />
                                   </Menu.Items>
                                 </Menu>
                               </td>
@@ -1289,6 +1323,34 @@ function useHostPlatform(): HostPlatform {
  * this package actually supports. Prefer the newest stable one; only send
  * people to the WIP when that is the sole target.
  */
+/** Whether a distribution's build runs on this computer. Yak marks a
+ *  cross-platform build "any", which runs on both. */
+function runsOnHost(distribution: Distribution, host: HostPlatform): boolean {
+  if (host === "other") return false;
+  if (distribution.platform === "any") return true;
+  return distribution.platform === (host === "windows" ? "win" : "mac");
+}
+
+/**
+ * Put the builds that run on this computer first, cross-platform ones next,
+ * and the other platform's last, so the download a reader wants is the one
+ * under the cursor. Sorting is stable, so the server's order survives within
+ * each band and an unknown host leaves the list untouched.
+ */
+function orderDistributionsForHost(
+  distributions: Distribution[],
+  host: HostPlatform
+): Distribution[] {
+  const rank = (distribution: Distribution) => {
+    if (host === "other") return 0;
+    if (distribution.platform === (host === "windows" ? "win" : "mac")) return 0;
+    if (distribution.platform === "any") return 1;
+    return 2;
+  };
+
+  return [...distributions].sort((a, b) => rank(a) - rank(b));
+}
+
 function platformLabel(platform: YakPlatform): string {
   return platform === "windows" ? "Windows" : "macOS";
 }
@@ -1317,6 +1379,53 @@ function yakInstallCommand(
   return platform === "windows"
     ? `& "C:\\Program Files\\Rhino ${release}\\System\\Yak.exe" install ${target}`
     : `"/Applications/Rhino ${release}.app/Contents/Resources/bin/yak" install ${target}`;
+}
+
+/**
+ * The body of a "download the .yak" menu: every build published for one
+ * version, the ones that run on this computer first. Shared by the action row
+ * and the version history table so both stay in step.
+ */
+function DistributionMenuItems({
+  distributions,
+  hostPlatform,
+}: {
+  distributions: Distribution[];
+  hostPlatform: HostPlatform;
+}) {
+  const ordered = orderDistributionsForHost(distributions, hostPlatform);
+
+  return (
+    <>
+      <div className="px-2 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+        Download package
+      </div>
+      {ordered.map((distribution) => (
+        <Menu.Item key={distribution.url}>
+          {({ active }) => (
+            <a
+              href={distribution.url}
+              download={distribution.filename}
+              className={`flex items-start gap-2 rounded px-2 py-2 text-left text-xs ${active ? "bg-brand-50 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300" : "text-gray-700 dark:text-zinc-200"}`}
+            >
+              <ArrowDownTrayIcon className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="block truncate font-medium">{distribution.filename}</span>
+                <span className="mt-0.5 block text-[0.65rem] text-gray-500 dark:text-zinc-400">
+                  {formatDistributionTarget(distribution)}
+                  {runsOnHost(distribution, hostPlatform) && (
+                    <span className="ml-1 font-medium text-green-700 dark:text-green-500">
+                      · runs on this computer
+                    </span>
+                  )}
+                </span>
+              </span>
+            </a>
+          )}
+        </Menu.Item>
+      ))}
+    </>
+  );
 }
 
 function formatDistributionTarget(distribution: Distribution): string {
