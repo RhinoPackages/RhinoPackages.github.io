@@ -348,6 +348,11 @@ const PackageCard = memo(function PackageCard({
   );
   const [copied, setCopied] = useState(false);
   const [copiedName, setCopiedName] = useState(false);
+  const [copiedCommand, setCopiedCommand] = useState(false);
+  // Null until the reader picks a tab by hand, so that the detected platform
+  // keeps winning until they say otherwise.
+  const [commandPlatform, setCommandPlatform] = useState<YakPlatform | null>(null);
+  const hostPlatform = useHostPlatform();
   const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
 
   // Keep showPrereleases in sync when navigating via deep link after first render.
@@ -377,6 +382,13 @@ const PackageCard = memo(function PackageCard({
     navigator.clipboard.writeText(pkg.id);
     setCopiedName(true);
     setTimeout(() => setCopiedName(false), 2000);
+  };
+
+  const handleCopyCommand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(installCommand);
+    setCopiedCommand(true);
+    setTimeout(() => setCopiedCommand(false), 2000);
   };
 
   useEffect(() => {
@@ -420,6 +432,25 @@ const PackageCard = memo(function PackageCard({
   const { websiteHref, emailHref } = parseWebsiteAction(pkg.homepageUrl);
 
   const link = `rhino://package/search?name=${pkg.id}`;
+
+  // The rhino:// link works on both platforms, but the command-line fallback
+  // does not: yak ships inside the Rhino installation, under a different path
+  // on each. Only offer the platforms this package actually builds for, so a
+  // Windows-only plugin never hands out a Mac command that cannot work.
+  const commandPlatforms: YakPlatform[] = ([
+    has(Filters.Windows) ? "windows" : null,
+    has(Filters.Mac) ? "mac" : null,
+  ] as (YakPlatform | null)[]).filter((entry): entry is YakPlatform => entry !== null);
+  // Default to this computer when the package supports it, and otherwise to
+  // the one platform it does support. A reader on a Mac looking up a
+  // Windows-only plugin gets the Windows command, which is the useful answer.
+  const preferredPlatform: YakPlatform = hostPlatform === "mac" ? "mac" : "windows";
+  const defaultPlatform: YakPlatform =
+    commandPlatforms.includes(preferredPlatform) ? preferredPlatform : commandPlatforms[0] ?? preferredPlatform;
+  const shownPlatform: YakPlatform =
+    commandPlatform && commandPlatforms.includes(commandPlatform) ? commandPlatform : defaultPlatform;
+  const rhinoRelease = yakRhinoRelease(pkg);
+  const installCommand = yakInstallCommand(shownPlatform, rhinoRelease, pkg.id);
   const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
   const date = formatDate(pkg.updated);
   const downloads = pkg.downloads.toLocaleString();
@@ -960,16 +991,83 @@ const PackageCard = memo(function PackageCard({
             </div>
             {/* The install button is a rhino:// link, so it does nothing at
                 all on a machine without Rhino — every phone, for a start —
-                and the browser gives no feedback. Say what it does and how
-                to install by hand instead of leaving people stuck. */}
-            <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-zinc-400">
-              Install opens Rhino&apos;s Package Manager on this computer. Nothing happening?
-              Rhino is not installed here — run{" "}
-              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-800 dark:text-zinc-300">
-                _PackageManager
-              </code>{" "}
-              inside Rhino and search for <span className="font-semibold">{pkg.id}</span>.
-            </p>
+                and the browser gives no feedback. Say what it does, and offer
+                both hand-install routes instead of leaving people stuck. */}
+            <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+              <p className="text-xs leading-relaxed text-gray-500 dark:text-zinc-400">
+                Install opens Rhino&apos;s Package Manager on this computer. Nothing happening?
+                Rhino is not installed here, or it never registered the{" "}
+                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-900 dark:text-zinc-300">
+                  rhino://
+                </code>{" "}
+                handler — run{" "}
+                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-900 dark:text-zinc-300">
+                  _PackageManager
+                </code>{" "}
+                inside Rhino and search for <span className="font-semibold">{pkg.id}</span>, or
+                install it from a terminal:
+              </p>
+
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                {commandPlatforms.length > 1 ? (
+                  <div
+                    role="group"
+                    aria-label="Operating system for the install command"
+                    className="inline-flex overflow-hidden rounded-md ring-1 ring-inset ring-gray-300 dark:ring-zinc-700"
+                  >
+                    {commandPlatforms.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        aria-pressed={shownPlatform === option}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCommandPlatform(option);
+                        }}
+                        className={`px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${shownPlatform === option
+                          ? "bg-brand-600 text-white"
+                          : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          }`}
+                      >
+                        {platformLabel(option)}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-300 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700">
+                    {platformLabel(shownPlatform)} only
+                  </span>
+                )}
+                <span className="text-[0.7rem] text-gray-500 dark:text-zinc-500">
+                  {shownPlatform === "windows" ? "PowerShell" : "Terminal"}
+                </span>
+              </div>
+
+              <div className="mt-2 flex items-stretch gap-2">
+                <code className="min-w-0 flex-grow overflow-x-auto whitespace-pre rounded bg-white px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700">
+                  {installCommand}
+                </code>
+                <button
+                  type="button"
+                  onClick={handleCopyCommand}
+                  aria-label={`Copy the ${platformLabel(shownPlatform)} install command for ${pkg.id}`}
+                  title="Copy the install command"
+                  className="inline-flex flex-none items-center gap-1.5 rounded-md bg-white px-2.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+                >
+                  {copiedCommand ? (
+                    <CheckIcon className="h-3.5 w-3.5 text-green-600 dark:text-green-500" aria-hidden="true" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                  )}
+                  {copiedCommand ? "Copied" : "Copy"}
+                </button>
+              </div>
+
+              <p className="mt-2 text-[0.7rem] leading-relaxed text-gray-500 dark:text-zinc-500">
+                Assumes a default Rhino {rhinoRelease} installation — yak is not on your PATH, so
+                the full path is part of the command. Restart Rhino once it finishes.
+              </p>
+            </div>
 
             {/* Download growth over time (daily snapshots) */}
             {downloadHistory && downloadHistory.length >= 2 && (
@@ -1148,6 +1246,78 @@ const PackageCard = memo(function PackageCard({
     </li>
   );
 });
+
+type HostPlatform = "windows" | "mac" | "other";
+
+/** The two platforms Rhino ships a yak executable for. */
+type YakPlatform = "windows" | "mac";
+
+// Resolved once per page load, then shared: every expanded card asks the same
+// question and the answer cannot change while the tab is open.
+let cachedHostPlatform: HostPlatform | null = null;
+
+function detectHostPlatform(): HostPlatform {
+  if (typeof navigator === "undefined") return "other";
+  const hints = (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData;
+  const haystack = `${hints?.platform ?? ""} ${navigator.platform ?? ""} ${navigator.userAgent ?? ""}`.toLowerCase();
+  if (haystack.includes("win")) return "windows";
+  // Also catches iPadOS asking for the desktop site, which reports as a Mac.
+  // Rhino does not run there either way, so the Mac command is the better guess.
+  if (haystack.includes("mac") || haystack.includes("darwin")) return "mac";
+  return "other";
+}
+
+/**
+ * Whether this browser is running on Windows or a Mac. Always "other" on the
+ * first client render so that the static HTML Next.js exported and the
+ * hydrated tree agree; the real value lands in the effect straight after.
+ */
+function useHostPlatform(): HostPlatform {
+  const [platform, setPlatform] = useState<HostPlatform>("other");
+
+  useEffect(() => {
+    if (cachedHostPlatform === null) cachedHostPlatform = detectHostPlatform();
+    setPlatform(cachedHostPlatform);
+  }, []);
+
+  return platform;
+}
+
+/**
+ * Which Rhino the command line should point at. Yak lives inside a specific
+ * Rhino installation rather than on PATH, so the path has to name a release
+ * this package actually supports. Prefer the newest stable one; only send
+ * people to the WIP when that is the sole target.
+ */
+function platformLabel(platform: YakPlatform): string {
+  return platform === "windows" ? "Windows" : "macOS";
+}
+
+function yakRhinoRelease(pkg: Package): string {
+  if ((pkg.filters & Filters.Rhino8) === Filters.Rhino8) return "8";
+  if ((pkg.filters & Filters.Rhino9) === Filters.Rhino9) return "9 WIP";
+  if ((pkg.filters & Filters.Rhino7) === Filters.Rhino7) return "7";
+  if ((pkg.filters & Filters.Rhino6) === Filters.Rhino6) return "6";
+  return "8";
+}
+
+/**
+ * The yak invocation for one package. Both platforms need the executable's
+ * full path because neither installer puts it on PATH, and both paths contain
+ * a space, so both stay quoted — which on Windows means PowerShell's call
+ * operator, since a quoted string on its own is just a string there.
+ */
+function yakInstallCommand(
+  platform: YakPlatform,
+  release: string,
+  packageId: string,
+  version?: string | null
+): string {
+  const target = version ? `${packageId} ${version}` : packageId;
+  return platform === "windows"
+    ? `& "C:\\Program Files\\Rhino ${release}\\System\\Yak.exe" install ${target}`
+    : `"/Applications/Rhino ${release}.app/Contents/Resources/bin/yak" install ${target}`;
+}
 
 function formatDistributionTarget(distribution: Distribution): string {
   const platform = distribution.platform === "win"
