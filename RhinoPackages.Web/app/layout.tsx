@@ -58,6 +58,10 @@ const structuredData = {
 };
 
 export const metadata: Metadata = {
+  // Google Search Console ownership check for https://rhinopackages.github.io/.
+  verification: {
+    google: "SGgQJKmjAZArbrLIt4_tpjWv63D8GH6S269754PDQF4",
+  },
   title: {
     default: "Rhino Packages — Browse & Install Plugins",
     template: "%s | Rhino Packages",
