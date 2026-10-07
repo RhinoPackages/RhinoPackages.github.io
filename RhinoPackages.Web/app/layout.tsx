@@ -121,6 +121,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="antialiased overflow-x-hidden" suppressHydrationWarning>
       <head>
         <Telemetry />
+        {/* Tags <html> with the visitor's OS before first paint, so pages can
+            show only the matching terminal command without a layout shift.
+            Same test as detectHostPlatform in PackageList. */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){var n=navigator,h=((n.userAgentData&&n.userAgentData.platform)||'')+' '+(n.platform||'')+' '+(n.userAgent||'');h=h.toLowerCase();document.documentElement.dataset.os=h.indexOf('win')>-1?'windows':h.indexOf('mac')>-1||h.indexOf('darwin')>-1?'mac':'other';})();",
+          }}
+        />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger

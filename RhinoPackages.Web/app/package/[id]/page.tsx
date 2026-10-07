@@ -318,16 +318,20 @@ export default function PackagePage({ params }: Params) {
           {commandPlatforms.length > 0 && (
             <li>
               Or install it from a terminal (assumes a default Rhino {rhinoRelease} installation):
-              {commandPlatforms.map((platform) => (
-                <div key={platform} className="mt-2">
-                  <span className="pkg-muted">
-                    {platformLabel(platform)} ({platform === "windows" ? "PowerShell" : "Terminal"})
-                  </span>
-                  <pre className="mt-1 overflow-x-auto rounded-md bg-white px-3 py-2 font-mono text-xs text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700">
-                    <code>{yakInstallCommand(platform, rhinoRelease, pkg.id)}</code>
-                  </pre>
-                </div>
-              ))}
+              {/* Both commands ship in the HTML; globals.css hides the other OS's
+                  one once the layout's script has tagged <html data-os>. */}
+              <div className="yak-commands">
+                {commandPlatforms.map((platform) => (
+                  <div key={platform} data-yak-platform={platform} className="mt-2">
+                    <span className="pkg-muted">
+                      {platformLabel(platform)} ({platform === "windows" ? "PowerShell" : "Terminal"})
+                    </span>
+                    <pre className="mt-1 overflow-x-auto rounded-md bg-white px-3 py-2 font-mono text-xs text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700">
+                      <code>{yakInstallCommand(platform, rhinoRelease, pkg.id)}</code>
+                    </pre>
+                  </div>
+                ))}
+              </div>
             </li>
           )}
           {builds.length > 0 && (
