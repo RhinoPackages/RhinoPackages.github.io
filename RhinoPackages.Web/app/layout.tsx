@@ -11,6 +11,12 @@ import { formatDateTime } from "./_components/format";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "./_components/seo";
 
 import Image from "next/image";
+import {
+  ChartBarIcon,
+  QuestionMarkCircleIcon,
+  Squares2X2Icon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
 
 
 const structuredData = {
@@ -116,6 +122,14 @@ export const metadata: Metadata = {
   },
 };
 
+// Header navigation. Icons only on phones; labels from the xs breakpoint up.
+const navLinks = [
+  { href: "/packages", label: "Packages", title: "All packages A–Z", Icon: Squares2X2Icon },
+  { href: "/authors", label: "Authors", title: "All authors A–Z", Icon: UserGroupIcon },
+  { href: "/stats", label: "Stats", title: "Directory statistics", Icon: ChartBarIcon },
+  { href: "/faq", label: "FAQ", title: "Frequently asked questions", Icon: QuestionMarkCircleIcon },
+];
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="antialiased overflow-x-hidden" suppressHydrationWarning>
@@ -158,40 +172,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </h1>
               </a>
               <div className="flex flex-shrink-0 items-center gap-1 xs:gap-2">
-                <a
-                  href="/faq"
-                  title="Frequently asked questions"
-                  aria-label="Frequently asked questions"
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-4 w-4" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                  </svg>
-                  <span className="hidden xs:inline">FAQ</span>
-                </a>
-                <a
-                  href="/stats"
-                  title="Directory statistics"
-                  aria-label="Directory statistics"
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="h-4 w-4"
-                    aria-hidden="true"
+                {navLinks.map(({ href, label, title, Icon }) => (
+                  <a
+                    key={href}
+                    href={href}
+                    title={title}
+                    aria-label={title}
+                    className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
-                    />
-                  </svg>
-                  <span className="hidden xs:inline">Stats</span>
-                </a>
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden xs:inline">{label}</span>
+                  </a>
+                ))}
                 <ThemeToggle />
               </div>
             </div>
@@ -204,17 +196,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </div>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
-              <nav aria-label="Site" className="mb-3 flex justify-center gap-4">
-                <a href="/packages" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
-                  All packages A–Z
-                </a>
-                <a href="/authors" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
-                  Authors
-                </a>
-                <a href="/stats" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
-                  Directory stats
-                </a>
-              </nav>
               <p>Site Generated: {formatDateTime(new Date())}</p>
               {process.env.NEXT_PUBLIC_VERSION && (
                 <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>
