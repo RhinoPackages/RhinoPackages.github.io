@@ -329,7 +329,22 @@ const PackageCard = memo(function PackageCard({
   // keeps winning until they say otherwise.
   const [commandPlatform, setCommandPlatform] = useState<YakPlatform | null>(null);
   const hostPlatform = useHostPlatform();
-  const onToggle = () => navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
+  const onToggle = () => {
+    if (isExpanded) {
+      // Collapsing removes up to a thousand pixels of details. If the reader
+      // has scrolled past the card's header, that height vanishes above them
+      // and the cards below jump up. Pin the header to the top instead; it
+      // stays put while the card shrinks beneath it.
+      // The offset is the card's scroll-margin, which clears the phone's sticky search bar.
+      const card = document.getElementById(packageAnchorId(pkg.id));
+      const top = card?.getBoundingClientRect().top ?? 0;
+      if (card && top < 0) {
+        const margin = parseFloat(getComputedStyle(card).scrollMarginTop) || 0;
+        window.scrollBy({ top: top - margin, behavior: "auto" });
+      }
+    }
+    navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
+  };
 
   // Keep showPrereleases in sync when navigating via deep link after first render.
   useEffect(() => {
@@ -540,7 +555,7 @@ const PackageCard = memo(function PackageCard({
   return (
     <li
       id={packageAnchorId(pkg.id)}
-      className={`group flex scroll-mt-4 flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
+      className={`group flex scroll-mt-20 flex-col md:scroll-mt-4 overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
         ? "border-brand-300 shadow-md dark:border-brand-700 dark:bg-zinc-900/80"
         : "border-gray-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80"
         } p-4`}

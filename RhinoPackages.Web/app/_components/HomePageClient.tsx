@@ -22,7 +22,9 @@ export default function HomePageClient({ initialCache = [] }: { initialCache?: P
           <Sidebar />
         </div>
         <div className="min-w-0 flex-1 md:pl-6">
-          <div className="md:hidden">
+          {/* Sticky here, not inside MobileSearchBar: a sticky element only
+              sticks within its parent, and this wrapper is the list column. */}
+          <div className="sticky top-0 z-20 md:hidden">
             <MobileSearchBar />
           </div>
           <PackageList />
@@ -65,7 +67,7 @@ function MobileSearchBar() {
   }, [open]);
 
   return (
-    <div className="sticky top-0 z-20 -mx-4 flex items-center gap-2 bg-slate-50/95 px-4 py-3 backdrop-blur-sm dark:bg-zinc-950/95">
+    <div className="-mx-4 flex items-center gap-2 bg-slate-50/95 px-4 py-3 backdrop-blur-sm dark:bg-zinc-950/95">
       <div className="min-w-0 flex-1">
         <SearchBar />
       </div>
