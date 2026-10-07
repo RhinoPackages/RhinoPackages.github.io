@@ -126,7 +126,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Header navigation. Icons only on phones; labels from the xs breakpoint up.
+// Header navigation. Icons only on phones; labels from the sm breakpoint up.
 const navLinks = [
   { href: "/packages", label: "Packages", title: "All packages A–Z", Icon: Squares2X2Icon },
   { href: "/authors", label: "Authors", title: "All authors A–Z", Icon: UserGroupIcon },
@@ -185,17 +185,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <span className="font-light text-gray-500 dark:text-zinc-400">Packages</span>
                 </h1>
               </a>
-              <div className="flex flex-shrink-0 items-center gap-0.5 xs:gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-0.5 sm:gap-2">
                 {navLinks.map(({ href, label, title, Icon }) => (
                   <a
                     key={href}
                     href={href}
                     title={title}
                     aria-label={title}
-                    className="flex items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
+                    className="flex items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 sm:px-3"
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden xs:inline">{label}</span>
+                    <span className="hidden sm:inline">{label}</span>
                   </a>
                 ))}
                 <ThemeToggle />
