@@ -1,25 +1,98 @@
-import fs from "fs";
-import path from "path";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import HomePageClient from "./_components/HomePageClient";
 import Spinner from "./_components/Spinner";
-import type { Package } from "./_components/api";
+import { loadPackages } from "./_components/packageData";
+import { packagePath } from "./_components/packageInfo";
+import { openGraphDefaults, siteUrl } from "./_components/seo";
 
 export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    url: "https://rhinopackages.github.io/",
+    ...openGraphDefaults,
+    url: `${siteUrl}/`,
+    title: "Rhino Packages — Browse & Install 1,000+ Rhino 3D & Grasshopper Plugins",
+    description:
+      "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse over 1,000 packages, filter by platform and version, install with one click.",
   },
 };
 
-function loadPackages(): Package[] {
-  const dataPath = path.join(process.cwd(), "public", "data.json");
-  const raw = fs.readFileSync(dataPath, "utf-8");
-  return JSON.parse(raw) as Package[];
-}
+// Describes the directory and its FAQ, so it belongs to this page alone; the
+// layout only carries the site-wide WebSite and Organization entries.
+const homeStructuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": `${siteUrl}/#collection`,
+      name: "Rhino 3D and Grasshopper Plugin Directory",
+      description: "Complete catalog of Rhino 3D plugins and Grasshopper add-ons available through the Yak package manager, with version history, platform compatibility, and direct install links.",
+      url: `${siteUrl}/`,
+      isPartOf: { "@id": `${siteUrl}/#website` },
+      about: {
+        "@type": "SoftwareApplication",
+        name: "Rhinoceros 3D",
+        applicationCategory: "DesignApplication",
+        operatingSystem: "Windows, macOS",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is Rhino Packages?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Rhino Packages is the most comprehensive directory of Rhino 3D and Grasshopper plugins. It indexes over 1,000 packages from the Yak package manager with search, filtering, version history, and one-click install links.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do I install a Rhino plugin from this directory?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Click the 'Install' button on any package card. This opens a rhino:// protocol link that launches Rhino's built-in Package Manager and installs the plugin directly. You can also use the _PackageManager command inside Rhino.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What is the difference between a Rhino plugin and a Grasshopper plugin?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Rhino plugins (.rhp) add commands and features directly to Rhinoceros 3D. Grasshopper plugins (.gha) add components to Grasshopper, Rhino's visual programming environment for parametric and computational design. Many packages include both.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Which Rhino versions are supported?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Packages in this directory support Rhino 6, Rhino 7, Rhino 8, and Rhino 9 (WIP). You can filter by version to find plugins compatible with your installation. Most actively maintained plugins support Rhino 7, 8, and 9.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Are these plugins available for Mac?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Many plugins support both Windows and macOS. Use the platform filter to find Mac-compatible packages. Platform support depends on the individual plugin author.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How often is the plugin directory updated?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "The directory is updated daily via automated GitHub Actions that sync with the official Yak package manager feed. New plugins and version updates appear within 24 hours of publication.",
+          },
+        },
+      ],
+    },
+  ],
+};
 
 export default function Page() {
   const packages = loadPackages();
@@ -43,6 +116,12 @@ export default function Page() {
       >
         <HomePageClient initialCache={packages} />
       </Suspense>
+
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+      />
 
       {/* Static crawlable content for search engines. Collapsed with native
           <details> so the markup still ships in the HTML for crawlers while
@@ -76,13 +155,26 @@ export default function Page() {
           <ul className="mb-10 grid grid-cols-1 gap-x-8 gap-y-2 text-sm text-gray-600 dark:text-zinc-400 sm:grid-cols-2 lg:grid-cols-3">
             {topPackages.map((pkg) => (
               <li key={pkg.id}>
-                <strong>{pkg.id}</strong>
+                <a
+                  href={packagePath(pkg.id)}
+                  className="rounded-sm font-semibold text-gray-900 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
+                >
+                  {pkg.id}
+                </a>
                 <span className="text-gray-400 dark:text-zinc-500">
                   {" "}— {pkg.downloads.toLocaleString()} downloads
                 </span>
               </li>
             ))}
           </ul>
+          <p className="-mt-6 mb-10 text-sm">
+            <a
+              href="/packages"
+              className="rounded-sm font-medium text-brand-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-400 dark:focus-visible:ring-brand-400"
+            >
+              See all {packages.length.toLocaleString()} packages A–Z
+            </a>
+          </p>
 
             </div>
           </details>

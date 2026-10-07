@@ -1,6 +1,7 @@
 "use client";
 
 import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
+import { packagePath } from "@/app/_components/packageInfo";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { nearestIndex, timePositions } from "./chart";
@@ -392,7 +393,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                   <td className="px-4 py-2">
                     <div className="flex flex-wrap items-center gap-1">
                       {author.items.slice(0, 12).map((item) => (
-                        <Link key={item.id} href={`/?p=${encodeURIComponent(item.id)}`} title={item.id}>
+                        <Link key={item.id} href={packagePath(item.id)} title={item.id}>
                           <PackageIcon
                             className="h-5 w-5 rounded-sm transition-transform hover:scale-125"
                             src={item.iconUrl}
@@ -409,7 +410,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                       {author.creditedItems.slice(0, 6).map((item) => (
                         <Link
                           key={item.id}
-                          href={`/?p=${encodeURIComponent(item.id)}`}
+                          href={packagePath(item.id)}
                           title={`${item.id} (credited, not owner)`}
                         >
                           <PackageIcon
@@ -523,7 +524,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                     <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{i + 1}</td>
                     <td className="px-4 py-2">
                       <Link
-                        href={`/?p=${encodeURIComponent(pkg.id)}`}
+                        href={packagePath(pkg.id)}
                         title={`Show ${pkg.id}`}
                         className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
@@ -593,7 +594,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                     <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{rank}</td>
                     <td className="px-4 py-2">
                       <Link
-                        href={`/?p=${encodeURIComponent(pkg.id)}`}
+                        href={packagePath(pkg.id)}
                         title={`Show ${pkg.id}`}
                         className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
@@ -636,7 +637,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             {stats.newThisMonth.map((pkg) => (
               <li key={pkg.id}>
                 <Link
-                  href={`/?p=${encodeURIComponent(pkg.id)}`}
+                  href={packagePath(pkg.id)}
                   className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
                 >
                   <span className="flex min-w-0 items-center gap-2">
@@ -666,7 +667,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             {stats.updatedThisMonthList.map((pkg) => (
               <li key={pkg.id}>
                 <Link
-                  href={`/?p=${encodeURIComponent(pkg.id)}`}
+                  href={packagePath(pkg.id)}
                   className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
                 >
                   <span className="flex min-w-0 items-center gap-2">

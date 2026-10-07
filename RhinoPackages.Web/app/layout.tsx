@@ -8,10 +8,10 @@ import { ThemeToggle } from "./_components/ThemeToggle";
 import ContributorsBubbles from "./_components/ContributorsBubbles";
 import ScrollToTop from "./_components/ScrollToTop";
 import { formatDateTime } from "./_components/format";
+import { openGraphDefaults, siteUrl, twitterDefaults } from "./_components/seo";
 
 import Image from "next/image";
 
-const siteUrl = "https://rhinopackages.github.io";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -47,73 +47,6 @@ const structuredData = {
         url: `${siteUrl}/logo.png`,
       },
       sameAs: ["https://github.com/RhinoPackages/RhinoPackages.github.io"],
-    },
-    {
-      "@type": "CollectionPage",
-      "@id": `${siteUrl}/#collection`,
-      name: "Rhino 3D and Grasshopper Plugin Directory",
-      description: "Complete catalog of Rhino 3D plugins and Grasshopper add-ons available through the Yak package manager, with version history, platform compatibility, and direct install links.",
-      url: `${siteUrl}/`,
-      isPartOf: { "@id": `${siteUrl}/#website` },
-      about: {
-        "@type": "SoftwareApplication",
-        name: "Rhinoceros 3D",
-        applicationCategory: "DesignApplication",
-        operatingSystem: "Windows, macOS",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What is Rhino Packages?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Rhino Packages is the most comprehensive directory of Rhino 3D and Grasshopper plugins. It indexes over 1,000 packages from the Yak package manager with search, filtering, version history, and one-click install links.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do I install a Rhino plugin from this directory?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Click the 'Install' button on any package card. This opens a rhino:// protocol link that launches Rhino's built-in Package Manager and installs the plugin directly. You can also use the _PackageManager command inside Rhino.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What is the difference between a Rhino plugin and a Grasshopper plugin?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Rhino plugins (.rhp) add commands and features directly to Rhinoceros 3D. Grasshopper plugins (.gha) add components to Grasshopper, Rhino's visual programming environment for parametric and computational design. Many packages include both.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Which Rhino versions are supported?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Packages in this directory support Rhino 6, Rhino 7, Rhino 8, and Rhino 9 (WIP). You can filter by version to find plugins compatible with your installation. Most actively maintained plugins support Rhino 7, 8, and 9.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Are these plugins available for Mac?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Many plugins support both Windows and macOS. Use the platform filter to find Mac-compatible packages. Platform support depends on the individual plugin author.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How often is the plugin directory updated?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "The directory is updated daily via automated GitHub Actions that sync with the official Yak package manager feed. New plugins and version updates appear within 24 hours of publication.",
-          },
-        },
-      ],
     },
   ],
 };
@@ -158,28 +91,17 @@ export const metadata: Metadata = {
   applicationName: "Rhino Packages",
   metadataBase: new URL(siteUrl),
   openGraph: {
-    type: "website",
-    locale: "en_US",
+    ...openGraphDefaults,
     url: siteUrl,
-    siteName: "Rhino Packages",
     title: "Rhino Packages — Browse & Install 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
       "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse over 1,000 packages, filter by platform and version, install with one click.",
-    images: [
-      {
-        url: "/logo.png",
-        width: 512,
-        height: 512,
-        alt: "Rhino Packages — Rhino 3D and Grasshopper Plugin Directory",
-      },
-    ],
   },
   twitter: {
-    card: "summary",
+    ...twitterDefaults,
     title: "Rhino Packages — 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
       "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Search, filter, and install from the Yak package manager.",
-    images: ["/logo.png"],
   },
   robots: {
     index: true,
@@ -271,6 +193,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </div>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
+              <nav aria-label="Site" className="mb-3 flex justify-center gap-4">
+                <a href="/packages" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
+                  All packages A–Z
+                </a>
+                <a href="/stats" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
+                  Directory stats
+                </a>
+              </nav>
               <p>Site Generated: {formatDateTime(new Date())}</p>
               {process.env.NEXT_PUBLIC_VERSION && (
                 <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>

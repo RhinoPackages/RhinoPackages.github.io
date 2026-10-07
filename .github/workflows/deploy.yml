@@ -184,12 +184,20 @@ jobs:
           NEXT_PUBLIC_VERSION: ${{ env.TAG_NAME }}
         run: npx next build
 
+      - name: Check static package pages
+        working-directory: ./RhinoPackages.Web
+        run: node scripts/check-static-pages.mjs
+
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./RhinoPackages.Web/out
+          # Every build rewrites all ~1,300 exported package pages (new build
+          # id, timestamp), so keeping gh-pages history would grow the repo by
+          # megabytes on each scheduled run. Publish a single fresh commit.
+          force_orphan: true
 
       - name: Zip Exported Site
         working-directory: ./RhinoPackages.Web

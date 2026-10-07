@@ -11,6 +11,7 @@ import {
   EnvelopeIcon,
   ChevronDownIcon,
   CheckIcon,
+  DocumentTextIcon,
   LinkIcon,
   MagnifyingGlassIcon,
   StarIcon,
@@ -18,6 +19,18 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
+import {
+  YakPlatform,
+  formatBytes,
+  formatCadence,
+  formatDistributionTarget,
+  groupVersionHistory,
+  packagePath,
+  parseWebsiteAction,
+  platformLabel,
+  yakInstallCommand,
+  yakRhinoRelease,
+} from "./packageInfo";
 import { nearestIndex, timePositions } from "./chart";
 import { Params, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
@@ -287,43 +300,6 @@ function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
       {isLoading && <Spinner />}
     </div>
   );
-}
-
-function parseWebsiteAction(homepageUrl: Package["homepageUrl"]) {
-  const raw = typeof homepageUrl === "string" ? homepageUrl.trim() : "";
-  if (!raw) {
-    return { websiteHref: undefined, emailHref: undefined };
-  }
-
-  const trimmedForEmail = raw.replace(/[;,.!?]+$/, "").trim();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (emailPattern.test(trimmedForEmail)) {
-    return { websiteHref: undefined, emailHref: `mailto:${trimmedForEmail}` };
-  }
-
-  const trimmedForWebsite = raw.replace(/[;\s]+$/, "").trim();
-  if (!trimmedForWebsite) {
-    return { websiteHref: undefined, emailHref: undefined };
-  }
-
-  if (/^https?:\/\//i.test(trimmedForWebsite)) {
-    try {
-      const parsed = new URL(trimmedForWebsite);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-        return { websiteHref: trimmedForWebsite, emailHref: undefined };
-      }
-    } catch {
-      return { websiteHref: undefined, emailHref: undefined };
-    }
-    return { websiteHref: undefined, emailHref: undefined };
-  }
-
-  const domainLikePattern = /^(localhost|([a-z0-9-]+\.)+[a-z]{2,})(:\d+)?(\/.*)?$/i;
-  if (domainLikePattern.test(trimmedForWebsite)) {
-    return { websiteHref: `https://${trimmedForWebsite}`, emailHref: undefined };
-  }
-
-  return { websiteHref: undefined, emailHref: undefined };
 }
 
 const PackageCard = memo(function PackageCard({
@@ -1036,6 +1012,14 @@ const PackageCard = memo(function PackageCard({
                 )}
                 {copiedName ? "Copied" : "Copy name"}
               </button>
+              <a
+                href={packagePath(pkg.id)}
+                title={`Open the ${pkg.id} page: versions, downloads and install instructions`}
+                className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+              >
+                <DocumentTextIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                Package page
+              </a>
             </div>
             {/* The install button is a rhino:// link, so it does nothing at
                 all on a machine without Rhino — every phone, for a start —
@@ -1283,9 +1267,6 @@ const PackageCard = memo(function PackageCard({
 
 type HostPlatform = "windows" | "mac" | "other";
 
-/** The two platforms Rhino ships a yak executable for. */
-type YakPlatform = "windows" | "mac";
-
 // Resolved once per page load, then shared: every expanded card asks the same
 // question and the answer cannot change while the tab is open.
 let cachedHostPlatform: HostPlatform | null = null;
@@ -1317,12 +1298,6 @@ function useHostPlatform(): HostPlatform {
   return platform;
 }
 
-/**
- * Which Rhino the command line should point at. Yak lives inside a specific
- * Rhino installation rather than on PATH, so the path has to name a release
- * this package actually supports. Prefer the newest stable one; only send
- * people to the WIP when that is the sole target.
- */
 /** Whether a distribution's build runs on this computer. Yak marks a
  *  cross-platform build "any", which runs on both. */
 function runsOnHost(distribution: Distribution, host: HostPlatform): boolean {
@@ -1349,36 +1324,6 @@ function orderDistributionsForHost(
   };
 
   return [...distributions].sort((a, b) => rank(a) - rank(b));
-}
-
-function platformLabel(platform: YakPlatform): string {
-  return platform === "windows" ? "Windows" : "macOS";
-}
-
-function yakRhinoRelease(pkg: Package): string {
-  if ((pkg.filters & Filters.Rhino8) === Filters.Rhino8) return "8";
-  if ((pkg.filters & Filters.Rhino9) === Filters.Rhino9) return "9 WIP";
-  if ((pkg.filters & Filters.Rhino7) === Filters.Rhino7) return "7";
-  if ((pkg.filters & Filters.Rhino6) === Filters.Rhino6) return "6";
-  return "8";
-}
-
-/**
- * The yak invocation for one package. Both platforms need the executable's
- * full path because neither installer puts it on PATH, and both paths contain
- * a space, so both stay quoted — which on Windows means PowerShell's call
- * operator, since a quoted string on its own is just a string there.
- */
-function yakInstallCommand(
-  platform: YakPlatform,
-  release: string,
-  packageId: string,
-  version?: string | null
-): string {
-  const target = version ? `${packageId} ${version}` : packageId;
-  return platform === "windows"
-    ? `& "C:\\Program Files\\Rhino ${release}\\System\\Yak.exe" install ${target}`
-    : `"/Applications/Rhino ${release}.app/Contents/Resources/bin/yak" install ${target}`;
 }
 
 /**
@@ -1428,19 +1373,6 @@ function DistributionMenuItems({
   );
 }
 
-function formatDistributionTarget(distribution: Distribution): string {
-  const platform = distribution.platform === "win"
-    ? "Windows"
-    : distribution.platform === "mac"
-      ? "Mac"
-      : "Windows & Mac";
-  const rhinoVersion = distribution.rhinoVersion === "any"
-    ? "Any Rhino version"
-    : `Rhino ${distribution.rhinoVersion.replace(/^rh/, "").replace("_", ".")}`;
-
-  return `${platform} · ${rhinoVersion}`;
-}
-
 function Badge({ label, active }: { label: string; active: boolean }) {
   return (
     <span
@@ -1470,72 +1402,6 @@ function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: s
       title={title}
     />
   );
-}
-
-type GroupedVersionHistoryRow = {
-  createdAt: string;
-  version: string;
-  installVersion: string | null;
-  installVersionByRhino: Map<string, string>;
-  distributions: Distribution[];
-  prerelease: boolean;
-  downloadCount: number;
-};
-
-function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVersionHistoryRow[] {
-  const grouped = new Map<string, GroupedVersionHistoryRow & { versions: Set<string> }>();
-
-  for (const item of items) {
-    const normalized = normalizeVersionForGrouping(item);
-    const key = `${normalized.baseVersion}__${item.prerelease ? "pre" : "stable"}`;
-    const existing = grouped.get(key);
-
-    if (!existing) {
-      grouped.set(key, {
-        createdAt: item.createdAt,
-        version: normalized.baseVersion,
-        installVersion: item.version,
-        installVersionByRhino: new Map<string, string>(),
-        distributions: [...item.distributions],
-        prerelease: item.prerelease,
-        downloadCount: item.downloadCount ?? 0,
-        versions: new Set([item.version]),
-      });
-      for (const dist of item.distributions) {
-        grouped.get(key)!.installVersionByRhino.set(dist.rhinoVersion, item.version);
-      }
-      continue;
-    }
-
-    if (new Date(item.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
-      existing.createdAt = item.createdAt;
-    }
-
-    for (const dist of item.distributions) {
-      if (!existing.distributions.some((d) => d.url === dist.url)) {
-        existing.distributions.push(dist);
-      }
-      const current = existing.installVersionByRhino.get(dist.rhinoVersion);
-      if (!current || compareNumericVersions(item.version, current) > 0) {
-        existing.installVersionByRhino.set(dist.rhinoVersion, item.version);
-      }
-    }
-
-    existing.downloadCount += item.downloadCount ?? 0;
-    existing.versions.add(item.version);
-  }
-
-  return Array.from(grouped.values())
-    .map((row) => ({
-      createdAt: row.createdAt,
-      version: row.version,
-      installVersion: row.versions.size === 1 ? row.installVersion : null,
-      installVersionByRhino: row.installVersionByRhino,
-      distributions: row.distributions,
-      prerelease: row.prerelease,
-      downloadCount: row.downloadCount,
-    }))
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 function Sparkline({ points }: { points: HistoryPoint[] }) {
@@ -1597,60 +1463,6 @@ function Sparkline({ points }: { points: HistoryPoint[] }) {
       )}
     </div>
   );
-}
-
-function normalizeVersionForGrouping(item: YakVersionHistoryItem): { baseVersion: string } {
-  const majors = Array.from(
-    new Set(
-      item.distributions
-        .map((d) => {
-          const match = d.rhinoVersion.match(/^rh(\d+)_/);
-          return match ? Number(match[1]) : null;
-        })
-        .filter((v): v is number => v !== null)
-    )
-  );
-
-  const parts = item.version.split(".");
-  const lastPart = Number(parts[parts.length - 1]);
-  const canCollapse = parts.length > 1 && Number.isInteger(lastPart) && majors.length === 1 && lastPart === majors[0];
-
-  return { baseVersion: canCollapse ? parts.slice(0, -1).join(".") : item.version };
-}
-
-function compareNumericVersions(a: string, b: string): number {
-  const aParts = a.split(".").map((p) => Number(p));
-  const bParts = b.split(".").map((p) => Number(p));
-  const len = Math.max(aParts.length, bParts.length);
-
-  for (let i = 0; i < len; i++) {
-    const av = Number.isFinite(aParts[i]) ? aParts[i] : 0;
-    const bv = Number.isFinite(bParts[i]) ? bParts[i] : 0;
-    if (av !== bv) return av - bv;
-  }
-
-  return 0;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB"];
-  let value = bytes / 1024;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
-}
-
-// Sub-day cadences are common for very active packages, so avoid rounding
-// them down to a meaningless "every ~0d".
-function formatCadence(days: number): string {
-  if (days < 1) return "multiple per day";
-  if (days < 10) return `every ~${days.toFixed(1)}d`;
-  if (days < 60) return `every ~${Math.round(days)}d`;
-  return `every ~${Math.round(days / 30)}mo`;
 }
 
 function getRelativeTime(date: Date): string {

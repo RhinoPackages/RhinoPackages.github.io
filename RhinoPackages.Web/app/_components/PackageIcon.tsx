@@ -2,11 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-
-/** Stand-in for packages whose icon cannot be shown: the yak version endpoint
- *  advertises an `_icon` URL for every package, but plenty of them 404 or are
- *  unreachable, which otherwise leaves a broken image in the card. */
-export const defaultIconUrl = "/icons/special/default.png";
+import { defaultIconUrl } from "./packageInfo";
 
 export default function PackageIcon({
   src,

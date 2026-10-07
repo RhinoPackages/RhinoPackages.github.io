@@ -1,0 +1,174 @@
+// The package data model and pure helpers over it. Kept free of React hooks
+// so server components (the static package pages, the sitemap) can import
+// it; api.ts re-exports all of it next to the client-side data hook.
+
+export const pageResults = 25;
+
+export interface Package {
+  id: string;
+  version: string;
+  updated: string;
+  authors: string;
+  downloads: number;
+  iconUrl: string;
+  description: string;
+  keywords: string;
+  prerelease: boolean;
+  homepageUrl?: string | null;
+  filters: Filters;
+  owners: Owner[];
+  downloadsWeek?: number;
+  downloadsMonth?: number;
+  firstReleased?: string | null;
+  versionCount?: number;
+  lastReleased?: string | null;
+  releaseCadenceDays?: number | null;
+  sizeBytes?: number | null;
+  license?: string | null;
+}
+
+export interface Distribution {
+  filename: string;
+  platform: string;
+  rhinoVersion: string;
+  url: string;
+  createdAt?: string | null;
+}
+
+export interface DownloadsWindow {
+  lastDay: number;
+  lastWeek: number;
+  lastMonth: number;
+}
+
+export interface YakVersionHistoryItem {
+  createdAt: string;
+  version: string;
+  distributions: Distribution[];
+  prerelease: boolean;
+  downloadCount?: number;
+  downloads?: DownloadsWindow | null;
+}
+
+export interface HistoryPoint {
+  date: string;
+  downloads: number;
+  week: number;
+}
+
+export interface TotalsPoint {
+  date: string;
+  packages: number;
+  downloads: number;
+}
+
+export enum Filters {
+  None = 0,
+  Windows = 1,
+  Mac = 2,
+  Rhino = 4,
+  Grasshopper = 8,
+  Rhino6 = 16,
+  Rhino7 = 32,
+  Rhino8 = 64,
+  Rhino9 = 128,
+}
+
+export interface Owner {
+  id: number;
+  name: string;
+}
+
+export class Status {
+  message: "loading" | "idle" | string;
+
+  constructor(message: string) {
+    this.message = message;
+  }
+
+  public static loading() {
+    return new Status("loading");
+  }
+
+  public static idle() {
+    return new Status("idle");
+  }
+
+  public get isLoading() {
+    return this.message === "loading";
+  }
+
+  public get isIdle() {
+    return this.message === "idle";
+  }
+
+  public get isError() {
+    return !this.isIdle && !this.isLoading;
+  }
+}
+
+export function has(constant: Filters, pkg: Package) {
+  return constant === (pkg.filters & constant);
+}
+
+/** The sidebar's checkbox groups, as one bitmask per group. */
+export const filterGroups: Filters[] = [
+  Filters.Windows | Filters.Mac,
+  Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8 | Filters.Rhino9,
+  Filters.Rhino | Filters.Grasshopper,
+];
+
+// Faceted filtering: a package has to match at least one of the boxes checked
+// within a group, and every group that has a box checked. Testing the whole
+// selection with has() instead would demand all of them, so "Rhino 7 + Rhino 8"
+// used to mean "supports both" rather than "supports either".
+export function matchesFilters(selected: Filters, pkg: Package) {
+  for (const group of filterGroups) {
+    const wanted = selected & group;
+    if (wanted === Filters.None) continue;
+    if ((pkg.filters & wanted) === Filters.None) return false;
+  }
+  return true;
+}
+
+export { TIME_ZONE, formatDate, formatDateTime } from "./format";
+
+// A package is considered maintained when it published a release within the
+// last year, and deprecated when it ships nothing for the current Rhino
+// release. Rhino 9 only targets are forward-looking, not deprecated.
+export const MAINTAINED_DAYS = 365;
+
+export function isMaintained(pkg: Package, now: number = Date.now()) {
+  return (now - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24) <= MAINTAINED_DAYS;
+}
+
+export function isDeprecated(pkg: Package) {
+  return !has(Filters.Rhino8, pkg) && !has(Filters.Rhino9, pkg);
+}
+
+export function normalizeName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+// Yak tracks authorship two ways: the account that publishes a package (an
+// owner, with an id) and the free-text credit list. The same person is often
+// an owner on some packages and only credited on others, and a handful hold
+// more than one account, so match on the normalized name as well as the id.
+export function matchesOwner(pkg: Package, ownerId: number, ownerName?: string) {
+  if (pkg.owners.some((o) => o.id === ownerId)) return true;
+  if (!ownerName) return false;
+
+  const target = normalizeName(ownerName);
+
+  // Second account belonging to the same person.
+  if (pkg.owners.some((o) => normalizeName(o.name) === target)) return true;
+
+  if (!isCreditableName(target)) return false;
+
+  return pkg.authors.split(",").some((author) => normalizeName(author) === target);
+}
+
+/** A lone short first name ("Aaron") is too ambiguous to attribute. */
+export function isCreditableName(normalized: string) {
+  return normalized.includes(" ") || normalized.length >= 6;
+}

@@ -34,7 +34,7 @@ This project is derived from [RhinoPackages](https://github.com/visose/RhinoPack
 
 1. A GitHub Actions workflow runs daily (or on push to `main`).
 2. The C# generator fetches all packages from the [Yak API](https://yak.rhino3d.com) and saves `data.json` into `RhinoPackages.Web/public/`.
-3. Next.js exports a fully static site and deploys it to GitHub Pages.
+3. Next.js exports a fully static site — the searchable directory plus a crawlable page for every package (`/package/<id>`), an A–Z index (`/packages`) and a sitemap listing them all — and deploys it to GitHub Pages.
 4. A GitHub Release is created automatically for each successful deploy.
 
 ## Development
