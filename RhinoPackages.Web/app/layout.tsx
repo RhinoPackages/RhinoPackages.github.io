@@ -166,8 +166,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="mx-auto max-w-6xl px-4 pb-10 pt-2">
-            <div className="flex flex-grow items-center justify-between gap-2 border-b border-gray-200 pb-3 dark:border-zinc-800">
-              <a href="/" title="Rhino Packages - Go to homepage" aria-label="Rhino Packages - Go to homepage" className="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 xs:gap-3">
+            <div className="flex flex-grow flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-gray-200 pb-3 dark:border-zinc-800">
+              <a href="/" title="Rhino Packages - Go to homepage" aria-label="Rhino Packages - Go to homepage" className="flex items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 xs:gap-3">
                 <Image
                   src="/logo.svg"
                   alt=""
@@ -176,23 +176,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   height={36}
                   className="h-8 w-8 flex-shrink-0 rounded-md shadow-sm xs:h-9 xs:w-9"
                 />
-                {/* Truncates rather than overflowing into the links on the
-                    right, which used to collide on narrow phones. */}
-                <h1 className="truncate pt-1 text-lg tracking-wider xs:text-xl">
+                {/* Never truncated: if the title and links don't fit on one
+                    row (very narrow phones), the links wrap below instead. */}
+                <h1 className="whitespace-nowrap pt-1 text-base tracking-wider xs:text-xl">
                   <span className="font-bold text-gray-900 dark:text-white">
                     Rhino
                   </span>{" "}
                   <span className="font-light text-gray-500 dark:text-zinc-400">Packages</span>
                 </h1>
               </a>
-              <div className="flex flex-shrink-0 items-center gap-1 xs:gap-2">
+              <div className="flex flex-shrink-0 items-center gap-0.5 xs:gap-2">
                 {navLinks.map(({ href, label, title, Icon }) => (
                   <a
                     key={href}
                     href={href}
                     title={title}
                     aria-label={title}
-                    className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
+                    className="flex items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     <span className="hidden xs:inline">{label}</span>
