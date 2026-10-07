@@ -32,7 +32,9 @@ export default function Page() {
   return (
     <Suspense
       fallback={
-        <div className="mt-10 flex justify-center">
+        // Fills the viewport so the footer is already off-screen and nothing
+        // below moves when the client content replaces it (layout shift).
+        <div className="flex min-h-screen justify-center pt-10">
           <Spinner />
         </div>
       }
