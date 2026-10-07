@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { loadPackages } from "./_components/packageData";
 import { packagePath } from "./_components/packageInfo";
+import { authorPath, isIndexedAuthor, loadAuthors } from "./_components/authors";
 
 export const dynamic = "force-static";
 
@@ -30,6 +31,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${siteUrl}/authors`,
+      lastModified,
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
       url: `${siteUrl}/stats`,
       lastModified,
       changeFrequency: "weekly",
@@ -41,5 +48,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
+    // Single-package authors are noindex (their page repeats the package page), so only list the rest.
+    ...loadAuthors()
+      .filter(isIndexedAuthor)
+      .map((author) => ({
+        url: `${siteUrl}${authorPath(author.slug)}`,
+        lastModified: new Date(
+          Math.max(...author.packages.map((pkg) => latestRelease(pkg.updated, pkg.lastReleased).getTime())),
+        ),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      })),
   ];
 }
