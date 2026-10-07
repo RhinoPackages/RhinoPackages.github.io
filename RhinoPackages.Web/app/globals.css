@@ -6,6 +6,14 @@ body {
   padding-left: calc(100vw - 100%);
 }
 
+/* Package pages list a yak command per platform. Show only the visitor's
+   own (data-os is set in the layout's <head>), unless it is the only one the
+   package has. Linux and unknown systems keep both. */
+html[data-os="windows"] .yak-commands > [data-yak-platform="mac"]:not(:only-child),
+html[data-os="mac"] .yak-commands > [data-yak-platform="windows"]:not(:only-child) {
+  display: none;
+}
+
 .break-long-words {
   overflow-wrap: anywhere;
   word-break: break-word;
