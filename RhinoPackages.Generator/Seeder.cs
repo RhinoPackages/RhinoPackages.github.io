@@ -162,6 +162,29 @@ public class Seeder
                             ReleaseCadenceDays = stats.CadenceDays ?? package.ReleaseCadenceDays,
                         };
 
+                        // Authors can add builds to a version after publishing
+                        // it (a Rhino 8 build next to the Rhino 7 one, say), and
+                        // yak's CDN caches the version detail for up to 12 hours,
+                        // so the record made when the version first appeared can
+                        // miss targets. The history lists every build: re-read
+                        // the archives when it names a platform or Rhino release
+                        // the record lacks. Once merged in, this stops firing.
+                        var builds = Builds(history, entry.Version);
+
+                        if ((Targets(builds) & ~refreshed.Filters) != Filters.None)
+                        {
+                            var contents = await ReadDistributions(builds);
+
+                            refreshed = refreshed with
+                            {
+                                // Merged rather than replaced: an archive that
+                                // fails to download reports no plugin types.
+                                Filters = refreshed.Filters | contents.Type,
+                                SizeBytes = contents.SizeBytes ?? refreshed.SizeBytes,
+                                License = contents.License ?? refreshed.License,
+                            };
+                        }
+
                         // Size and license come from the archive, which is only
                         // read when a package publishes a new version. Backfill a
                         // bounded number of the remaining ones per run so existing
@@ -192,7 +215,7 @@ public class Seeder
                     }
                     else
                     {
-                        var published = await MakePackage(entry, stats);
+                        var published = await MakePackage(entry, history, stats);
 
                         // Same reasoning as the refresh above: keep the last known
                         // windows rather than publishing zeros for them.
@@ -210,7 +233,7 @@ public class Seeder
                 }
                 else
                 {
-                    updates[index] = (Update.New, await MakePackage(entry, stats));
+                    updates[index] = (Update.New, await MakePackage(entry, history, stats));
                 }
 
                 _logger.LogInformation("{Index} {Name}: {Update}", index, entry.Name, updates[index].Update);
@@ -308,7 +331,7 @@ public class Seeder
     static bool IsTransient(Exception ex) =>
         ex is HttpRequestException { StatusCode: null } or TaskCanceledException or TimeoutException;
 
-    async Task<Package> MakePackage(EntryYak entry, HistoryStats stats)
+    async Task<Package> MakePackage(EntryYak entry, YakVersionHistoryItem[] history, HistoryStats stats)
     {
         var packageTask = Get<PackageYak>($"versions/{entry.Name}/{entry.Version}");
         var ownersTask = Get<OwnerYak[]>($"packages/{entry.Name}/owners");
@@ -317,7 +340,15 @@ public class Seeder
 
         var package = packageTask.Result;
         var owners = ownersTask.Result;
-        var contents = await ReadDistributions(package.Distributions);
+
+        // The version detail and the history are cached separately, so either
+        // can lag behind a build added after the version was published.
+        var distributions = package.Distributions
+            .Concat(Builds(history, entry.Version))
+            .DistinctBy(d => d.Url)
+            .ToArray();
+
+        var contents = await ReadDistributions(distributions);
 
         return new
         (
@@ -344,11 +375,13 @@ public class Seeder
         );
     }
 
-    async Task<DistributionInfo> ReadDistributions(DistributionYak[] distributions)
+    static DistributionYak[] Builds(YakVersionHistoryItem[] history, string version) =>
+        history.FirstOrDefault(item => item.Version == version)?.Distributions ?? [];
+
+    /// <summary>The platforms and Rhino releases the builds target, read from their metadata alone.</summary>
+    static Filters Targets(IEnumerable<DistributionYak> distributions)
     {
         Filters filters = Filters.None;
-        long? size = null;
-        string? license = null;
 
         foreach (var distribution in distributions)
         {
@@ -367,7 +400,19 @@ public class Seeder
                 "rh9" => Filters.Rhino9,
                 _ => Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8 | Filters.Rhino9
             };
+        }
 
+        return filters;
+    }
+
+    async Task<DistributionInfo> ReadDistributions(DistributionYak[] distributions)
+    {
+        var filters = Targets(distributions);
+        long? size = null;
+        string? license = null;
+
+        foreach (var distribution in distributions)
+        {
             var info = await ReadDistribution(distribution.Url);
 
             filters |= info.Type;

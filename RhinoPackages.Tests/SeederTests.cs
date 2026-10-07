@@ -760,6 +760,160 @@ public class SeederTests
         Assert.Equal(9, package.DownloadsMonth);
     }
 
+    [Fact]
+    public async Task Run_SameVersion_BuildAddedLater_MergesItsTargets()
+    {
+        var packageName = "LateBuildPackage";
+        var packageVersion = "2.0.3";
+        var yakBase = "https://yak.rhino3d.com/";
+        var rh8Url = "https://files.example.test/late-build-rh8.yak";
+        var rh7Url = "https://files.example.test/late-build-rh7.yak";
+
+        // Recorded when only the Rhino 7 build had been published.
+        var existing = new List<Package>
+        {
+            new(
+                Id: packageName,
+                Version: packageVersion,
+                Updated: new DateTime(2026, 10, 6),
+                Authors: "Unit Tester",
+                Downloads: 10,
+                IconUrl: "/icons/special/default.png",
+                Description: "Existing",
+                Keywords: "",
+                Prerelease: false,
+                HomepageUrl: null,
+                Filters: Filters.Windows | Filters.Mac | Filters.Rhino | Filters.Rhino7,
+                Owners: [new Owner(1, "Owner One")],
+                FirstReleased: DateTime.Parse("2026-10-06T00:00:00Z"),
+                VersionCount: 1,
+                LastReleased: DateTime.Parse("2026-10-06T00:00:00Z"),
+                SizeBytes: 1
+            )
+        };
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 10, "name": "LateBuildPackage", "version": "2.0.3" }
+                ]
+                """),
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  {
+                    "created_at": "2026-10-06T00:00:00Z",
+                    "version": "2.0.3",
+                    "distributions": [
+                      {
+                        "filename": "LateBuildPackage-2.0.3-rh8_0-any.yak",
+                        "platform": "any",
+                        "rhino_version": "rh8_0",
+                        "url": "https://files.example.test/late-build-rh8.yak"
+                      },
+                      {
+                        "filename": "LateBuildPackage-2.0.3-rh7_0-any.yak",
+                        "platform": "any",
+                        "rhino_version": "rh7_0",
+                        "url": "https://files.example.test/late-build-rh7.yak"
+                      }
+                    ],
+                    "prerelease": false
+                  }
+                ]
+                """),
+            [rh8Url] = ZipWithEntries("plugin.rhp", "components.gha"),
+            [rh7Url] = ZipWithEntries("plugin.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, existing, client);
+
+        var updates = await seeder.Run();
+
+        var (update, package) = Assert.Single(updates);
+        Assert.Equal(Update.Update, update);
+        Assert.Equal(
+            Filters.Windows | Filters.Mac | Filters.Rhino | Filters.Grasshopper | Filters.Rhino7 | Filters.Rhino8,
+            package.Filters);
+    }
+
+    [Fact]
+    public async Task Run_NewVersion_StaleDetail_TakesBuildsFromHistory()
+    {
+        var packageName = "StaleDetailPackage";
+        var packageVersion = "1.0.0";
+        var yakBase = "https://yak.rhino3d.com/";
+        var rh8Url = "https://files.example.test/stale-detail-rh8.yak";
+        var rh7Url = "https://files.example.test/stale-detail-rh7.yak";
+
+        var responses = new Dictionary<string, HttpResponseMessage>
+        {
+            [yakBase + "packages"] = Json("""
+                [
+                  { "authors": "Unit Tester", "download_count": 5, "name": "StaleDetailPackage", "version": "1.0.0" }
+                ]
+                """),
+            // A cached detail that predates the Rhino 8 build.
+            [yakBase + $"versions/{packageName}/{packageVersion}"] = Json("""
+                {
+                  "created_at": "2026-10-06T00:00:00Z",
+                  "description": "Stale",
+                  "distributions": [
+                    {
+                      "filename": "StaleDetailPackage-1.0.0-rh7_0-win.yak",
+                      "platform": "win",
+                      "rhino_version": "rh7_0",
+                      "url": "https://files.example.test/stale-detail-rh7.yak"
+                    }
+                  ],
+                  "keywords": [],
+                  "prerelease": false
+                }
+                """),
+            [yakBase + $"packages/{packageName}/owners"] = Json("""
+                [ { "id": 1, "name": "Owner One" } ]
+                """),
+            [yakBase + $"versions/{packageName}"] = Json("""
+                [
+                  {
+                    "created_at": "2026-10-06T00:00:00Z",
+                    "version": "1.0.0",
+                    "distributions": [
+                      {
+                        "filename": "StaleDetailPackage-1.0.0-rh8_0-win.yak",
+                        "platform": "win",
+                        "rhino_version": "rh8_0",
+                        "url": "https://files.example.test/stale-detail-rh8.yak"
+                      },
+                      {
+                        "filename": "StaleDetailPackage-1.0.0-rh7_0-win.yak",
+                        "platform": "win",
+                        "rhino_version": "rh7_0",
+                        "url": "https://files.example.test/stale-detail-rh7.yak"
+                      }
+                    ],
+                    "prerelease": false
+                  }
+                ]
+                """),
+            [rh8Url] = ZipWithEntries("plugin.rhp"),
+            [rh7Url] = ZipWithEntries("plugin.rhp"),
+        };
+
+        using var sandbox = new WorkingDirectorySandbox();
+        using var client = new HttpClient(new FakeHandler(responses));
+        var logger = new Mock<ILogger>();
+        var seeder = new Seeder(logger.Object, [], client);
+
+        var updates = await seeder.Run();
+
+        var package = Assert.Single(updates).Package;
+        Assert.Equal(Filters.Windows | Filters.Rhino | Filters.Rhino7 | Filters.Rhino8, package.Filters);
+    }
+
     static HttpResponseMessage Json(string json)
         => new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
