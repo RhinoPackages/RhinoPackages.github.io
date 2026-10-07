@@ -745,7 +745,7 @@ const PackageCard = memo(function PackageCard({
       </div>
       <div className="mt-2 flex min-w-0 items-start gap-4 md:gap-6">
         {hasDescription ? (
-          <p className="break-long-words min-w-0 flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
+          <p className={`break-long-words min-w-0 flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300 ${isExpanded ? "" : "line-clamp-4"}`}>
             {pkg.description}
           </p>
         ) : (

@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import HomePageClient from "./_components/HomePageClient";
 import Spinner from "./_components/Spinner";
 import { loadPackages } from "./_components/packageData";
-import { packagePath } from "./_components/packageInfo";
 import { openGraphDefaults, siteUrl } from "./_components/seo";
 
 export const metadata: Metadata = {
@@ -97,11 +96,6 @@ const homeStructuredData = {
 export default function Page() {
   const packages = loadPackages();
 
-  const totalDownloads = packages.reduce((sum, p) => sum + p.downloads, 0);
-  const topPackages = [...packages]
-    .sort((a, b) => b.downloads - a.downloads)
-    .slice(0, 200);
-
   return (
     <>
       {/* The list reads its state from the query string, which opts it out of
@@ -128,58 +122,7 @@ export default function Page() {
           staying out of the way for readers. */}
       <section className="mt-16 border-t border-gray-200 pt-10 dark:border-zinc-800">
         <div className="mx-auto max-w-3xl">
-          <details className="group border-b border-gray-200 pb-4 dark:border-zinc-800">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
-                Rhino 3D &amp; Grasshopper Plugin Directory
-              </h2>
-              <Chevron />
-            </summary>
-            <div className="pt-4">
-          <p className="mb-6 leading-relaxed text-gray-600 dark:text-zinc-400">
-            Rhino Packages is the most comprehensive directory of{" "}
-            <strong>Rhino 3D plugins</strong> and{" "}
-            <strong>Grasshopper add-ons</strong>. Browse over{" "}
-            <strong>{packages.length.toLocaleString()} packages</strong> with a
-            combined <strong>{totalDownloads.toLocaleString()} downloads</strong>
-            , sourced daily from the official{" "}
-            <strong>Yak package manager</strong>. Filter by platform (Windows,
-            Mac), Rhino version (6, 7, 8), and plugin type (Rhino plugin,
-            Grasshopper component). Every package has version history, author
-            info, and one-click install links.
-          </p>
-
-          <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">
-            Popular Rhino &amp; Grasshopper Plugins
-          </h3>
-          <ul className="mb-10 grid grid-cols-1 gap-x-8 gap-y-2 text-sm text-gray-600 dark:text-zinc-400 sm:grid-cols-2 lg:grid-cols-3">
-            {topPackages.map((pkg) => (
-              <li key={pkg.id}>
-                <a
-                  href={packagePath(pkg.id)}
-                  className="rounded-sm font-semibold text-gray-900 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
-                >
-                  {pkg.id}
-                </a>
-                <span className="text-gray-400 dark:text-zinc-500">
-                  {" "}— {pkg.downloads.toLocaleString()} downloads
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="-mt-6 mb-10 text-sm">
-            <a
-              href="/packages"
-              className="rounded-sm font-medium text-brand-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-400 dark:focus-visible:ring-brand-400"
-            >
-              See all {packages.length.toLocaleString()} packages A–Z
-            </a>
-          </p>
-
-            </div>
-          </details>
-
-          <details className="group border-b border-gray-200 pb-4 dark:border-zinc-800">
+          <details id="faq" className="group scroll-mt-4 border-b border-gray-200 pb-4 dark:border-zinc-800">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                 Frequently Asked Questions
@@ -255,6 +198,14 @@ export default function Page() {
             </div>
             </dl>
           </details>
+          {/* The header's FAQ link lands on /#faq: open the section it points at. */}
+          <script
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html:
+                "(function(){function o(){if(location.hash==='#faq'){var d=document.getElementById('faq');if(d){d.open=true;d.scrollIntoView();}}}o();addEventListener('hashchange',o);})();",
+            }}
+          />
         </div>
       </section>
     </>

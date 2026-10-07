@@ -23,8 +23,8 @@ import {
   formatDate,
   has,
   isDeprecated,
-  normalizeName,
 } from "@/app/_components/packageModel";
+import { Author, authorPath, findAuthorByName } from "@/app/_components/authors";
 import {
   YakPlatform,
   formatBytes,
@@ -112,16 +112,16 @@ export default function PackagePage({ params }: Params) {
   const releaseCount = releaseTimes.length || pkg.versionCount || 0;
   const firstReleased = releaseTimes.length > 0 ? new Date(releaseTimes[0]) : pkg.firstReleased ? new Date(pkg.firstReleased) : null;
 
-  // Credited authors who also publish on Yak link to their owner filter.
-  const ownerIdByName = new Map<string, number>();
-  for (const other of all) {
-    for (const owner of other.owners) ownerIdByName.set(normalizeName(owner.name), owner.id);
-  }
+  // Credited authors who also publish on Yak link to their author page.
   const authors = pkg.authors
     .split(",")
     .map((name) => name.trim())
     .filter(Boolean)
-    .map((name) => ({ name, ownerId: ownerIdByName.get(normalizeName(name)) }));
+    .map((name) => ({ name, page: findAuthorByName(name) }));
+  const publishers = pkg.owners
+    .map((owner) => findAuthorByName(owner.name))
+    .filter((author): author is Author => author !== undefined)
+    .filter((author, i, list) => list.findIndex((other) => other.slug === author.slug) === i);
 
   const sameOwners = packagesBySameOwners(pkg, all, 8);
   const related = relatedPackages(pkg, all, 8, new Set(sameOwners.map((p) => p.id)));
@@ -262,8 +262,8 @@ export default function PackagePage({ params }: Params) {
               ? "—"
               : authors.map((author, i) => (
                   <span key={author.name}>
-                    {author.ownerId !== undefined ? (
-                      <a href={`/?owner=${author.ownerId}`} title={`All packages by ${author.name}`} className="pkg-link">
+                    {author.page ? (
+                      <a href={authorPath(author.page.slug)} title={`All packages by ${author.name}`} className="pkg-link">
                         {author.name}
                       </a>
                     ) : (
@@ -409,7 +409,13 @@ export default function PackagePage({ params }: Params) {
       {sameOwners.length > 0 && (
         <section aria-labelledby="same-owner" className="mt-10">
           <h2 id="same-owner" className="pkg-heading">
-            More by {pkg.owners.map((owner) => owner.name).join(", ")}
+            More by{" "}
+            {publishers.map((author, i) => (
+              <span key={author.slug}>
+                <a href={authorPath(author.slug)} className="pkg-link">{author.name}</a>
+                {i < publishers.length - 1 ? ", " : ""}
+              </span>
+            ))}
           </h2>
           <PackageLinks packages={sameOwners} />
         </section>
@@ -425,7 +431,8 @@ export default function PackagePage({ params }: Params) {
       <p className="mt-10 text-xs text-gray-500 dark:text-zinc-500">
         Package data comes from Rhino&apos;s{" "}
         <a href="https://yak.rhino3d.com" className="pkg-link">Yak package manager</a> and is refreshed every
-        few hours. <a href="/packages" className="pkg-link">Browse all packages A–Z</a>.
+        few hours. <a href="/packages" className="pkg-link">Browse all packages A–Z</a> or{" "}
+        <a href="/authors" className="pkg-link">all authors</a>.
       </p>
     </article>
   );

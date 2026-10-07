@@ -159,6 +159,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </a>
               <div className="flex flex-shrink-0 items-center gap-1 xs:gap-2">
                 <a
+                  href="/#faq"
+                  title="Frequently asked questions"
+                  aria-label="Frequently asked questions"
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-4 w-4" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                  </svg>
+                  <span className="hidden xs:inline">FAQ</span>
+                </a>
+                <a
                   href="/stats"
                   title="Directory statistics"
                   aria-label="Directory statistics"
@@ -196,6 +207,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <nav aria-label="Site" className="mb-3 flex justify-center gap-4">
                 <a href="/packages" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
                   All packages A–Z
+                </a>
+                <a href="/authors" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
+                  Authors
                 </a>
                 <a href="/stats" className="rounded-sm font-medium text-gray-600 hover:text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-300 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400">
                   Directory stats
