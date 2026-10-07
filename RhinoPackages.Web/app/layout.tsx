@@ -132,7 +132,7 @@ const navLinks = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="antialiased overflow-x-hidden" suppressHydrationWarning>
+    <html lang="en" className="antialiased overflow-x-clip" suppressHydrationWarning>
       <head>
         <Telemetry />
         {/* Tags <html> with the visitor's OS before first paint, so pages can
@@ -152,7 +152,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300"
+        className="min-h-screen overflow-x-clip bg-slate-50 text-slate-900 selection:bg-pink-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-300"
       >
         <a
           href="#main-content"
