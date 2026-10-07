@@ -159,7 +159,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </a>
               <div className="flex flex-shrink-0 items-center gap-1 xs:gap-2">
                 <a
-                  href="/#faq"
+                  href="/faq"
                   title="Frequently asked questions"
                   aria-label="Frequently asked questions"
                   className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 xs:px-3"
