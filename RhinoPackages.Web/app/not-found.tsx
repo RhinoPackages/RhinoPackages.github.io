@@ -5,6 +5,8 @@ import NotFoundSearch from "@/app/_components/NotFoundSearch";
 
 export const metadata: Metadata = {
   title: "Page not found",
+  // Served for any address that does not exist; nothing here is worth indexing.
+  robots: { index: false, follow: true },
 };
 
 export default function NotFound() {

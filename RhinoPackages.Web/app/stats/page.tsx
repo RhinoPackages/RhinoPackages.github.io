@@ -5,7 +5,7 @@ import StatsPageClient from "../_components/StatsPageClient";
 import { authorRankings } from "../_components/authors";
 import { loadPackages } from "../_components/packageData";
 import { formatDate, latestRelease } from "../_components/packageModel";
-import { openGraphDefaults, twitterDefaults } from "../_components/seo";
+import { openGraphDefaults, siteUrl, twitterDefaults } from "../_components/seo";
 
 export const metadata: Metadata = {
   title: "Directory Stats",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: "Directory Stats | Rhino Packages",
     description:
       "Live summary statistics for RhinoPackages: package counts, plugin types, and latest updates from the Rhino ecosystem.",
-    url: "https://rhinopackages.github.io/stats",
+    url: `${siteUrl}/stats`,
   },
   twitter: {
     ...twitterDefaults,
@@ -43,7 +43,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-8 pb-12 pt-8">
       <div>
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">Directory Stats</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Directory Stats</h1>
         <p className="text-sm text-gray-500 dark:text-zinc-400">Latest package release {latest}</p>
       </div>
       <Suspense

@@ -3,6 +3,7 @@ import { loadPackages } from "./_components/packageData";
 import { latestRelease } from "./_components/packageModel";
 import { packagePath } from "./_components/packageInfo";
 import { authorPath, isIndexedAuthor, loadAuthors } from "./_components/authors";
+import { siteUrl } from "./_components/seo";
 
 export const dynamic = "force-static";
 
@@ -11,7 +12,6 @@ export const dynamic = "force-static";
 // stay out: they all serve index.html with a canonical of "/", and Google
 // discarded all of them as duplicates when they were listed here.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = "https://rhinopackages.github.io";
   const lastModified = new Date();
   const packages = loadPackages();
 

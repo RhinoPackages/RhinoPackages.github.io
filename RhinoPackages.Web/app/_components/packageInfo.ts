@@ -110,6 +110,19 @@ export const statusToneClasses: Record<StatusTone, string> = {
   green: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
 };
 
+/**
+ * One-line rule behind each status label. /faq#status prints them, the pills
+ * carry them as tooltips and the filter switches as hints, so the three never
+ * word the same rule differently.
+ */
+export const statusDefinitions = {
+  maintained: "Released within the last year.",
+  inactive: "No release in over a year.",
+  noRhino8: "No build for Rhino 8 or Rhino 9, only for older releases.",
+  prerelease: "The current version is a pre-release, a work in progress.",
+  new: "First released within the last 30 days.",
+};
+
 export interface StatusBadge {
   label: string;
   tone: StatusTone;
@@ -130,7 +143,7 @@ export function statusBadges(pkg: Package, now: number = Date.now(), lastRelease
     badges.push({
       label: "No Rhino 8+ build",
       tone: "rose",
-      title: "No build for the current Rhino release (Rhino 8) or for Rhino 9",
+      title: statusDefinitions.noRhino8,
     });
   }
 
@@ -139,7 +152,7 @@ export function statusBadges(pkg: Package, now: number = Date.now(), lastRelease
     badges.push({
       label: "Inactive",
       tone: "amber",
-      title: `Not actively maintained: no release since ${formatDate(last)}`,
+      title: `${statusDefinitions.inactive} Last release ${formatDate(last)}.`,
     });
   }
 
@@ -147,7 +160,7 @@ export function statusBadges(pkg: Package, now: number = Date.now(), lastRelease
     badges.push({
       label: "Pre-release",
       tone: "yellow",
-      title: "Work in progress: the current version is a pre-release",
+      title: statusDefinitions.prerelease,
     });
   }
 
@@ -156,7 +169,7 @@ export function statusBadges(pkg: Package, now: number = Date.now(), lastRelease
     badges.push({
       label: "New",
       tone: "green",
-      title: "First released within the last 30 days",
+      title: statusDefinitions.new,
     });
   }
 

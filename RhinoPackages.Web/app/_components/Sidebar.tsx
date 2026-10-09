@@ -5,6 +5,7 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Filters, formatDate } from "@/app/_components/api";
 import { defaultParams, isNarrowed, usePackageContext } from "./PackageContext";
 import OwnersControl from "./OwnersControl";
+import { statusDefinitions } from "./packageInfo";
 
 export default function Sidebar() {
   const { navigate } = usePackageContext();
@@ -56,12 +57,12 @@ export function SidebarFilters({ inSheet = false }: { inSheet?: boolean }) {
         <StatusToggle
           title="Maintained"
           param="maintained"
-          hint="Released an update within the last year"
+          hint={statusDefinitions.maintained}
         />
         <StatusToggle
           title="No Rhino 8+ build"
           param="deprecated"
-          hint="Only builds for Rhino 7 or older"
+          hint={statusDefinitions.noRhino8}
         />
         <a
           href="/faq#status"
@@ -208,6 +209,8 @@ function StatusToggle({
   );
 }
 
+// The off track's border is what separates it from the sidebar (3:1 or more in
+// both themes); the fill alone is too close to the background to see.
 function Toggle({
   title,
   checked,
@@ -234,8 +237,10 @@ function Toggle({
             type="button"
             aria-label={title}
             className={`${
-              checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
-            } relative inline-flex h-5 w-11 flex-shrink-0 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out before:absolute before:inset-x-0 before:-inset-y-3 md:before:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
+              checked
+                ? "border-transparent bg-brand-500 dark:bg-brand-600"
+                : "border-gray-500 bg-gray-200 dark:border-zinc-500 dark:bg-zinc-700"
+            } relative inline-flex h-5 w-11 flex-shrink-0 cursor-pointer rounded-full border-[0.125rem] transition-colors duration-200 ease-in-out before:absolute before:inset-x-0 before:-inset-y-3 md:before:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
           >
             <span
               aria-hidden="true"

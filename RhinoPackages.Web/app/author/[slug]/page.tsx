@@ -6,7 +6,7 @@ import PackageIcon from "@/app/_components/PackageIcon";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import { authorPath, findAuthor, isIndexedAuthor, loadAuthors } from "@/app/_components/authors";
 import { Filters, Package, compactNumber, formatDate, has, latestRelease } from "@/app/_components/packageModel";
-import { iconSrc, joinWithAnd, packagePath, pluginKind, statusBadges, truncate } from "@/app/_components/packageInfo";
+import { joinWithAnd, packagePath, pluginKind, statusBadges, truncate } from "@/app/_components/packageInfo";
 
 type Params = { params: { slug: string } };
 
@@ -134,7 +134,7 @@ export default function AuthorPage({ params }: Params) {
         <h1 className="break-long-words text-3xl font-bold text-gray-900 dark:text-zinc-100">{author.name}</h1>
         {indexed ? (
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-            {packages.length} {kindsOf(packages)} on Rhino&apos;s Yak package manager
+            {kindsOf(packages)} on Rhino&apos;s Yak package manager
           </p>
         ) : (
           // The one package is all there is to say: no totals, no filter link.
@@ -176,7 +176,7 @@ export default function AuthorPage({ params }: Params) {
                 return (
                   <li key={pkg.id}>
                     <a href={packagePath(pkg.id)} className="pkg-card">
-                      <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={iconSrc(pkg.iconUrl)} size={32} />
+                      <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={pkg.iconUrl} size={32} />
                       <span className="min-w-0">
                         <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">
                           {pkg.id}

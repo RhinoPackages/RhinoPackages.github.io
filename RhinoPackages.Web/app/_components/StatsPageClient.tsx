@@ -126,7 +126,7 @@ export default function StatsPageClient({
     // Year gridlines; thin them out when the range is long.
     const yearStep = Math.max(1, Math.ceil(januaries.length / 8));
     const ticks = januaries
-      .filter((j, i) => i % yearStep === 0)
+      .filter((_, i) => i % yearStep === 0)
       .map((j) => ({ position: values.length > 1 ? j.index / (values.length - 1) : 0, label: String(j.year) }));
 
     return { values, labels, start: formatMonth(keys[0]), end: "today", ticks };
@@ -241,7 +241,7 @@ export default function StatsPageClient({
                 type="button"
                 aria-pressed={weight === option}
                 onClick={() => setWeight(option)}
-                className={`rounded px-2.5 py-1 font-medium capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                className={`rounded px-2.5 py-2 font-medium capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   weight === option
                     ? "bg-brand-600 text-white"
                     : "text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
@@ -377,10 +377,13 @@ export default function StatsPageClient({
                     ) : (
                       <>
                         <span className="font-medium text-gray-900 dark:text-zinc-100">{author.name}</span>
+                        {/* Own line on a phone, so a long package id wraps on
+                            its own instead of mid-word after the name. */}
                         {author.soloPackageId && (
-                          <>
-                            {" "}· <a href={packagePath(author.soloPackageId)} className="pkg-link">{author.soloPackageId}</a>
-                          </>
+                          <span className="block sm:inline">
+                            <span className="hidden sm:inline"> · </span>
+                            <a href={packagePath(author.soloPackageId)} className="pkg-link">{author.soloPackageId}</a>
+                          </span>
                         )}
                       </>
                     )}

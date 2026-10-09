@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { loadPackages } from "@/app/_components/packageData";
-import { StatusTone, statusToneClasses } from "@/app/_components/packageInfo";
+import { StatusTone, statusDefinitions, statusToneClasses } from "@/app/_components/packageInfo";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 
 const title = "Rhino Packages FAQ";
@@ -86,7 +86,7 @@ function buildQa(packageCount: number): Qa[] {
         {
           name: "Maintained",
           definition: [
-            "Released within the last year. It has no label of its own: a package that is not Maintained is Inactive. It is also a switch in the filters (",
+            `${statusDefinitions.maintained} It has no label of its own: a package that is not Maintained is Inactive. It is also a switch in the filters (`,
             { href: "/?maintained=true", text: "see maintained packages" },
             ").",
           ],
@@ -94,13 +94,13 @@ function buildQa(packageCount: number): Qa[] {
         {
           name: "Inactive",
           tone: "amber",
-          definition: ["No release in over a year. The opposite of Maintained."],
+          definition: [`${statusDefinitions.inactive} The opposite of Maintained.`],
         },
         {
           name: "No Rhino 8+ build",
           tone: "rose",
           definition: [
-            "No build for Rhino 8 or Rhino 9, only for older releases. It is also a switch in the filters (",
+            `${statusDefinitions.noRhino8} It is also a switch in the filters (`,
             { href: "/?deprecated=true", text: "see these packages" },
             ").",
           ],
@@ -108,12 +108,12 @@ function buildQa(packageCount: number): Qa[] {
         {
           name: "Pre-release",
           tone: "yellow",
-          definition: ["The current version is a pre-release, a work in progress."],
+          definition: [statusDefinitions.prerelease],
         },
         {
           name: "New",
           tone: "green",
-          definition: ["First released within the last 30 days."],
+          definition: [statusDefinitions.new],
         },
       ],
     },
@@ -191,7 +191,7 @@ export default function FaqPage() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Frequently asked questions</h1>
       <dl className="mt-6 divide-y divide-gray-200 dark:divide-zinc-800">
         {qa.map((item) => (
-          <div key={item.question} id={item.id} className="py-4">
+          <div key={item.question} id={item.id} className="scroll-mt-4 py-4">
             <dt className="font-medium text-gray-900 dark:text-zinc-100">{item.question}</dt>
             <dd className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
               <Parts parts={item.answer} />

@@ -39,7 +39,6 @@ import {
   formatDistributionTarget,
   groupVersionHistory,
   hasDescription,
-  iconSrc,
   latestDistributions,
   packageDescription,
   packagePath,
@@ -53,12 +52,13 @@ import {
   rhinoVersionsText,
   statusBadges,
   statusToneClasses,
+  truncate,
   yakInstallCommand,
   yakRhinoRelease,
 } from "@/app/_components/packageInfo";
 
-// The version history table shows this many releases; the rest sit behind a
-// "Show all" toggle that is still plain HTML.
+// The version history table shows this many releases; the older ones sit behind
+// a "Show older releases" toggle that is still plain HTML.
 const visibleVersionRows = 10;
 
 type Params = { params: { id: string } };
@@ -199,7 +199,7 @@ export default function PackagePage({ params }: Params) {
 
       {/* Header */}
       <header className="mt-6 flex gap-4">
-        <PackageIcon className="h-14 w-14 flex-shrink-0 rounded-md" src={iconSrc(pkg.iconUrl)} size={56} />
+        <PackageIcon className="h-14 w-14 flex-shrink-0 rounded-md" src={pkg.iconUrl} size={56} />
         <div className="min-w-0">
           <h1 className="break-long-words text-3xl font-bold text-gray-900 dark:text-zinc-100">{pkg.id}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
@@ -229,7 +229,7 @@ export default function PackagePage({ params }: Params) {
 
       {/* Keywords */}
       {keywords.length > 0 && (
-        <div id="keywords" className="mt-5">
+        <div id="keywords" className="mt-5 scroll-mt-4">
           <h2 className="pkg-label">Keywords</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {keywords.map((keyword) => (
@@ -318,7 +318,13 @@ export default function PackagePage({ params }: Params) {
         <Fact label="Download size" value={pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : "—"} />
         <Fact
           label="License"
-          value={pkg.license || <span className="font-normal text-gray-500 dark:text-zinc-400">Not declared</span>}
+          value={
+            pkg.license ? (
+              <LicenseText license={pkg.license} />
+            ) : (
+              <span className="font-normal text-gray-500 dark:text-zinc-400">Not declared</span>
+            )
+          }
         />
         <Fact
           label="Credits"
@@ -446,9 +452,13 @@ export default function PackagePage({ params }: Params) {
           <>
             <VersionTable packageId={pkg.id} rows={versionRows.slice(0, visibleVersionRows)} />
             {versionRows.length > visibleVersionRows && (
-              <details className="mt-3">
-                <summary className="pkg-link cursor-pointer text-sm">Show all {releases.count} releases</summary>
-                <VersionTable packageId={pkg.id} rows={versionRows.slice(visibleVersionRows)} />
+              <details className="group mt-1">
+                {/* The label follows the state; both ship in the HTML. */}
+                <summary className="pkg-link cursor-pointer py-2 text-sm">
+                  <span className="group-open:hidden">Show older releases</span>
+                  <span className="hidden group-open:inline">Hide older releases</span>
+                </summary>
+                <VersionTable packageId={pkg.id} rows={versionRows.slice(visibleVersionRows)} continued />
               </details>
             )}
           </>
@@ -469,6 +479,20 @@ function Pill({ tone, title, children }: { tone: StatusTone; title: string; chil
   );
 }
 
+// Licenses are free text. Most are a name ("MIT"); a few are pasted agreements,
+// which would stretch the facts grid, so those open from a one-line summary.
+const licenseInlineMax = 60;
+
+function LicenseText({ license }: { license: string }) {
+  if (license.length <= licenseInlineMax) return <>{license}</>;
+  return (
+    <details>
+      <summary className="cursor-pointer">{truncate(license, licenseInlineMax)}</summary>
+      <p className="mt-1 whitespace-pre-line text-xs font-normal text-gray-600 dark:text-zinc-400">{license}</p>
+    </details>
+  );
+}
+
 function Code({ children }: { children: React.ReactNode }) {
   return (
     <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.8em] text-gray-700 dark:bg-zinc-800 dark:text-zinc-300">
@@ -479,7 +503,7 @@ function Code({ children }: { children: React.ReactNode }) {
 
 function DistributionLinks({ id, distributions }: { id?: string; distributions: Distribution[] }) {
   return (
-    <ul id={id} className="mt-2 flex flex-col gap-1.5">
+    <ul id={id} className="mt-2 flex scroll-mt-4 flex-col gap-1.5">
       {distributions.map((distribution) => (
         <li key={distribution.url} className="text-sm">
           <a href={distribution.url} download={distribution.filename} className="pkg-link break-all">
@@ -493,15 +517,25 @@ function DistributionLinks({ id, distributions }: { id?: string; distributions: 
 }
 
 /**
- * One table of release rows. The "Show all" toggle renders a second one, so
- * from md up the columns have fixed widths to keep the two lined up; on a
- * phone both use the auto layout so the table stays close to the screen
- * width. The Install column needs Rhino on the same computer, so it stays
+ * One table of release rows. The "Show older releases" toggle renders a second
+ * one, so from md up the columns have fixed widths to keep the two lined up; on
+ * a phone both use the auto layout so the table stays close to the screen
+ * width. `continued` marks that second table: its header row stays for screen
+ * readers but is not drawn again, so the older rows read as more of the same
+ * history. The Install column needs Rhino on the same computer, so it stays
  * off phones. The Builds column is left off too, below sm: with it the table
  * is wider than a phone and scrolls sideways inside its box, hiding the
  * downloads. The current release's builds are listed under "How to install".
  */
-function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVersionHistoryRow[] }) {
+function VersionTable({
+  packageId,
+  rows,
+  continued = false,
+}: {
+  packageId: string;
+  rows: GroupedVersionHistoryRow[];
+  continued?: boolean;
+}) {
   return (
     <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
       <table className="pkg-table w-full text-left text-sm text-gray-600 md:min-w-[38rem] md:table-fixed dark:text-zinc-400">
@@ -512,7 +546,11 @@ function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVer
           <col className="md:w-28" />
           <col className="hidden md:table-column md:w-24" />
         </colgroup>
-        <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
+        <thead
+          className={`bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400 ${
+            continued ? "sr-only" : ""
+          }`}
+        >
           <tr>
             <th scope="col">Date</th>
             <th scope="col">Version</th>
@@ -582,7 +620,7 @@ function PackageLinks({ packages }: { packages: Package[] }) {
             href={packagePath(other.id)}
             className="pkg-card"
           >
-            <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={iconSrc(other.iconUrl)} size={32} />
+            <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={other.iconUrl} size={32} />
             <span className="min-w-0">
               <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">{other.id}</span>
               <span className="pkg-muted block">

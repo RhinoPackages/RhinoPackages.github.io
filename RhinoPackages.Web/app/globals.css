@@ -21,6 +21,14 @@ body[data-sheet="open"] .scroll-to-top {
   display: none;
 }
 
+/* The page behind the sheet must not scroll under a wheel or touch drag. The
+   gutter stays reserved so a desktop window narrow enough to show the sheet
+   does not shift sideways when the scrollbar goes. */
+html:has(body[data-sheet="open"]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
 .break-long-words {
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -49,8 +57,10 @@ body[data-sheet="open"] .scroll-to-top {
     @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400;
   }
 
+  /* Every heading that uses this is also a link target (#install, #versions…),
+     so it gets a little room above it when the page scrolls to it. */
   .pkg-heading {
-    @apply text-lg font-semibold text-gray-900 dark:text-zinc-100;
+    @apply scroll-mt-4 text-lg font-semibold text-gray-900 dark:text-zinc-100;
   }
 
   .pkg-muted {

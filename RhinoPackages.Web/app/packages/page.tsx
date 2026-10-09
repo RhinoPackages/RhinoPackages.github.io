@@ -64,14 +64,19 @@ export default function PackagesIndexPage() {
           >
             {key}
           </h2>
-          <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Columns, not a grid: a row that wraps (a long name pushes its meta
+              to a second line) would stretch every neighbour in a grid row and
+              leave gaps. Here each column just gets longer. */}
+          <ul className="mt-3 gap-x-8 sm:columns-2 lg:columns-3">
             {(groups.get(key) ?? []).map((pkg) => (
-              <li key={pkg.id} className="min-w-0 text-sm">
+              <li key={pkg.id} className="min-w-0 break-inside-avoid pb-1.5 text-sm">
                 <a href={packagePath(pkg.id)} className="pkg-link break-long-words font-medium">
                   {pkg.id}
                 </a>
-                <span className="pkg-muted">
-                  {" "}· {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
+                {/* The meta moves as one piece, so "downloads" is never left alone on a line. */}
+                <span className="pkg-muted">&nbsp;·</span>{" "}
+                <span className="pkg-muted whitespace-nowrap">
+                  {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
                 </span>
               </li>
             ))}

@@ -89,7 +89,6 @@ interface PackageContext {
   ownerName: string | undefined;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
-  setSearch: (text: string) => void;
 }
 
 const PackageContext = createContext({} as PackageContext);
@@ -147,13 +146,6 @@ export function PackageProvider({
     [navigate],
   );
 
-  const setSearch = useCallback(
-    (text: string) => {
-      navigate({ search: text });
-    },
-    [navigate],
-  );
-
   const trendingScores = useMemo(() => {
     const scores = new Map<string, number>();
     const now = Date.now();
@@ -204,7 +196,6 @@ export function PackageProvider({
         ownerName,
         navigate,
         navigateFilter,
-        setSearch,
       }}
     >
       {children}
