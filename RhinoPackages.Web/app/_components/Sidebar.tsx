@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { Switch } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon } from "@heroicons/react/20/solid";
@@ -24,10 +23,10 @@ export default function Sidebar() {
 
 /**
  * Everything but the search box: the author picker, platform/version/type
- * filters, maintenance status, and the reset/archive links. Split out from the
- * search box so the mobile sticky bar can show search directly and put
- * the rest behind a "Filters" sheet instead of hiding both behind one
- * hamburger toggle.
+ * chips, the two status switches and reset. Controls here only narrow the
+ * list; ordering lives on the results line. Split out from the search box so
+ * the mobile sticky bar can show search directly and put the rest behind a
+ * "Filters" sheet instead of hiding both behind one hamburger toggle.
  */
 export function SidebarFilters() {
   const { navigate, status, controls } = usePackageContext();
@@ -35,41 +34,40 @@ export function SidebarFilters() {
   const hasFilters = hasActiveFilters(controls);
 
   return (
-    <div className="flex w-full flex-col items-start gap-3">
+    <div className="flex w-full flex-col items-start gap-4">
       <OwnersControl />
-      <Spacer />
+      <ChipGroup legend="Platform">
+        <FilterChip label="Windows" filter={Filters.Windows} />
+        <FilterChip label="Mac" filter={Filters.Mac} />
+      </ChipGroup>
+      <ChipGroup legend="Rhino">
+        <FilterChip label="6" name="Rhino 6" filter={Filters.Rhino6} />
+        <FilterChip label="7" name="Rhino 7" filter={Filters.Rhino7} />
+        <FilterChip label="8" name="Rhino 8" filter={Filters.Rhino8} />
+        <FilterChip label="9 WIP" name="Rhino 9 WIP" filter={Filters.Rhino9} />
+      </ChipGroup>
+      <ChipGroup legend="Type">
+        <FilterChip label="Rhino" filter={Filters.Rhino} />
+        <FilterChip label="Grasshopper" filter={Filters.Grasshopper} />
+      </ChipGroup>
       <fieldset className="flex w-full flex-col gap-3">
-        <legend className="sr-only">Platform compatibility</legend>
-        <CheckBox title="Windows" icon="/icons/win.svg" filter={Filters.Windows} />
-        <CheckBox title="Mac" icon="/icons/mac.svg" filter={Filters.Mac} />
-      </fieldset>
-      <Spacer />
-      <fieldset className="flex w-full flex-col gap-3">
-        <legend className="sr-only">Rhino versions</legend>
-        <CheckBox title="Rhino 6" icon="/icons/rhino6.png" filter={Filters.Rhino6} />
-        <CheckBox title="Rhino 7" icon="/icons/rhino7.png" filter={Filters.Rhino7} />
-        <CheckBox title="Rhino 8" icon="/icons/rhino8.png" filter={Filters.Rhino8} />
-        <CheckBox title="Rhino 9 (WIP)" icon="/icons/rhino9.png" filter={Filters.Rhino9} />
-      </fieldset>
-      <Spacer />
-      <fieldset className="flex w-full flex-col gap-3">
-        <legend className="sr-only">Plugin types</legend>
-        <CheckBox title="Rhino plugin" icon="/icons/rhp.png" filter={Filters.Rhino} />
-        <CheckBox title="Grasshopper" icon="/icons/gha.png" filter={Filters.Grasshopper} />
-      </fieldset>
-      <Spacer />
-      <fieldset className="flex w-full flex-col gap-3">
-        <legend className="sr-only">Maintenance status</legend>
+        <legend className={legendClass}>Status</legend>
         <StatusToggle
           title="Maintained"
           param="maintained"
           hint="Released an update within the last year"
         />
         <StatusToggle
-          title="Deprecated"
+          title="No Rhino 8+ build"
           param="deprecated"
-          hint="No build for the current Rhino release (Rhino 8)"
+          hint="Only builds for Rhino 7 or older"
         />
+        <a
+          href="/faq#status"
+          className="self-start rounded-sm text-xs text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400"
+        >
+          What do these mean?
+        </a>
       </fieldset>
       <button
         type="button"
@@ -82,7 +80,7 @@ export function SidebarFilters() {
           }
           navigate(defaultParams);
         }}
-        className={`mt-6 flex w-full items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:focus-visible:ring-brand-400 ${
+        className={`mt-2 flex w-full items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:focus-visible:ring-brand-400 ${
           !hasFilters
             ? "cursor-not-allowed opacity-50"
             : "hover:bg-gray-50 active:bg-gray-200 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
@@ -91,30 +89,6 @@ export function SidebarFilters() {
         Reset filters
       </button>
 
-      <a
-        href="https://rhinoversions.github.io"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mb-6 mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 transition-all hover:border-brand-500 hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400 md:mb-0"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="h-4 w-4"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
-          />
-        </svg>
-        Rhino Version Archive
-        <span className="sr-only"> (opens in a new tab)</span>
-      </a>
       {status.isError && (
         <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
           <p
@@ -130,41 +104,45 @@ export function SidebarFilters() {
   );
 }
 
-function Spacer() {
-  return <hr className="my-4 h-px w-full border-none bg-gray-200 dark:bg-zinc-800" />;
+const legendClass = "mb-1.5 text-xs font-medium text-gray-500 dark:text-zinc-400";
+
+/** A labelled row of chips; the visible legend names the group for everyone. */
+function ChipGroup({ legend, children }: { legend: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="w-full">
+      <legend className={legendClass}>{legend}</legend>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </fieldset>
+  );
 }
 
-interface CheckProps {
-  title: string;
-  icon: string;
+interface ChipProps {
+  /** Visible text. */
+  label: string;
+  /** Spoken name when the visible text alone is ambiguous: "Rhino 6" for "6". Always contains `label`. */
+  name?: string;
   filter: Filters;
 }
 
-function CheckBox({ title, icon, filter }: CheckProps) {
-  const { navigateFilter, controls, filterCounts } = usePackageContext();
-  const isSvg = icon.endsWith(".svg");
-
-  const has = (constant: Filters) => {
-    return constant === (controls.filters & constant);
-  };
+/** One ?filters= bit as a toggle button. Selected chips also get a heavier ring, so colour is not the only cue. */
+function FilterChip({ label, name, filter }: ChipProps) {
+  const { navigateFilter, controls } = usePackageContext();
+  const pressed = filter === (controls.filters & filter);
 
   return (
-    <Toggle
-      title={title}
-      count={filterCounts.get(filter) ?? 0}
-      checked={has(filter)}
-      onChange={(checked) => navigateFilter(filter, checked)}
-      icon={
-        <Image
-          className={`inline h-[1.2rem] w-[1.2rem] flex-shrink-0 opacity-80 ${isSvg ? "dark:invert" : ""}`}
-          src={icon}
-          width={32}
-          height={32}
-          alt=""
-          aria-hidden="true"
-        />
-      }
-    />
+    <button
+      type="button"
+      aria-pressed={pressed}
+      aria-label={name}
+      onClick={() => navigateFilter(filter, !pressed)}
+      className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium ring-inset transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:focus-visible:outline-brand-400 ${
+        pressed
+          ? "bg-brand-100 text-brand-800 ring-2 ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400"
+          : "bg-slate-100 text-slate-600 ring-1 ring-slate-500/10 hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -177,13 +155,12 @@ function StatusToggle({
   param: "maintained" | "deprecated";
   hint: string;
 }) {
-  const { navigate, controls, statusCounts } = usePackageContext();
+  const { navigate, controls } = usePackageContext();
 
   return (
     <Toggle
       title={title}
       hint={hint}
-      count={statusCounts[param]}
       checked={controls[param]}
       onChange={(checked) => navigate({ [param]: checked })}
     />
@@ -192,31 +169,23 @@ function StatusToggle({
 
 function Toggle({
   title,
-  count,
   checked,
   onChange,
-  icon,
   hint,
 }: {
   title: string;
-  count: number;
   checked: boolean;
   onChange: (checked: boolean) => void;
-  icon?: React.ReactNode;
   hint?: string;
 }) {
   return (
     <Switch.Group as="div" className="flex w-full items-center justify-between">
-      <Switch.Label as="label" className="flex min-w-0 cursor-pointer items-center gap-2 pr-3" title={hint}>
-        {icon}
-        <span className="select-none text-sm text-gray-900 dark:text-zinc-300">
-          {title}
-          {count > 0 && (
-            <span className="ml-1 text-xs tabular-nums text-gray-500 dark:text-zinc-400">
-              ({count.toLocaleString()})
-            </span>
-          )}
-        </span>
+      <Switch.Label
+        as="label"
+        className="min-w-0 cursor-pointer select-none pr-3 text-sm text-gray-900 dark:text-zinc-300"
+        title={hint}
+      >
+        {title}
       </Switch.Label>
       <Switch as={Fragment} checked={checked} onChange={onChange}>
         {({ checked }) => (

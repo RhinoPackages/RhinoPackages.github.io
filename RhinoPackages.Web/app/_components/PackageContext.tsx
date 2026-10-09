@@ -2,10 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Filters,
-  Owner,
   Package,
   Status,
-  has,
   isDeprecated,
   isMaintained,
   latestRelease,
@@ -35,7 +33,7 @@ export interface Params {
   p?: string;
   /** Only show packages with a release in the last year. */
   maintained: boolean;
-  /** Only show packages without support for the current Rhino release. */
+  /** Only show packages with no Rhino 8 or 9 build. */
   deprecated: boolean;
 }
 
@@ -67,13 +65,10 @@ export function hasActiveFilters(controls: Params) {
 interface PackageContext {
   packages: Package[];
   filteredCount: number;
-  owners: Owner[];
   status: Status;
   controls: Params;
   /** Every package in the directory, before any filter. */
   totalPackages: number;
-  filterCounts: Map<Filters, number>;
-  statusCounts: { maintained: number; deprecated: number };
   /** Every author, as the server page computed them: slugs and counts match the author pages. */
   authors: AuthorRef[];
   /** `authors` by normalizeName(name), to link a name on a card to its author page. */
@@ -166,23 +161,6 @@ export function PackageProvider({
     return scores;
   }, [cache]);
 
-  // People with more than one Yak account would otherwise appear twice in
-  // the picker with their packages split between the entries.
-  const owners = useMemo(() => {
-    const seen = new Set<string>();
-    const owners: Owner[] = [];
-
-    for (const pkg of cache) {
-      for (const owner of pkg.owners) {
-        const key = normalizeName(owner.name);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        owners.push(owner);
-      }
-    }
-    return owners.sort((a, b) => a.id - b.id);
-  }, [cache]);
-
   const authorByName = useMemo(
     () => new Map(authors.map((author) => [normalizeName(author.name), author])),
     [authors],
@@ -201,48 +179,14 @@ export function PackageProvider({
     return filter(cache ?? [], params, trendingScores, ownerName);
   }, [cache, params, trendingScores, ownerName]);
 
-  const filterCounts = useMemo(() => {
-    const flags = [
-      Filters.Windows,
-      Filters.Mac,
-      Filters.Rhino6,
-      Filters.Rhino7,
-      Filters.Rhino8,
-      Filters.Rhino9,
-      Filters.Rhino,
-      Filters.Grasshopper,
-    ];
-    const counts = new Map<Filters, number>(flags.map((f) => [f, 0]));
-    for (const pkg of cache ?? []) {
-      for (const flag of flags) {
-        if (has(flag, pkg)) counts.set(flag, counts.get(flag)! + 1);
-      }
-    }
-    return counts;
-  }, [cache]);
-
-  const statusCounts = useMemo(() => {
-    const now = Date.now();
-    let maintained = 0;
-    let deprecated = 0;
-    for (const pkg of cache ?? []) {
-      if (isMaintained(pkg, now)) maintained++;
-      if (isDeprecated(pkg)) deprecated++;
-    }
-    return { maintained, deprecated };
-  }, [cache]);
-
   return (
     <PackageContext.Provider
       value={{
         packages,
         filteredCount,
-        owners,
         status,
         controls,
         totalPackages: cache?.length ?? 0,
-        filterCounts,
-        statusCounts,
         authors,
         authorByName,
         ownerName,

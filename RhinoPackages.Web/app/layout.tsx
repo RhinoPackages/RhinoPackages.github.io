@@ -213,6 +213,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {process.env.NEXT_PUBLIC_VERSION && (
                 <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>
               )}
+              <p className="mt-1">
+                <a
+                  href="https://rhinoversions.github.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-sm underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400"
+                >
+                  Rhino Version Archive
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </p>
               <ContributorsBubbles />
             </footer>
           </main>
