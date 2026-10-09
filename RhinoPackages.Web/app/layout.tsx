@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     template: "%s | Rhino Packages",
   },
   description:
-    "Browse, search, and install over 1,000 Rhino 3D and Grasshopper plugins. The most comprehensive Rhino plugin directory — filter by platform, Rhino version, and type. Updated daily from the Yak package manager.",
+    "Browse, search, and install over 1,000 Rhino 3D and Grasshopper plugins. The most comprehensive Rhino plugin directory — filter by platform, Rhino version, and type. Data is checked every 3 hours against the Yak package manager.",
   keywords: [
     "Rhino 3D plugins",
     "Grasshopper plugins",
