@@ -63,6 +63,43 @@ export default function PackageList() {
   const deepLinkTarget = useRef(controls.p);
   const hasScrolledToDeepLink = useRef(false);
 
+  // Back from a package page. Links out of the list save where the reader was
+  // (see rememberListPosition); on returning to that history entry, put them
+  // back. The browser cannot do it: the cards are rendered by script, so when
+  // it tries the page is still too short to scroll. The first effect also
+  // silences the deep-link scroll below, which would otherwise slide to an
+  // expanded card and fight the restore, so these must stay above it.
+  const restoreScrollY = useRef<number | null>(null);
+
+  useEffect(() => {
+    const saved = takeListPosition();
+    const navigation = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    if (saved && navigation?.type === "back_forward" && saved.href === location.href) {
+      restoreScrollY.current = saved.scrollY;
+      hasScrolledToDeepLink.current = true;
+    }
+  }, []);
+
+  // Waits for rows: the scroll only lands if the page is already as tall as it was.
+  useEffect(() => {
+    if (restoreScrollY.current === null || packages.length === 0) return;
+    window.scrollTo({ top: restoreScrollY.current, behavior: "auto" });
+    restoreScrollY.current = null;
+  }, [packages]);
+
+  // A page restored from the back/forward cache keeps its scroll position and
+  // is not mounted again, so nothing would take the saved position. Drop it,
+  // or a later visit to the same URL would jump to it.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) forgetListPosition();
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
   useEffect(() => {
     const id = deepLinkTarget.current;
     if (!id || hasScrolledToDeepLink.current) return;
@@ -223,7 +260,7 @@ export default function PackageList() {
           )}
         </div>
       ) : (
-        <ul role="list" className="flex flex-grow flex-col gap-5">
+        <ul role="list" onClick={rememberListPosition} className="flex flex-grow flex-col gap-5">
           {packages.map((pkg) => {
             return (
               <PackageCard
@@ -251,6 +288,57 @@ export default function PackageList() {
 /** DOM id of a package card, used as the ?p= deep link scroll target. */
 function packageAnchorId(packageId: string) {
   return `package-${packageId}`;
+}
+
+/** sessionStorage key for the URL and scroll position a reader left the list at. */
+const listPositionKey = "package-list-position";
+
+interface ListPosition {
+  href: string;
+  scrollY: number;
+}
+
+/**
+ * Click handler for the list: a click on a link that will unload this page
+ * (the name, an author, "Full details", ...) saves where the reader is, for
+ * takeListPosition to hand back after Back. Links that leave the page where it
+ * is (mailto:, rhino://, a new tab) save nothing, because no one comes back
+ * from those. Storage can be blocked (private windows, site data off); then
+ * Back works as it did before and the browser restores what it can.
+ */
+function rememberListPosition(event: React.MouseEvent<HTMLElement>) {
+  const link = (event.target as Element).closest("a");
+  if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  if (link.origin !== location.origin || (link.target && link.target !== "_self")) return;
+
+  try {
+    const position: ListPosition = { href: location.href, scrollY: window.scrollY };
+    sessionStorage.setItem(listPositionKey, JSON.stringify(position));
+  } catch {
+    // Not remembered.
+  }
+}
+
+function forgetListPosition() {
+  try {
+    sessionStorage.removeItem(listPositionKey);
+  } catch {
+    // Nothing was stored.
+  }
+}
+
+/** The saved position, removed as it is read so that it can be used only once. */
+function takeListPosition(): ListPosition | null {
+  try {
+    const stored = sessionStorage.getItem(listPositionKey);
+    forgetListPosition();
+    const position = stored ? (JSON.parse(stored) as Partial<ListPosition>) : null;
+    return typeof position?.href === "string" && Number.isFinite(position.scrollY)
+      ? (position as ListPosition)
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Most keyword chips the quick view shows; the package page lists them all. */
