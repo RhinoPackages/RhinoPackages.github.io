@@ -1,16 +1,22 @@
 "use client";
 
-import { Filters, Package, TotalsPoint, compactNumber, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
-import { packagePath } from "@/app/_components/packageInfo";
+import { Filters, Package, TotalsPoint, compactNumber, formatDate, has, latestRelease, useApi } from "@/app/_components/api";
+import { AuthorRanking, packagePath } from "@/app/_components/packageInfo";
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { nearestIndex, timePositions } from "./chart";
 import PackageIcon from "./PackageIcon";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Spinner from "./Spinner";
 
-export default function StatsPageClient({ initialCache = [] }: { initialCache?: Package[] }) {
+export default function StatsPageClient({
+  initialCache = [],
+  authors,
+}: {
+  initialCache?: Package[];
+  /** Every author, ranked by downloads, worked out on the server (see authorRankings()). */
+  authors: AuthorRanking[];
+}) {
   const { cache, status } = useApi(initialCache);
   const stats = useMemo(() => getStats(cache), [cache]);
   const router = useRouter();
@@ -62,12 +68,13 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
   const moversAll = useMemo(() => {
     return cache
       .filter((p) => (p.downloadsWeek ?? 0) > 0)
-      .sort((a, b) => (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0));
+      .sort((a, b) => (b.downloadsWeek ?? 0) - (a.downloadsWeek ?? 0))
+      .map((pkg, i) => ({ pkg, rank: i + 1 }));
   }, [cache]);
 
   const movers = useMemo(() => {
     const query = moversQuery.trim().toLowerCase();
-    const pool = query ? moversAll.filter((p) => p.id.toLowerCase().includes(query)) : moversAll;
+    const pool = query ? moversAll.filter(({ pkg }) => pkg.id.toLowerCase().includes(query)) : moversAll;
     return pool.slice(0, 10);
   }, [moversAll, moversQuery]);
 
@@ -140,14 +147,14 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
     return pool.slice(0, 10);
   }, [risingAll, risingQuery]);
 
+  // Ranked once, so a search still shows each author's place in the full list.
+  const rankedAuthors = useMemo(() => authors.map((author, i) => ({ ...author, rank: i + 1 })), [authors]);
+
   const visibleAuthors = useMemo(() => {
-    if (!stats) return [];
     const query = authorQuery.trim().toLowerCase();
-    const pool = query
-      ? stats.authors.filter((a) => a.name.toLowerCase().includes(query))
-      : stats.authors;
+    const pool = query ? rankedAuthors.filter((a) => a.name.toLowerCase().includes(query)) : rankedAuthors;
     return pool.slice(0, 15);
-  }, [stats, authorQuery]);
+  }, [rankedAuthors, authorQuery]);
 
   if (status.isLoading && cache.length === 0) {
     return (
@@ -201,7 +208,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         <h2 id="stats-overview" className="sr-only">
           Overview
         </h2>
-        <dl className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatTile label="Packages" value={stats.totalPackages.toLocaleString()} />
           <StatTile label="Total Downloads" value={stats.totalDownloads.toLocaleString()} />
           <StatTile
@@ -209,9 +216,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             value={stats.weeklyDownloads > 0 ? stats.weeklyDownloads.toLocaleString() : "—"}
             accent
           />
-          <StatTile label="New This Month" value={stats.newThisMonthCount.toLocaleString()} />
-          <StatTile label="Updated This Month" value={stats.updatedThisMonth.toLocaleString()} />
-          <StatTile label="Last Updated" value={stats.lastUpdated} small />
+          <StatTile label="New This Month" value={stats.newThisMonth.length.toLocaleString()} />
         </dl>
       </section>
 
@@ -285,17 +290,12 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       {/* Directory growth */}
       {growth && (
         <section aria-labelledby="stats-growth" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-          <div className="mb-2 flex items-center justify-between">
-            <h2
-              id="stats-growth"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
-            >
-              Directory Growth
-            </h2>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">
-              {growth.values[growth.values.length - 1].toLocaleString()} packages · since {growth.start}
-            </span>
-          </div>
+          <h2
+            id="stats-growth"
+            className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+          >
+            Directory Growth
+          </h2>
           <LineChart
             values={growth.values}
             labels={growth.labels}
@@ -310,17 +310,12 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
       {/* Ecosystem downloads over time (accumulating snapshots) */}
       {totals && totals.length >= 2 && (
         <section aria-labelledby="stats-totals" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-          <div className="mb-2 flex items-center justify-between">
-            <h2
-              id="stats-totals"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
-            >
-              Total Downloads Over Time
-            </h2>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">
-              {totals[0].date} → {totals[totals.length - 1].date}
-            </span>
-          </div>
+          <h2
+            id="stats-totals"
+            className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+          >
+            Total Downloads Over Time
+          </h2>
           <LineChart
             values={totals.map((t) => t.downloads)}
             labels={totals.map((t) => t.date)}
@@ -343,13 +338,13 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               Top Authors by Downloads
             </h2>
             <span className="text-xs text-gray-500 dark:text-zinc-400">
-              Owned and credited packages combined
+              Published and credited packages combined
             </span>
           </div>
           <TableSearch
             id="author-filter"
             label="Filter authors"
-            placeholder={`Search ${stats.authors.length.toLocaleString()} authors...`}
+            placeholder={`Search ${rankedAuthors.length.toLocaleString()} authors...`}
             value={authorQuery}
             onChange={updateAuthorQuery}
           />
@@ -358,117 +353,44 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
             <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
               <tr>
-                <th scope="col" className="px-4 py-2">#</th>
-                <th scope="col" className="px-4 py-2">Author</th>
-                <th scope="col" className="px-4 py-2">Packages</th>
-                <th scope="col" className="px-4 py-2 text-right">Owned</th>
-                <th scope="col" className="px-4 py-2 text-right" title="Packages this person is credited on but does not own">
-                  Credited
-                </th>
-                <th scope="col" className="px-4 py-2 text-right">Downloads</th>
-                <th scope="col" className="px-4 py-2 text-right">This Week</th>
+                <th scope="col" className="px-2 py-2 sm:px-4">#</th>
+                <th scope="col" className="w-full px-2 py-2 sm:px-4">Author</th>
+                <th scope="col" className="px-2 py-2 text-right sm:px-4">Packages</th>
+                <th scope="col" className="px-2 py-2 text-right sm:px-4">Downloads</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
               {visibleAuthors.map((author) => (
-                <tr key={author.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                  <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">
+                <tr key={author.rank} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
+                  <td className="px-2 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400 sm:px-4">
                     {author.rank}
                   </td>
-                  <td className="px-4 py-2">
-                    <Link
-                      href={`/?owner=${author.id}`}
-                      title={`Show packages by ${author.name}`}
-                      className="font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
-                    >
-                      {author.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex flex-wrap items-center gap-1">
-                      {author.items.slice(0, 12).map((item) => (
-                        <Link key={item.id} href={packagePath(item.id)} title={item.id}>
-                          <PackageIcon
-                            className="h-5 w-5 rounded-sm transition-transform hover:scale-125"
-                            src={item.iconUrl}
-                            size={20}
-                            alt={item.id}
-                          />
-                        </Link>
-                      ))}
-                      {author.items.length > 12 && (
-                        <span className="text-xs tabular-nums text-gray-500 dark:text-zinc-400">
-                          +{author.items.length - 12}
-                        </span>
-                      )}
-                      {author.creditedItems.slice(0, 6).map((item) => (
-                        <Link
-                          key={item.id}
-                          href={packagePath(item.id)}
-                          title={`${item.id} (credited, not owner)`}
-                        >
-                          <PackageIcon
-                            className="h-5 w-5 rounded-sm opacity-40 grayscale transition-all hover:scale-125 hover:opacity-100 hover:grayscale-0"
-                            src={item.iconUrl}
-                            size={20}
-                            alt={item.id}
-                          />
-                        </Link>
-                      ))}
-                      {author.creditedItems.length > 6 && (
-                        <span className="text-xs tabular-nums text-gray-500 dark:text-zinc-400">
-                          +{author.creditedItems.length - 6}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-right tabular-nums">{author.packages.toLocaleString()}</td>
-                  <td
-                    className="px-4 py-2 text-right tabular-nums"
-                    title={
-                      author.credited > 0
-                        ? `Credited on ${author.credited} package${author.credited === 1 ? "" : "s"} owned by someone else, with ${author.creditedDownloads.toLocaleString()} downloads`
-                        : undefined
-                    }
-                  >
-                    {author.credited > 0 ? (
-                      <span className="flex flex-col items-end leading-tight">
-                        <span>{author.credited.toLocaleString()}</span>
-                        <span className="text-[0.65rem] text-gray-500 dark:text-zinc-400">
-                          {compactNumber(author.creditedDownloads)}
-                        </span>
-                      </span>
+                  <td className="break-long-words px-2 py-2 sm:px-4">
+                    {author.href ? (
+                      <a
+                        href={author.href}
+                        className="font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                      >
+                        {author.name}
+                      </a>
                     ) : (
-                      "—"
+                      <>
+                        <span className="font-medium text-gray-900 dark:text-zinc-100">{author.name}</span>
+                        {author.soloPackageId && (
+                          <>
+                            {" "}· <a href={packagePath(author.soloPackageId)} className="pkg-link">{author.soloPackageId}</a>
+                          </>
+                        )}
+                      </>
                     )}
                   </td>
-                  <td
-                    className="px-4 py-2 text-right tabular-nums"
-                    title={
-                      author.credited > 0
-                        ? `${author.downloads.toLocaleString()} owned + ${author.creditedDownloads.toLocaleString()} credited`
-                        : undefined
-                    }
-                  >
-                    {(author.downloads + author.creditedDownloads).toLocaleString()}
-                  </td>
-                  <td
-                    className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400"
-                    title={
-                      author.creditedWeekly > 0
-                        ? `${author.weekly.toLocaleString()} owned + ${author.creditedWeekly.toLocaleString()} credited`
-                        : undefined
-                    }
-                  >
-                    {author.weekly + author.creditedWeekly > 0
-                      ? `+${(author.weekly + author.creditedWeekly).toLocaleString()}`
-                      : "—"}
-                  </td>
+                  <td className="px-2 py-2 text-right tabular-nums sm:px-4">{author.packages.toLocaleString()}</td>
+                  <td className="px-2 py-2 text-right tabular-nums sm:px-4">{author.downloads.toLocaleString()}</td>
                 </tr>
               ))}
               {visibleAuthors.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
+                  <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-zinc-400">
                     No authors match &quot;{authorQuery}&quot;
                   </td>
                 </tr>
@@ -476,6 +398,9 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             </tbody>
           </table>
         </div>
+        <p className="mt-3 text-sm">
+          <a href="/authors" className="pkg-link">All authors A–Z →</a>
+        </p>
       </section>
 
       {/* Weekly movers */}
@@ -513,18 +438,18 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
-                {movers.map((pkg, i) => (
+                {movers.map(({ pkg, rank }) => (
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{i + 1}</td>
+                    <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{rank}</td>
                     <td className="px-4 py-2">
-                      <Link
+                      <a
                         href={packagePath(pkg.id)}
                         title={`Show ${pkg.id}`}
                         className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
                         <PackageThumb pkg={pkg} />
                         <span className="truncate">{pkg.id}</span>
-                      </Link>
+                      </a>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
                       +{(pkg.downloadsWeek ?? 0).toLocaleString()}
@@ -545,6 +470,9 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               </tbody>
             </table>
           </div>
+          <p className="mt-3 text-sm">
+            <a href="/?sort=2" className="pkg-link">See all trending packages →</a>
+          </p>
         </section>
       )}
 
@@ -587,14 +515,14 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
                     <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{rank}</td>
                     <td className="px-4 py-2">
-                      <Link
+                      <a
                         href={packagePath(pkg.id)}
                         title={`Show ${pkg.id}`}
                         className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
                       >
                         <PackageThumb pkg={pkg} />
                         <span className="truncate">{pkg.id}</span>
-                      </Link>
+                      </a>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
                       +{(pkg.downloadsWeek ?? 0).toLocaleString()}
@@ -615,6 +543,9 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               </tbody>
             </table>
           </div>
+          <p className="mt-3 text-sm">
+            <a href="/?sort=3" className="pkg-link">See all rising packages →</a>
+          </p>
         </section>
       )}
 
@@ -625,60 +556,67 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             id="stats-new"
             className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
           >
-            New This Month
+            New This Month ({stats.newThisMonth.length.toLocaleString()})
           </h2>
-          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {stats.newThisMonth.map((pkg) => (
-              <li key={pkg.id}>
-                <Link
-                  href={packagePath(pkg.id)}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
-                >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <PackageThumb pkg={pkg} />
-                    <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
-                  </span>
-                  <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
-                    {pkg.firstReleased ? formatDate(pkg.firstReleased) : ""}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <RecentList packages={stats.newThisMonth.slice(0, 15)} dateOf={(pkg) => pkg.firstReleased!} />
+          {stats.newThisMonth.length > 15 && (
+            <details className="mt-3">
+              <summary className="pkg-link cursor-pointer text-sm">
+                Show all {stats.newThisMonth.length.toLocaleString()}
+              </summary>
+              <div className="mt-3">
+                <RecentList packages={stats.newThisMonth.slice(15)} dateOf={(pkg) => pkg.firstReleased!} />
+              </div>
+            </details>
+          )}
         </section>
       )}
 
       {/* Updated packages, excluding anything already listed as new above */}
-      {stats.updatedThisMonthList.length > 0 && (
+      {stats.updatedThisMonthCount > 0 && (
         <section aria-labelledby="stats-updated">
-          <h2
-            id="stats-updated"
-            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
-          >
-            Updated This Month
-          </h2>
-          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {stats.updatedThisMonthList.map((pkg) => (
-              <li key={pkg.id}>
-                <Link
-                  href={packagePath(pkg.id)}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
-                >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <PackageThumb pkg={pkg} />
-                    <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
-                    <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">v{pkg.version}</span>
-                  </span>
-                  <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
-                    {formatDate(pkg.updated)}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="mb-3 flex flex-col gap-0.5">
+            <h2
+              id="stats-updated"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+            >
+              Updated This Month ({stats.updatedThisMonthCount.toLocaleString()})
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-zinc-400">
+              Not counting the new packages above
+            </span>
+          </div>
+          <RecentList packages={stats.updatedThisMonthList} dateOf={(pkg) => latestRelease(pkg)} />
+          <p className="mt-3 text-sm">
+            <a href="/?sort=1" className="pkg-link">See all latest updates →</a>
+          </p>
         </section>
       )}
     </div>
+  );
+}
+
+/** Packages as link rows with one date each. */
+function RecentList({ packages, dateOf }: { packages: Package[]; dateOf: (pkg: Package) => string | Date }) {
+  return (
+    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {packages.map((pkg) => (
+        <li key={pkg.id}>
+          <a
+            href={packagePath(pkg.id)}
+            className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <PackageThumb pkg={pkg} />
+              <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
+            </span>
+            <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
+              {formatDate(dateOf(pkg))}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -722,9 +660,6 @@ function LineChart({
   const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
   const area = `${line} L${width},${height} L0,${height} Z`;
 
-  // Value at each quarter of the y range, for the gridline labels.
-  const quarter = (f: number) => Math.round(min + span * f);
-
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
@@ -733,11 +668,6 @@ function LineChart({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-start justify-between text-xs tabular-nums text-gray-500 dark:text-zinc-400">
-        <span>{max.toLocaleString()}</span>
-        <span>{quarter(0.5).toLocaleString()}</span>
-        <span className="opacity-0">.</span>
-      </div>
       <div className="relative" onMouseMove={onMouseMove} onMouseLeave={() => setHoverIndex(null)}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
@@ -880,27 +810,13 @@ function TableSearch({
   );
 }
 
-function StatTile({
-  label,
-  value,
-  accent = false,
-  small = false,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-  small?: boolean;
-}) {
+function StatTile({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
       <dt className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
         {label}
       </dt>
-      <dd
-        className={`font-bold ${small ? "text-sm" : "text-xl"} ${
-          accent ? "text-brand-600 dark:text-brand-400" : "text-gray-900 dark:text-zinc-100"
-        }`}
-      >
+      <dd className={`text-xl font-bold ${accent ? "text-brand-600 dark:text-brand-400" : "text-gray-900 dark:text-zinc-100"}`}>
         {value}
       </dd>
     </div>
@@ -954,21 +870,6 @@ function BarSection({
   );
 }
 
-interface AuthorStats {
-  id: number;
-  name: string;
-  packages: number;
-  downloads: number;
-  weekly: number;
-  rank: number;
-  items: { id: string; iconUrl: string }[];
-  /** Packages where the person is in the credit list but not the owner. */
-  credited: number;
-  creditedDownloads: number;
-  creditedWeekly: number;
-  creditedItems: { id: string; iconUrl: string }[];
-}
-
 function getStats(cache: Package[]) {
   if (cache.length === 0) return null;
 
@@ -977,8 +878,6 @@ function getStats(cache: Package[]) {
 
   let totalDownloads = 0;
   let weeklyDownloads = 0;
-  let updatedThisMonth = 0;
-  let lastUpdated = cache[0].updated;
 
   // Every bucket tracks packages and downloads so the bars can be shown
   // either way: counting packages lets long-dead ones drown out the few
@@ -1002,7 +901,6 @@ function getStats(cache: Package[]) {
     b.downloads += pkg.downloads;
   };
 
-  const authors = new Map<string, AuthorStats>();
   const newThisMonth: Package[] = [];
   const updatedThisMonthList: Package[] = [];
 
@@ -1010,19 +908,16 @@ function getStats(cache: Package[]) {
     totalDownloads += pkg.downloads;
     weeklyDownloads += pkg.downloadsWeek ?? 0;
 
-    if (pkg.updated > lastUpdated) lastUpdated = pkg.updated;
     // A package's first version also counts as an "update" the day it
     // ships, so a brand-new package would otherwise show up in both lists.
     // Keep them mutually exclusive: something first released this month
     // belongs in "New", not "Updated".
     const isNewThisMonth =
       !!pkg.firstReleased && now - new Date(pkg.firstReleased).getTime() <= monthMs;
-    if (now - new Date(pkg.updated).getTime() <= monthMs) {
-      updatedThisMonth++;
-      if (!isNewThisMonth) updatedThisMonthList.push(pkg);
-    }
     if (isNewThisMonth) {
       newThisMonth.push(pkg);
+    } else if (now - latestRelease(pkg).getTime() <= monthMs) {
+      updatedThisMonthList.push(pkg);
     }
 
     const isGh = has(Filters.Grasshopper, pkg);
@@ -1041,83 +936,22 @@ function getStats(cache: Package[]) {
     if (has(Filters.Rhino7, pkg)) add(dist.rhino7, pkg);
     if (has(Filters.Rhino8, pkg)) add(dist.rhino8, pkg);
     if (has(Filters.Rhino9, pkg)) add(dist.rhino9, pkg);
-
-    // Key by name, not id: a few people publish from more than one account
-    // and would otherwise show up as separate rows with split totals. Some
-    // packages list two of the same person's accounts, so count each person
-    // once per package, the way their author page does.
-    const counted = new Set<string>();
-    for (const owner of pkg.owners) {
-      const key = normalizeName(owner.name);
-      if (counted.has(key)) continue;
-      counted.add(key);
-      const entry = authors.get(key) ?? {
-        id: owner.id,
-        name: owner.name,
-        packages: 0,
-        downloads: 0,
-        weekly: 0,
-        rank: 0,
-        items: [],
-        credited: 0,
-        creditedDownloads: 0,
-        creditedWeekly: 0,
-        creditedItems: [],
-      };
-      entry.packages++;
-      entry.downloads += pkg.downloads;
-      entry.weekly += pkg.downloadsWeek ?? 0;
-      entry.items.push({ id: pkg.id, iconUrl: pkg.iconUrl });
-      authors.set(key, entry);
-    }
   }
-
-  // Second pass: credit packages where someone is named in the author list
-  // but does not own the package. Kept apart from the owned totals so the
-  // download figures still add up to the ecosystem total.
-  for (const pkg of cache) {
-    const owned = new Set(pkg.owners.map((o) => normalizeName(o.name)));
-
-    for (const name of pkg.authors.split(",")) {
-      const key = normalizeName(name);
-      if (!key || owned.has(key) || !isCreditableName(key)) continue;
-
-      const entry = authors.get(key);
-      if (!entry) continue;
-
-      entry.credited++;
-      entry.creditedDownloads += pkg.downloads;
-      entry.creditedWeekly += pkg.downloadsWeek ?? 0;
-      entry.creditedItems.push({ id: pkg.id, iconUrl: pkg.iconUrl });
-    }
-  }
-
-  // Ranked on everything a person worked on, owned or credited. A package
-  // with several credited authors therefore counts towards each of them, so
-  // these columns intentionally sum to more than the ecosystem total.
-  const rankedAuthors = Array.from(authors.values()).sort(
-    (a, b) => b.downloads + b.creditedDownloads - (a.downloads + a.creditedDownloads),
-  );
-  rankedAuthors.forEach((author, i) => (author.rank = i + 1));
 
   newThisMonth.sort(
     (a, b) => new Date(b.firstReleased!).getTime() - new Date(a.firstReleased!).getTime(),
   );
-  updatedThisMonthList.sort(
-    (a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime(),
-  );
+  updatedThisMonthList.sort((a, b) => latestRelease(b).getTime() - latestRelease(a).getTime());
 
   return {
     totalPackages: cache.length,
     totalDownloads,
     weeklyDownloads,
-    updatedThisMonth,
-    lastUpdated: formatDateTime(lastUpdated),
     dist,
-    authors: rankedAuthors,
-    // The tile shows the full count; only the list below it is capped.
-    newThisMonthCount: newThisMonth.length,
-    newThisMonth: newThisMonth.slice(0, 15),
+    // The headings show the full counts; the updated list is capped (the new
+    // list shows its first rows and tucks the rest behind a toggle).
+    newThisMonth,
+    updatedThisMonthCount: updatedThisMonthList.length,
     updatedThisMonthList: updatedThisMonthList.slice(0, 15),
   };
 }

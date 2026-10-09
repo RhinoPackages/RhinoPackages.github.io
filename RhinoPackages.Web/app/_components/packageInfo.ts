@@ -59,6 +59,23 @@ export interface AuthorRef {
   indexed: boolean;
 }
 
+/**
+ * One row of the /stats author table, computed on the server by
+ * authorRankings() (authors.ts) so its numbers are the ones the author page
+ * shows. Defined here for the same reason as AuthorRef.
+ */
+export interface AuthorRanking {
+  name: string;
+  /** Packages published or credited: the author page's "Packages". */
+  packages: number;
+  /** Downloads over those packages: the author page's "Total downloads". */
+  downloads: number;
+  /** The author page, set only for authors that have one search engines see (2+ packages). */
+  href?: string;
+  /** The one package of an author with no such page, which the row links to instead. */
+  soloPackageId?: string;
+}
+
 /** Yak fills an empty description with the literal "no description". */
 export function hasDescription(pkg: Package) {
   const description = pkg.description.trim();

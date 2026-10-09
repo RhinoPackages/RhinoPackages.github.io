@@ -1,5 +1,5 @@
 import { loadPackages } from "./packageData";
-import type { AuthorRef } from "./packageInfo";
+import { AuthorRanking, AuthorRef, authorPath } from "./packageInfo";
 import { Package, matchesOwner, normalizeName } from "./packageModel";
 
 /**
@@ -111,4 +111,25 @@ export function authorRefs(): AuthorRef[] {
     count: author.packages.length,
     indexed: isIndexedAuthor(author),
   }));
+}
+
+/**
+ * Every author ranked by downloads, for the /stats table. The numbers are the
+ * author page's own (all published and credited packages), so a row and the
+ * page it links to never disagree. Authors without an indexed page link to
+ * their one package instead.
+ */
+export function authorRankings(): AuthorRanking[] {
+  return loadAuthors()
+    .map((author) => {
+      const row: AuthorRanking = {
+        name: author.name,
+        packages: author.packages.length,
+        downloads: author.packages.reduce((sum, pkg) => sum + pkg.downloads, 0),
+      };
+      if (isIndexedAuthor(author)) row.href = authorPath(author.slug);
+      else row.soloPackageId = author.packages[0].id;
+      return row;
+    })
+    .sort((a, b) => b.downloads - a.downloads);
 }

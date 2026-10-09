@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Author, authorPath, loadAuthors } from "@/app/_components/authors";
+import { Author, authorPath, isIndexedAuthor, loadAuthors } from "@/app/_components/authors";
+import { packagePath } from "@/app/_components/packageInfo";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 
 export function generateMetadata(): Metadata {
@@ -41,8 +42,8 @@ export default function AuthorsIndexPage() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Rhino &amp; Grasshopper plugin authors</h1>
       <p className="mt-3 max-w-3xl leading-relaxed text-gray-600 dark:text-zinc-400">
         The {authors.length.toLocaleString("en-US")} developers and studios publishing packages on Rhino&apos;s Yak
-        package manager, A to Z. Each page lists everything they publish or are credited on. Looking for a plugin
-        instead? Browse <a href="/packages" className="pkg-link">all packages</a> or search the{" "}
+        package manager, A to Z. Each page lists everything they publish or are credited on; an author with a single
+        package links straight to it. Looking for a plugin instead? Browse <a href="/packages" className="pkg-link">all packages</a> or search the{" "}
         <a href="/" className="pkg-link">directory</a>.
       </p>
 
@@ -76,12 +77,23 @@ export default function AuthorsIndexPage() {
           <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {(groups.get(key) ?? []).map((author) => (
               <li key={author.slug} className="min-w-0 text-sm">
-                <a href={authorPath(author.slug)} className="pkg-link break-long-words font-medium">
-                  {author.name}
-                </a>
-                <span className="pkg-muted">
-                  {" "}· {author.packages.length} {author.packages.length === 1 ? "package" : "packages"}
-                </span>
+                {isIndexedAuthor(author) ? (
+                  <>
+                    <a href={authorPath(author.slug)} className="pkg-link break-long-words font-medium">
+                      {author.name}
+                    </a>
+                    <span className="pkg-muted"> · {author.packages.length} packages</span>
+                  </>
+                ) : (
+                  // One package: its page says everything the author page would, so link there.
+                  <>
+                    <span className="break-long-words font-medium text-gray-900 dark:text-zinc-100">{author.name}</span>
+                    <span className="pkg-muted"> · </span>
+                    <a href={packagePath(author.packages[0].id)} className="pkg-link break-long-words">
+                      {author.packages[0].id}
+                    </a>
+                  </>
+                )}
               </li>
             ))}
           </ul>

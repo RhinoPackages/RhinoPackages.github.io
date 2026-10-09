@@ -5,7 +5,8 @@ export * from "./packageModel";
 
 export function useApi(initialCache: Package[] = []) {
   const [cache, setCache] = useState<Package[]>(initialCache);
-  const [status, setStatus] = useState<Status>(Status.idle());
+  // Nothing preloaded means the very first render is "loading", never an error state.
+  const [status, setStatus] = useState<Status>(initialCache.length ? Status.idle() : Status.loading());
 
   useEffect(() => {
     if (initialCache.length > 0) {

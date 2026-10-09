@@ -4,8 +4,8 @@ import { Squares2X2Icon } from "@heroicons/react/24/solid";
 import PackageIcon from "@/app/_components/PackageIcon";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import { authorPath, findAuthor, isIndexedAuthor, loadAuthors } from "@/app/_components/authors";
-import { Filters, Package, formatDate, has, isDeprecated } from "@/app/_components/packageModel";
-import { iconSrc, joinWithAnd, packagePath, pluginKind, truncate } from "@/app/_components/packageInfo";
+import { Filters, Package, compactNumber, formatDate, has, latestRelease } from "@/app/_components/packageModel";
+import { iconSrc, joinWithAnd, packagePath, pluginKind, statusBadges, truncate } from "@/app/_components/packageInfo";
 
 type Params = { params: { slug: string } };
 
@@ -58,15 +58,19 @@ export default function AuthorPage({ params }: Params) {
   const { packages } = author;
   const downloads = packages.reduce((sum, pkg) => sum + pkg.downloads, 0);
   const weekly = packages.reduce((sum, pkg) => sum + (pkg.downloadsWeek ?? 0), 0);
-  const lastUpdated = packages.reduce<string | undefined>(
-    (latest, pkg) => (!latest || pkg.updated > latest ? pkg.updated : latest),
-    undefined,
-  );
+  // Active from the first release to the newest, by the same activity date the lists use.
+  const lastReleased = packages.reduce<Date | undefined>((latest, pkg) => {
+    const release = latestRelease(pkg);
+    return !latest || release > latest ? release : latest;
+  }, undefined);
   const firstReleased = packages.reduce<string | undefined>(
     (first, pkg) => (pkg.firstReleased && (!first || pkg.firstReleased < first) ? pkg.firstReleased : first),
     undefined,
   );
+  const active = [firstReleased, lastReleased].filter(Boolean).map((date) => formatDate(date!)).join(" – ");
   const credited = packages.length - author.owned;
+  const indexed = isIndexedAuthor(author);
+  const now = Date.now();
   const path = authorPath(author.slug);
 
   const structuredData = [
@@ -127,50 +131,65 @@ export default function AuthorPage({ params }: Params) {
 
       <header className="mt-6">
         <h1 className="break-long-words text-3xl font-bold text-gray-900 dark:text-zinc-100">{author.name}</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-          {packages.length === 1 ? "1 package" : `${packages.length} ${kindsOf(packages)}`} on Rhino&apos;s Yak
-          package manager
-        </p>
+        {indexed ? (
+          <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+            {packages.length} {kindsOf(packages)} on Rhino&apos;s Yak package manager
+          </p>
+        ) : (
+          // The one package is all there is to say: no totals, no filter link.
+          <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+            {author.name} has one package on Yak:{" "}
+            <a href={packagePath(packages[0].id)} className="pkg-link break-long-words font-medium">
+              {packages[0].id}
+            </a>
+          </p>
+        )}
       </header>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <a href={`/?owner=${author.id}`} className="pkg-button">
-          <Squares2X2Icon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-          Filter the directory
-        </a>
-      </div>
+      {indexed && (
+        <>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <a href={`/?owner=${author.id}`} className="pkg-button">
+              <Squares2X2Icon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+              Filter the directory
+            </a>
+          </div>
 
-      <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40 sm:grid-cols-3 lg:grid-cols-5">
-        <Fact
-          label="Packages"
-          value={packages.length.toLocaleString("en-US")}
-          hint={credited > 0 ? `${author.owned} published · ${credited} credited` : undefined}
-        />
-        <Fact label="Total downloads" value={downloads.toLocaleString("en-US")} />
-        <Fact label="Recent downloads" value={`+${weekly.toLocaleString("en-US")} / week`} />
-        <Fact label="First release" value={firstReleased ? formatDate(firstReleased) : "—"} />
-        <Fact label="Last update" value={lastUpdated ? formatDate(lastUpdated) : "—"} />
-      </dl>
+          <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40 sm:grid-cols-4">
+            <Fact
+              label="Packages"
+              value={packages.length.toLocaleString("en-US")}
+              hint={credited > 0 ? `${author.owned} published · ${credited} credited` : undefined}
+            />
+            <Fact label="Total downloads" value={downloads.toLocaleString("en-US")} />
+            <Fact label="This week" value={`+${weekly.toLocaleString("en-US")}`} />
+            <Fact label="Active" value={active || "—"} />
+          </dl>
+        </>
+      )}
 
       <section aria-labelledby="packages" className="mt-10">
         <h2 id="packages" className="pkg-heading">Packages by {author.name}</h2>
         <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {packages.map((pkg) => (
-            <li key={pkg.id}>
-              <a href={packagePath(pkg.id)} className="pkg-card">
-                <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={iconSrc(pkg.iconUrl)} size={32} />
-                <span className="min-w-0">
-                  <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">
-                    {pkg.id}
-                    {isDeprecated(pkg) && <span className="pkg-muted font-normal"> · deprecated</span>}
+          {packages.map((pkg) => {
+            const status = statusBadges(pkg, now)[0];
+            return (
+              <li key={pkg.id}>
+                <a href={packagePath(pkg.id)} className="pkg-card">
+                  <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={iconSrc(pkg.iconUrl)} size={32} />
+                  <span className="min-w-0">
+                    <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">
+                      {pkg.id}
+                      {status && <span className="pkg-muted font-normal"> · {status.label}</span>}
+                    </span>
+                    <span className="pkg-muted block">
+                      {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
+                    </span>
                   </span>
-                  <span className="pkg-muted block">
-                    {pluginKind(pkg)} · v{pkg.version} · {pkg.downloads.toLocaleString("en-US")} downloads
-                  </span>
-                </span>
-              </a>
-            </li>
-          ))}
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </section>
 

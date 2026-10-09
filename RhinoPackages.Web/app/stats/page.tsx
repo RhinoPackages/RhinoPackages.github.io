@@ -2,6 +2,9 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Spinner from "../_components/Spinner";
 import StatsPageClient from "../_components/StatsPageClient";
+import { authorRankings } from "../_components/authors";
+import { loadPackages } from "../_components/packageData";
+import { formatDate, latestRelease } from "../_components/packageModel";
 import { openGraphDefaults, twitterDefaults } from "../_components/seo";
 
 export const metadata: Metadata = {
@@ -27,16 +30,21 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
+  // Author numbers are the author pages' own, so they are worked out here,
+  // where the data is on disk, and handed to the client table as rows.
+  const authors = authorRankings();
+  const latest = formatDate(Math.max(...loadPackages().map((pkg) => latestRelease(pkg).getTime())));
+
   // The heading is plain server markup, so the exported HTML has its h1. The
-  // tables below it read ?author= and ?rising= from the query string, which
-  // needs a boundary of its own now that the layout no longer provides one.
+  // tables below it read ?author=, ?movers= and ?rising= from the query
+  // string, which needs a boundary of its own now that the layout no longer
+  // provides one. Until the boundary resolves, the exported HTML shows its
+  // spinner, never the client's error state.
   return (
     <div className="flex flex-col gap-8 pb-12 pt-8">
       <div>
         <h1 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">Directory Stats</h1>
-        <p className="text-sm text-gray-500 dark:text-zinc-400">
-          Live statistics for all packages, updated daily from the Yak package manager.
-        </p>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">Latest package release {latest}</p>
       </div>
       <Suspense
         fallback={
@@ -47,7 +55,7 @@ export default function Page() {
           </div>
         }
       >
-        <StatsPageClient />
+        <StatsPageClient authors={authors} />
       </Suspense>
     </div>
   );
