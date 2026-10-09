@@ -192,12 +192,6 @@ export default function AuthorPage({ params }: Params) {
           })}
         </ul>
       </section>
-
-      <p className="mt-10 text-xs text-gray-500 dark:text-zinc-400">
-        Includes packages {author.name} publishes on Yak and packages that credit them as an author. Data comes
-        from Rhino&apos;s <a href="https://yak.rhino3d.com" className="pkg-link">Yak package manager</a> and is
-        refreshed every few hours. <a href="/authors" className="pkg-link">Browse all authors</a>.
-      </p>
     </article>
   );
 }

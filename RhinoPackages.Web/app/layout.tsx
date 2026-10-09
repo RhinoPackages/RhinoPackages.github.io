@@ -6,8 +6,10 @@ import Spinner from "./_components/Spinner";
 import { ThemeProvider } from "./_components/ThemeProvider";
 import { ThemeToggle } from "./_components/ThemeToggle";
 import ContributorsBubbles from "./_components/ContributorsBubbles";
+import NavLink from "./_components/NavLink";
 import ScrollToTop from "./_components/ScrollToTop";
-import { formatDateTime } from "./_components/format";
+import { formatDate, formatDateTime } from "./_components/format";
+import { loadDataDate } from "./_components/packageData";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "./_components/seo";
 
 import Image from "next/image";
@@ -127,14 +129,25 @@ export const metadata: Metadata = {
 };
 
 // Header navigation. Icons only on phones; labels from the sm breakpoint up.
+// `section` is the path prefix of the pages that belong to a link: a package
+// page is inside "All packages", an author page inside "Authors".
 const navLinks = [
-  { href: "/packages", label: "Packages", title: "All packages A–Z", Icon: Squares2X2Icon },
-  { href: "/authors", label: "Authors", title: "All authors A–Z", Icon: UserGroupIcon },
+  { href: "/packages", section: "/package/", label: "All packages", title: "All packages A–Z", Icon: Squares2X2Icon },
+  { href: "/authors", section: "/author/", label: "Authors", title: "All authors A–Z", Icon: UserGroupIcon },
   { href: "/stats", label: "Stats", title: "Directory statistics", Icon: ChartBarIcon },
   { href: "/faq", label: "FAQ", title: "Frequently asked questions", Icon: QuestionMarkCircleIcon },
 ];
 
+const repositoryUrl = "https://github.com/RhinoPackages/RhinoPackages.github.io";
+
+// Footer links share one look.
+const footerLinkClasses =
+  "rounded-sm underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const dataDate = loadDataDate();
+  const version = process.env.NEXT_PUBLIC_VERSION;
+
   return (
     <html lang="en" className="antialiased overflow-x-clip" suppressHydrationWarning>
       <head>
@@ -185,17 +198,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </span>
               </a>
               <div className="flex min-w-0 flex-wrap items-center gap-0.5 sm:gap-2">
-                {navLinks.map(({ href, label, title, Icon }) => (
-                  <a
-                    key={href}
-                    href={href}
-                    title={title}
-                    aria-label={title}
-                    className="flex items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus-visible:ring-brand-400 sm:px-3"
-                  >
+                {navLinks.map(({ href, section, label, title, Icon }) => (
+                  <NavLink key={href} href={href} section={section} title={title}>
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     <span className="hidden sm:inline">{label}</span>
-                  </a>
+                  </NavLink>
                 ))}
                 <ThemeToggle />
               </div>
@@ -209,20 +216,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </div>
             <footer className="mt-16 border-t border-gray-200 pt-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
-              <p>Site Generated: {formatDateTime(new Date())}</p>
-              {process.env.NEXT_PUBLIC_VERSION && (
-                <p className="mt-1 text-xs">{process.env.NEXT_PUBLIC_VERSION}</p>
-              )}
-              <p className="mt-1">
-                <a
-                  href="https://rhinoversions.github.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-sm underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400"
-                >
-                  Rhino Version Archive
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </a>
+              {/* The one place the site says where its data comes from. The date
+                  is the last data snapshot; the build itself goes in the title.
+                  Two groups: one line from sm up, one line each on phones, so a
+                  wrap never strands a separator. */}
+              <p>
+                <span className="block sm:inline">
+                  <span className="whitespace-nowrap">
+                    Data from{" "}
+                    <a href="https://yak.rhino3d.com" className={footerLinkClasses}>
+                      Yak
+                    </a>
+                  </span>
+                  {dataDate && (
+                    <>
+                      {" · "}
+                      <a
+                        href="/faq#updates"
+                        title={`Site built ${formatDateTime(new Date())}${version ? ` · ${version}` : ""}`}
+                        className={`whitespace-nowrap ${footerLinkClasses}`}
+                      >
+                        updated {formatDate(dataDate)}
+                      </a>
+                    </>
+                  )}
+                </span>
+                <span aria-hidden="true" className="hidden sm:inline">
+                  {" · "}
+                </span>
+                <span className="block sm:inline">
+                  <a
+                    href="https://rhinoversions.github.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`whitespace-nowrap ${footerLinkClasses}`}
+                  >
+                    Rhino Version Archive
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                  {" · "}
+                  <a
+                    href={repositoryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`whitespace-nowrap ${footerLinkClasses}`}
+                  >
+                    Source on GitHub
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </span>
               </p>
               <ContributorsBubbles />
             </footer>

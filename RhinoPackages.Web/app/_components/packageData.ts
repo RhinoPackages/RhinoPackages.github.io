@@ -3,7 +3,7 @@
 
 import fs from "fs";
 import path from "path";
-import type { HistoryPoint, Package, YakVersionHistoryItem } from "./packageModel";
+import type { HistoryPoint, Package, TotalsPoint, YakVersionHistoryItem } from "./packageModel";
 
 const publicDir = path.join(process.cwd(), "public");
 
@@ -44,4 +44,18 @@ export function loadVersionHistory(id: string): YakVersionHistoryItem[] {
 /** Daily download snapshots of a package. */
 export function loadDownloadHistory(id: string): HistoryPoint[] {
   return readJsonArray<HistoryPoint>(path.join(publicDir, "data", "history", `${id}.json`));
+}
+
+/**
+ * The day the data was last collected: the newest point of the site-wide
+ * totals series, not the build time, so a deploy that only changes code does
+ * not claim fresh data. Snapshot dates are plain calendar days, so the result
+ * sits at noon UTC, where formatDate() shows the same day in US Eastern time.
+ */
+export function loadDataDate(): Date | undefined {
+  const dates = readJsonArray<TotalsPoint>(path.join(publicDir, "data", "history", "_totals.json"))
+    .map((point) => point.date)
+    .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date));
+  if (dates.length === 0) return undefined;
+  return new Date(`${dates.reduce((a, b) => (b > a ? b : a))}T12:00:00Z`);
 }

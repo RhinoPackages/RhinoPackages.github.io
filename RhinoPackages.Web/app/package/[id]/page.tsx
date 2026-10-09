@@ -451,13 +451,6 @@ export default function PackagePage({ params }: Params) {
           </>
         )}
       </section>
-
-      <p className="mt-10 text-xs text-gray-500 dark:text-zinc-400">
-        Package data comes from Rhino&apos;s{" "}
-        <a href="https://yak.rhino3d.com" className="pkg-link">Yak package manager</a> and is refreshed every
-        few hours. <a href="/packages" className="pkg-link">Browse all packages A–Z</a> or{" "}
-        <a href="/authors" className="pkg-link">all authors</a>.
-      </p>
     </article>
   );
 }
