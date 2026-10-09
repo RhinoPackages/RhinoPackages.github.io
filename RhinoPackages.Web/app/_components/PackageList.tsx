@@ -1,37 +1,20 @@
 import { memo, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Menu } from "@headlessui/react";
 import {
   ArrowDownTrayIcon,
-  ArrowLongLeftIcon,
-  ArrowLongRightIcon,
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
-  ClipboardDocumentIcon,
   EnvelopeIcon,
   ChevronDownIcon,
   CheckIcon,
-  DocumentTextIcon,
   LinkIcon,
   MagnifyingGlassIcon,
   StarIcon,
   UserIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, isMaintained, latestRelease, normalizeName } from "@/app/_components/api";
-import {
-  YakPlatform,
-  formatBytes,
-  formatCadence,
-  formatDistributionTarget,
-  groupVersionHistory,
-  packagePath,
-  parseWebsiteAction,
-  platformLabel,
-  yakInstallCommand,
-  yakRhinoRelease,
-} from "./packageInfo";
-import { nearestIndex, timePositions } from "./chart";
+import { pageResults, Filters, Package, formatDate, isMaintained, latestRelease } from "@/app/_components/api";
+import { displayKeywords, formatBytes, packagePath, parseWebsiteAction } from "./packageInfo";
 import { Params, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
 import Spinner from "./Spinner";
@@ -241,6 +224,12 @@ function packageAnchorId(packageId: string) {
   return `package-${packageId}`;
 }
 
+/** Most keyword chips the quick view shows; the package page lists them all. */
+const quickViewKeywords = 10;
+
+/** Longest license the quick view's fact line shows; longer ones are EULA text for the package page. */
+const quickViewLicenseMax = 24;
+
 function OwnerStat({
   label,
   value,
@@ -313,28 +302,13 @@ const PackageCard = memo(function PackageCard({
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   controls: Params;
 }) {
-  const { ownerIdByName } = usePackageContext();
-
-  const [versionHistory, setVersionHistory] = useState<YakVersionHistoryItem[] | null>(null);
-  const [downloadHistory, setDownloadHistory] = useState<HistoryPoint[] | null>(null);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  // Seed from the URL param when this card is the deep-linked target; otherwise default to false.
-  const [showPrereleases, setShowPrereleases] = useState(
-    isExpanded && controls.pre
-  );
   const [copied, setCopied] = useState(false);
-  const [copiedName, setCopiedName] = useState(false);
-  const [copiedCommand, setCopiedCommand] = useState(false);
-  // Null until the reader picks a tab by hand, so that the detected platform
-  // keeps winning until they say otherwise.
-  const [commandPlatform, setCommandPlatform] = useState<YakPlatform | null>(null);
-  const hostPlatform = useHostPlatform();
   const onToggle = () => {
     if (isExpanded) {
-      // Collapsing removes up to a thousand pixels of details. If the reader
-      // has scrolled past the card's header, that height vanishes above them
-      // and the cards below jump up. Pin the header to the top instead; it
-      // stays put while the card shrinks beneath it.
+      // Collapsing removes the quick view's height. If the reader has scrolled
+      // past the card's header, that height vanishes above them and the cards
+      // below jump up. Pin the header to the top instead; it stays put while
+      // the card shrinks beneath it.
       // The offset is the card's scroll-margin, which clears the phone's sticky search bar.
       const card = document.getElementById(packageAnchorId(pkg.id));
       const top = card?.getBoundingClientRect().top ?? 0;
@@ -343,78 +317,17 @@ const PackageCard = memo(function PackageCard({
         window.scrollBy({ top: top - margin, behavior: "auto" });
       }
     }
-    navigate({ p: isExpanded ? undefined : pkg.id, pre: isExpanded ? false : controls.pre });
+    navigate({ p: isExpanded ? undefined : pkg.id });
   };
 
-  // Keep showPrereleases in sync when navigating via deep link after first render.
-  useEffect(() => {
-    if (isExpanded) {
-      setShowPrereleases(controls.pre);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExpanded]);
-
+  // The canonical page address, so a pasted link lands on the package page
+  // rather than on the list with this card open.
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = new URL(window.location.href);
-    url.searchParams.set("p", pkg.id);
-    if (showPrereleases) {
-      url.searchParams.set("pre", "true");
-    } else {
-      url.searchParams.delete("pre");
-    }
-    navigator.clipboard.writeText(url.toString());
+    navigator.clipboard.writeText(`${window.location.origin}${packagePath(pkg.id)}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const handleCopyName = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(pkg.id);
-    setCopiedName(true);
-    setTimeout(() => setCopiedName(false), 2000);
-  };
-
-  const handleCopyCommand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(installCommand);
-    setCopiedCommand(true);
-    setTimeout(() => setCopiedCommand(false), 2000);
-  };
-
-  useEffect(() => {
-    if (!isExpanded || versionHistory !== null) return;
-    setHistoryLoading(true);
-
-    // Fetch the complete version history from local static data
-    fetch(`./data/versions/${pkg.id}.json`)
-      .then((r) => {
-        if (!r.ok) throw new Error("History not found");
-        return r.json();
-      })
-      .then((data: YakVersionHistoryItem[]) => {
-        setVersionHistory(data);
-      })
-      .catch((err) => {
-        console.warn(`Could not load history for ${pkg.id}:`, err);
-        setVersionHistory([]);
-      })
-      .finally(() => setHistoryLoading(false));
-  }, [isExpanded, pkg.id, versionHistory]);
-
-  useEffect(() => {
-    if (!isExpanded || downloadHistory !== null) return;
-
-    // Daily download snapshots accumulated by the generator; missing until
-    // enough data has been collected for this package.
-    fetch(`./data/history/${pkg.id}.json`)
-      .then((r) => {
-        if (!r.ok) throw new Error("No download history");
-        return r.json();
-      })
-      .then((data: HistoryPoint[]) => setDownloadHistory(data))
-      .catch(() => setDownloadHistory([]));
-  }, [isExpanded, pkg.id, downloadHistory]);
 
   function has(constant: Filters) {
     return constant === (pkg.filters & constant);
@@ -424,52 +337,24 @@ const PackageCard = memo(function PackageCard({
 
   const link = `rhino://package/search?name=${pkg.id}`;
 
-  // The rhino:// link works on both platforms, but the command-line fallback
-  // does not: yak ships inside the Rhino installation, under a different path
-  // on each. Only offer the platforms this package actually builds for, so a
-  // Windows-only plugin never hands out a Mac command that cannot work.
-  const commandPlatforms: YakPlatform[] = ([
-    has(Filters.Windows) ? "windows" : null,
-    has(Filters.Mac) ? "mac" : null,
-  ] as (YakPlatform | null)[]).filter((entry): entry is YakPlatform => entry !== null);
-  // Default to this computer when the package supports it, and otherwise to
-  // the one platform it does support. A reader on a Mac looking up a
-  // Windows-only plugin gets the Windows command, which is the useful answer.
-  const preferredPlatform: YakPlatform = hostPlatform === "mac" ? "mac" : "windows";
-  const defaultPlatform: YakPlatform =
-    commandPlatforms.includes(preferredPlatform) ? preferredPlatform : commandPlatforms[0] ?? preferredPlatform;
-  const shownPlatform: YakPlatform =
-    commandPlatform && commandPlatforms.includes(commandPlatform) ? commandPlatform : defaultPlatform;
-  const rhinoRelease = yakRhinoRelease(pkg);
-  const installCommand = yakInstallCommand(shownPlatform, rhinoRelease, pkg.id);
-
-  // Builds for the version this card is showing. The pre-release toggle only
-  // governs the history table, so resolve against pkg.version rather than
-  // reusing versionRows, and fall back to the newest stable release when the
-  // history has no exact match.
-  const latestDistributions = (() => {
-    if (!versionHistory || versionHistory.length === 0) return [];
-    const exact = versionHistory.find((entry) => entry.version === pkg.version);
-    if (exact) return exact.distributions;
-    const newestStable = versionHistory
-      .filter((entry) => !entry.prerelease)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-    return (newestStable ?? versionHistory[0]).distributions;
-  })();
-  const orderedLatest = orderDistributionsForHost(latestDistributions, hostPlatform);
-  const tags = pkg.keywords ? pkg.keywords.split(",").map((tag) => tag.trim()) : undefined;
+  const keywords = displayKeywords(pkg);
+  const shownKeywords = keywords.slice(0, quickViewKeywords);
+  // Licenses are free text ("MIT", "MIT License", a pasted EULA). Show only the
+  // short ones, and do not say "license" twice. The package page has the full text.
+  const licenseText = pkg.license?.replace(/\s+/g, " ").trim();
+  const license = licenseText && licenseText.length <= quickViewLicenseMax ? licenseText : null;
+  // What the rows above do not say, from data.json alone. Any missing value
+  // drops out of the line.
+  const facts = [
+    `v${pkg.version}`,
+    pkg.firstReleased ? `first released ${formatDate(pkg.firstReleased)}` : null,
+    pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : null,
+    license ? `${license}${/licen/i.test(license) ? "" : " license"}` : null,
+  ].filter(Boolean);
   const date = formatDate(pkg.updated);
   const downloads = pkg.downloads.toLocaleString();
   const downloadsWeek = pkg.downloadsWeek ?? 0;
-  const downloadsMonth = pkg.downloadsMonth ?? 0;
 
-  // Relative time for expanded view
-  const relativeTime = getRelativeTime(new Date(pkg.updated));
-  const versionRows = versionHistory
-    ? groupVersionHistory(versionHistory.filter((v) => showPrereleases || !v.prerelease))
-    : [];
-
-  // Derived stats from the new Yak API fields.
   const isTrending = downloadsWeek >= 30 && downloadsWeek > pkg.downloads * 0.01;
   const hasDescription =
     pkg.description.trim().length > 0 && pkg.description.trim().toLowerCase() !== "no description";
@@ -477,63 +362,11 @@ const PackageCard = memo(function PackageCard({
     ? (Date.now() - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24)
     : null;
   const isNew = ageDays !== null && ageDays <= 30;
-  const downloadsPerDay = ageDays && ageDays >= 1 ? pkg.downloads / ageDays : null;
-  // Release count and cadence must come from the same set of releases. The
-  // package-level `updated` is the date of the *current* version, which can
-  // predate later pre-releases, so measuring the span against it understates
-  // the cadence. Prefer the full history once it has loaded.
-  const releaseStats = (() => {
-    const times = (versionHistory ?? [])
-      .map((v) => new Date(v.createdAt).getTime())
-      .filter((t) => Number.isFinite(t))
-      .sort((a, b) => a - b);
-
-    const count = times.length > 0 ? times.length : (pkg.versionCount ?? 0);
-    const first = times.length > 0 ? times[0] : pkg.firstReleased ? new Date(pkg.firstReleased).getTime() : null;
-    const last =
-      times.length > 0
-        ? times[times.length - 1]
-        : new Date(pkg.lastReleased ?? pkg.updated).getTime();
-
-    if (count === 0 || first === null) return null;
-
-    const spanDays = (last - first) / (1000 * 3600 * 24);
-    const cadence =
-      count > 1 && spanDays > 0 ? spanDays / (count - 1) : (pkg.releaseCadenceDays ?? null);
-
-    return { count, first: new Date(first), cadence };
-  })();
   // The same rule as the sidebar's Maintained filter and the package page.
   const maintained = isMaintained(pkg);
   // Nothing published for the current Rhino release. Packages that target
   // Rhino 9 only are forward-looking, not deprecated.
   const isDeprecated = !has(Filters.Rhino8) && !has(Filters.Rhino9);
-
-  // Credited authors often include people who publish under their own Yak
-  // account elsewhere; link those to the owner filter.
-  const creditedAuthors = (pkg.authors ?? "")
-    .split(",")
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .map((name) => ({
-      name,
-      ownerId:
-        pkg.owners.find((o) => normalizeName(o.name) === normalizeName(name))?.id ??
-        ownerIdByName.get(normalizeName(name)),
-    }));
-
-  // Share of downloads on the latest stable release.
-  const adoption = (() => {
-    if (!versionHistory || versionHistory.length === 0) return null;
-    const total = versionHistory.reduce((sum, v) => sum + (v.downloadCount ?? 0), 0);
-    if (total === 0) return null;
-    const stable = versionHistory.filter((v) => !v.prerelease);
-    const pool = stable.length > 0 ? stable : versionHistory;
-    const latest = pool.reduce((prev, curr) =>
-      new Date(curr.createdAt).getTime() > new Date(prev.createdAt).getTime() ? curr : prev,
-    );
-    return { version: latest.version, percent: Math.round(((latest.downloadCount ?? 0) / total) * 100) };
-  })();
 
   const supportedPlatformsList = [
     has(Filters.Windows) && "Windows",
@@ -549,7 +382,7 @@ const PackageCard = memo(function PackageCard({
   return (
     <li
       id={packageAnchorId(pkg.id)}
-      className={`group flex scroll-mt-20 flex-col md:scroll-mt-4 overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
+      className={`flex scroll-mt-20 flex-col md:scroll-mt-4 overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
         ? "border-brand-300 shadow-md dark:border-brand-700 dark:bg-zinc-900/80"
         : "border-gray-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80"
         } p-4`}
@@ -772,629 +605,92 @@ const PackageCard = memo(function PackageCard({
           Install
         </a>
       </div>
-      {(tags && tags.length > 0 && tags[0] !== "") && (
-        <div className="mt-4 flex flex-wrap place-items-center items-start gap-2">
-          <span className="sr-only">Keywords: </span>
-          {tags.map((tag) => {
-            const isActive = (controls.tag ?? "").toLowerCase() === tag.toLowerCase();
-            return (
-            <button
-              key={tag}
-              type="button"
-              aria-pressed={isActive}
-              title={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
-              aria-label={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate({ tag: isActive ? undefined : tag });
-              }}
-              className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${
-                isActive
-                  ? "bg-brand-100 text-brand-800 ring-brand-500/30 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30"
-                  : "bg-slate-100 text-slate-600 ring-slate-500/10 hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 group-hover:bg-brand-50 group-hover:text-brand-700 group-hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-300"
-              }`}
-            >
-              {tag}
-            </button>
-          )})}
-        </div>
-      )}
-
-
-      {/* Expanded Detail Panel */}
+      {/* Quick view: a peek and a hand-off to the package page. It repeats
+          nothing from the rows above and fetches nothing; /package/[id] owns
+          the detail, the release history and the install help. */}
       <div
         id={`package-details-${pkg.id}`}
         className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
           }`}
       >
-        <div className="overflow-hidden">
-          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {/* Download trends from Yak API */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Total Downloads</span>
-                <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">{downloads}</span>
-                {(downloadsWeek > 0 || downloadsMonth > 0) && (
-                  <span className="text-xs text-gray-500 dark:text-zinc-400">
-                    +{downloadsWeek.toLocaleString()} this week · +{downloadsMonth.toLocaleString()} this month
-                  </span>
-                )}
-                {downloadsPerDay !== null && downloadsPerDay >= 0.1 && (
-                  <span className="text-xs text-gray-500 dark:text-zinc-400">
-                    ~{downloadsPerDay >= 10 ? Math.round(downloadsPerDay).toLocaleString() : downloadsPerDay.toFixed(1)}/day since first release
-                  </span>
-                )}
-              </div>
-
-              {/* Last Updated */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Last Updated</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{formatDateTime(pkg.updated)}</span>
-                <span className="text-xs text-gray-500 dark:text-zinc-400">{relativeTime}</span>
-                <span
-                  className={`inline-flex w-fit items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                    maintained
-                      ? "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
-                      : "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20"
-                  }`}
-                >
-                  {maintained ? "Actively maintained" : "No release in over a year"}
-                </span>
-                {isDeprecated && (
-                  <span className="inline-flex w-fit items-center rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20">
-                    Deprecated · no Rhino 8 build
-                  </span>
-                )}
-              </div>
-
-              {/* Release history */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Releases</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
-                  {releaseStats ? `${releaseStats.count.toLocaleString()} version${releaseStats.count === 1 ? "" : "s"}` : "—"}
-                  {releaseStats?.cadence != null && (
-                    <span className="font-normal text-gray-500 dark:text-zinc-400"> · {formatCadence(releaseStats.cadence)}</span>
-                  )}
-                </span>
-                {releaseStats && (
-                  <span className="text-xs text-gray-500 dark:text-zinc-400">
-                    First released {formatDate(releaseStats.first)} ({getRelativeTime(releaseStats.first)})
-                  </span>
-                )}
-                {adoption && (
-                  <span className="text-xs text-gray-500 dark:text-zinc-400" title={`Share of all downloads on v${adoption.version}`}>
-                    {adoption.percent}% of downloads on latest (v{adoption.version})
-                  </span>
-                )}
-              </div>
-
-              {/* Download size and license */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
-                  Download
-                </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
-                  {pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : "—"}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-zinc-400">
-                  {pkg.license ? `License: ${pkg.license}` : "No license declared"}
-                </span>
-              </div>
-
-              {/* Authors */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Authors</span>
-                <span className="flex flex-wrap items-center gap-x-1 text-sm text-gray-900 dark:text-zinc-100">
-                  {creditedAuthors.length === 0 && "—"}
-                  {creditedAuthors.map((author, i) => (
-                    <span key={author.name}>
-                      {author.ownerId !== undefined ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate({ owner: author.ownerId });
-                          }}
-                          title={`Filter by author: ${author.name}`}
-                          className="rounded-sm underline decoration-dotted underline-offset-2 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
-                        >
-                          {author.name}
-                        </button>
-                      ) : (
-                        author.name
-                      )}
-                      {i < creditedAuthors.length - 1 ? "," : ""}
-                    </span>
-                  ))}
-                </span>
-              </div>
-
-              {/* Platform Compatibility */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Platforms</span>
-                <div className="flex flex-wrap gap-2">
-                  <Badge label="Windows" active={has(Filters.Windows)} />
-                  <Badge label="Mac" active={has(Filters.Mac)} />
-                </div>
-              </div>
-
-              {/* Version Compatibility */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Rhino Versions</span>
-                <div className="flex flex-wrap gap-2">
-                  <Badge label="Rhino 6" active={has(Filters.Rhino6)} />
-                  <Badge label="Rhino 7" active={has(Filters.Rhino7)} />
-                  <Badge label="Rhino 8" active={has(Filters.Rhino8)} />
-                  <Badge label="Rhino 9 (WIP)" active={has(Filters.Rhino9)} />
-                </div>
-              </div>
-
-              {/* Plugin Type */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Plugin Type</span>
-                <div className="flex flex-wrap gap-2">
-                  <Badge label="Rhino" active={has(Filters.Rhino)} />
-                  <Badge label="Grasshopper" active={has(Filters.Grasshopper)} />
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4 dark:border-zinc-700">
-              <a
-                href={link}
-                aria-label={`Install ${pkg.id} in Rhino`}
-                title={`Install ${pkg.id} in Rhino`}
-                className="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
-              >
-                <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
-                Install in Rhino
-              </a>
-              {/* Dragging a .yak onto Rhino installs it on both platforms, which
-                  is the one route that needs neither the protocol handler nor
-                  a terminal. A single build needs no menu. */}
-              {orderedLatest.length === 1 ? (
-                <a
-                  href={orderedLatest[0].url}
-                  download={orderedLatest[0].filename}
-                  aria-label={`Download ${orderedLatest[0].filename}`}
-                  title={`Download ${orderedLatest[0].filename} (${formatDistributionTarget(orderedLatest[0])})`}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-                >
-                  <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-                  Download .yak
-                </a>
-              ) : orderedLatest.length > 1 ? (
-                <Menu as="div" className="relative inline-flex text-left">
-                  <Menu.Button
-                    aria-label={`Download a .yak file for ${pkg.id} ${pkg.version}`}
-                    title="Download the package file"
-                    className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-                  >
-                    <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-                    Download .yak
-                    <ChevronDownIcon className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-                  </Menu.Button>
-                  <Menu.Items className="absolute left-0 top-full z-30 mt-1 w-72 origin-top-left rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800 dark:ring-white/10">
-                    <DistributionMenuItems
-                      distributions={latestDistributions}
-                      hostPlatform={hostPlatform}
-                    />
-                  </Menu.Items>
-                </Menu>
-              ) : null}
-              {websiteHref && (
-                <a
-                  href={websiteHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Visit ${pkg.id} website (opens in a new tab)`}
-                  title={`Visit ${pkg.id} website (opens in a new tab)`}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-                >
-                  <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
-                  Website
-                </a>
-              )}
-              {emailHref && (
-                <a
-                  href={emailHref}
-                  aria-label={`Email ${pkg.id} author`}
-                  title={`Email ${pkg.id} author`}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-                >
-                  <EnvelopeIcon className="h-4 w-4" aria-hidden="true" />
-                  Email
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={handleCopyName}
-                aria-label={`Copy the package name ${pkg.id}`}
-                title="Copy the package name to search for in Rhino's Package Manager"
-                className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-              >
-                {copiedName ? (
-                  <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-500" aria-hidden="true" />
-                ) : (
-                  <ClipboardDocumentIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-                )}
-                {copiedName ? "Copied" : "Copy name"}
-              </button>
-              <a
-                href={packagePath(pkg.id)}
-                title={`Open the ${pkg.id} page: versions, downloads and install instructions`}
-                className="inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-              >
-                <DocumentTextIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-                Package page
-              </a>
-            </div>
-            {/* The install button is a rhino:// link, so it does nothing at
-                all on a machine without Rhino — every phone, for a start —
-                and the browser gives no feedback. Say what it does, and offer
-                both hand-install routes instead of leaving people stuck. */}
-            <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/40">
-              <p className="text-xs leading-relaxed text-gray-500 dark:text-zinc-400">
-                Install opens Rhino&apos;s Package Manager on this computer. Nothing happening?
-                Rhino is not installed here, or it never registered the{" "}
-                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-900 dark:text-zinc-300">
-                  rhino://
-                </code>{" "}
-                handler — run{" "}
-                <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.7rem] text-gray-700 dark:bg-zinc-900 dark:text-zinc-300">
-                  _PackageManager
-                </code>{" "}
-                inside Rhino and search for <span className="font-semibold">{pkg.id}</span>, or
-                install it from a terminal:
-              </p>
-
-              <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                {commandPlatforms.length > 1 ? (
-                  <div
-                    role="group"
-                    aria-label="Operating system for the install command"
-                    className="inline-flex overflow-hidden rounded-md ring-1 ring-inset ring-gray-300 dark:ring-zinc-700"
-                  >
-                    {commandPlatforms.map((option) => (
+        {/* The side padding keeps the focus rings of the chips and buttons
+            from being clipped by overflow-hidden. */}
+        <div className="-mx-1 overflow-hidden px-1">
+          <div className="flex flex-col gap-3 border-t border-gray-100 pb-1 pt-4 dark:border-zinc-800">
+            {keywords.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-zinc-400">Keywords</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {shownKeywords.map((tag) => {
+                    const isActive = (controls.tag ?? "").toLowerCase() === tag.toLowerCase();
+                    return (
                       <button
-                        key={option}
+                        key={tag}
                         type="button"
-                        aria-pressed={shownPlatform === option}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCommandPlatform(option);
-                        }}
-                        className={`px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${shownPlatform === option
-                          ? "bg-brand-600 text-white"
-                          : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                          }`}
+                        aria-pressed={isActive}
+                        title={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
+                        aria-label={isActive ? `Clear keyword filter: ${tag}` : `Filter by keyword: ${tag}`}
+                        onClick={() => navigate({ tag: isActive ? undefined : tag })}
+                        className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 ${
+                          isActive
+                            ? "bg-brand-100 text-brand-800 ring-brand-500/30 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30"
+                            : "bg-slate-100 text-slate-600 ring-slate-500/10 hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
+                        }`}
                       >
-                        {platformLabel(option)}
+                        {tag}
                       </button>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-300 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700">
-                    {platformLabel(shownPlatform)} only
-                  </span>
-                )}
-                <span className="text-[0.7rem] text-gray-500 dark:text-zinc-400">
-                  {shownPlatform === "windows" ? "PowerShell" : "Terminal"}
-                </span>
-              </div>
-
-              <div className="mt-2 flex items-stretch gap-2">
-                <code className="min-w-0 flex-grow overflow-x-auto whitespace-pre rounded bg-white px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700">
-                  {installCommand}
-                </code>
-                <button
-                  type="button"
-                  onClick={handleCopyCommand}
-                  aria-label={`Copy the ${platformLabel(shownPlatform)} install command for ${pkg.id}`}
-                  title="Copy the install command"
-                  className="inline-flex flex-none items-center gap-1.5 rounded-md bg-white px-2.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
-                >
-                  {copiedCommand ? (
-                    <CheckIcon className="h-3.5 w-3.5 text-green-600 dark:text-green-500" aria-hidden="true" />
-                  ) : (
-                    <ClipboardDocumentIcon className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                    );
+                  })}
+                  {keywords.length > shownKeywords.length && (
+                    <a href={`${packagePath(pkg.id)}#keywords`} className="pkg-link text-xs font-medium">
+                      All {keywords.length.toLocaleString()} keywords →
+                    </a>
                   )}
-                  {copiedCommand ? "Copied" : "Copy"}
-                </button>
-              </div>
-
-              <p className="mt-2 text-[0.7rem] leading-relaxed text-gray-500 dark:text-zinc-400">
-                Assumes a default Rhino {rhinoRelease} installation — yak is not on your PATH, so
-                the full path is part of the command. Restart Rhino once it finishes.
-                {orderedLatest.length > 0 && (
-                  <> Or drag a downloaded .yak onto an open Rhino window, which behaves the same on
-                  Windows and macOS.</>
-                )}
-              </p>
-            </div>
-
-            {/* Download growth over time (daily snapshots) */}
-            {downloadHistory && downloadHistory.length >= 2 && (
-              <div className="mt-6 border-t border-gray-200 pt-4 dark:border-zinc-700">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Download Trend</span>
-                  <span className="text-xs text-gray-500 dark:text-zinc-400">
-                    {downloadHistory[0].date} → {downloadHistory[downloadHistory.length - 1].date}
-                  </span>
                 </div>
-                <Sparkline points={downloadHistory} />
               </div>
             )}
 
-            {/* Version History Table */}
-            {historyLoading ? (
-              <div className="mt-6 flex justify-center py-6 border-t border-gray-200 dark:border-zinc-700" aria-live="polite" aria-atomic="true">
-                <Spinner />
-              </div>
-            ) : versionHistory && versionHistory.length === 0 ? (
-              <div className="mt-6 border-t border-gray-200 pt-6 pb-2 text-center text-sm text-gray-500 dark:border-zinc-700 dark:text-zinc-400">
-                <p>No version history available.</p>
-              </div>
-            ) : versionHistory && versionHistory.length > 0 ? (
-              <div className="mt-6 border-t border-gray-200 pt-4 dark:border-zinc-700">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Version History</span>
-                  <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-zinc-400">
-                    <input
-                      type="checkbox"
-                      checked={showPrereleases}
-                      onChange={(e) => {
-                        const val = e.target.checked;
-                        setShowPrereleases(val);
-                        navigate({ pre: val });
-                      }}
-                      className="cursor-pointer rounded border-gray-300 text-brand-600 focus:ring-brand-600 dark:border-zinc-600 dark:bg-zinc-800 dark:checked:bg-brand-500"
-                    />
-                    Show pre-releases
-                  </label>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-                    <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
-                      <tr>
-                        <th scope="col" className="rounded-tl-md px-4 py-2">Date</th>
-                        <th scope="col" className="px-4 py-2">Version</th>
-                        <th scope="col" className="px-4 py-2">Platforms</th>
-                        <th scope="col" className="px-4 py-2 text-right">Downloads</th>
-                        <th scope="col" className="rounded-tr-md px-4 py-2 text-right">Install</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
-                      {versionRows
-                        .map((row) => {
-                          const vDate = formatDate(row.createdAt);
-                          // Yak reports "win", "mac" or "any" (cross-platform
-                          // build); normalize to display labels and dedupe so
-                          // e.g. win + any doesn't render "Windows" twice.
-                          const platformSet = new Set(
-                            row.distributions
-                              .map((d) => d?.platform)
-                              .filter((p): p is string => typeof p === "string" && p.length > 0)
-                              .flatMap((p) => (p === "win" ? ["Windows"] : p === "mac" ? ["Mac"] : ["Windows", "Mac"]))
-                          );
-                          const platforms = ["Windows", "Mac"].filter((p) => platformSet.has(p));
-                          const rhinoVersions = Array.from(
-                            new Set(
-                              row.distributions
-                                .map((d) => d?.rhinoVersion)
-                                .filter((rv): rv is string => typeof rv === "string" && rv.length > 0)
-                            )
-                          ).map((raw) => {
-                            const versionLabel = raw.replace(/^rh/, "").replace("_", ".");
-                            return {
-                              raw,
-                              label: `Rhino ${versionLabel}`,
-                              shortLabel: `R${versionLabel}`,
-                              url: `https://rhinoversions.github.io/?version=${encodeURIComponent(versionLabel)}&locale=en-us`,
-                            };
-                          });
+            <p className="text-xs text-gray-600 dark:text-zinc-400">{facts.join(" · ")}</p>
 
-                          return (
-                            <tr key={`${row.version}-${row.createdAt}`} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                              <td className="whitespace-nowrap px-4 py-2 text-xs">{vDate}</td>
-                              <td className="px-4 py-2 font-mono text-xs">
-                                {row.version}
-                                {row.prerelease && (
-                                  <span className="ml-2 rounded-full bg-brand-50 px-1.5 py-0.5 text-[0.6rem] font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
-                                    Pre-release
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-4 py-2">
-                                <div className="flex flex-wrap gap-1">
-                                  {platforms.map((p) => (
-                                    <span key={p} className="rounded bg-gray-100 px-1.5 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                      {p}
-                                    </span>
-                                  ))}
-                                  {rhinoVersions.map((rv) => (
-                                    <a
-                                      key={rv.raw}
-                                      href={rv.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      title={`Open ${rv.label} on RhinoVersions`}
-                                      className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[0.65rem] font-semibold text-blue-700 underline decoration-solid underline-offset-2 transition-colors hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-700/50 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:hover:text-blue-200 dark:focus-visible:ring-blue-400"
-                                    >
-                                      <span className="hidden sm:inline">{rv.label}</span>
-                                      <span className="sm:hidden">{rv.shortLabel}</span>
-                                      <span aria-hidden="true" className="text-[0.6rem]">↗</span>
-                                      <span className="sr-only"> (opens in a new tab)</span>
-                                    </a>
-                                  ))}
-                                </div>
-                              </td>
-                              <td className="whitespace-nowrap px-4 py-2 text-right text-xs tabular-nums">
-                                {row.downloadCount > 0 ? row.downloadCount.toLocaleString() : "—"}
-                              </td>
-                              <td className="px-4 py-2 text-right">
-                                <Menu as="div" className="relative inline-flex text-left">
-                                  <a
-                                    href={`rhino://package/search?name=${pkg.id}${row.installVersion ? `&version=${row.installVersion}` : ""}`}
-                                    aria-label={`Install ${pkg.id} version ${row.installVersion ?? row.version}`}
-                                    title={`Install ${pkg.id} version ${row.installVersion ?? row.version}`}
-                                    className="inline-flex items-center gap-1 rounded-l bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
-                                  >
-                                    <ArrowDownTrayIcon className="h-3 w-3" aria-hidden="true" />
-                                    Install
-                                  </a>
-                                  <Menu.Button
-                                    aria-label={`Download ${pkg.id} version ${row.version}`}
-                                    title="Download package file"
-                                    className="inline-flex items-center rounded-r border-l border-brand-200 bg-brand-50 px-1.5 text-brand-700 transition-colors hover:bg-brand-100 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-400 dark:hover:bg-brand-900/40 dark:focus-visible:ring-brand-400"
-                                  >
-                                    <ChevronDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                                  </Menu.Button>
-                                  <Menu.Items className="absolute right-0 top-full z-30 mt-1 w-72 origin-top-right rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800 dark:ring-white/10">
-                                    <DistributionMenuItems
-                                      distributions={row.distributions}
-                                      hostPlatform={hostPlatform}
-                                    />
-                                  </Menu.Items>
-                                </Menu>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : null}
+            {/* The row-1 Install is the card's one Install. rhino:// cannot run
+                on a phone, so below md the card says where to install from. */}
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="w-full text-xs text-gray-500 dark:text-zinc-400 md:hidden">
+                Install from Rhino on your desktop computer.
+              </p>
+              <a
+                href={packagePath(pkg.id)}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30 md:w-auto"
+              >
+                Full details →
+              </a>
+              {websiteHref && (
+                <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="pkg-button">
+                  <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                  Website<span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              )}
+              {emailHref && (
+                <a href={emailHref} className="pkg-button">
+                  <EnvelopeIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+                  Email the author
+                </a>
+              )}
+            </div>
+            {/* The Install button is a rhino:// link, which does nothing on a
+                machine without Rhino and gives no feedback. The package page
+                has the hand-install routes. */}
+            <p className="hidden text-xs md:block">
+              <a href={`${packagePath(pkg.id)}#install`} className="pkg-link">
+                Install did nothing? Get the .yak file or terminal command →
+              </a>
+            </p>
           </div>
         </div>
       </div>
     </li>
   );
 });
-
-type HostPlatform = "windows" | "mac" | "other";
-
-// Resolved once per page load, then shared: every expanded card asks the same
-// question and the answer cannot change while the tab is open.
-let cachedHostPlatform: HostPlatform | null = null;
-
-function detectHostPlatform(): HostPlatform {
-  if (typeof navigator === "undefined") return "other";
-  const hints = (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData;
-  const haystack = `${hints?.platform ?? ""} ${navigator.platform ?? ""} ${navigator.userAgent ?? ""}`.toLowerCase();
-  if (haystack.includes("win")) return "windows";
-  // Also catches iPadOS asking for the desktop site, which reports as a Mac.
-  // Rhino does not run there either way, so the Mac command is the better guess.
-  if (haystack.includes("mac") || haystack.includes("darwin")) return "mac";
-  return "other";
-}
-
-/**
- * Whether this browser is running on Windows or a Mac. Always "other" on the
- * first client render so that the static HTML Next.js exported and the
- * hydrated tree agree; the real value lands in the effect straight after.
- */
-function useHostPlatform(): HostPlatform {
-  const [platform, setPlatform] = useState<HostPlatform>("other");
-
-  useEffect(() => {
-    if (cachedHostPlatform === null) cachedHostPlatform = detectHostPlatform();
-    setPlatform(cachedHostPlatform);
-  }, []);
-
-  return platform;
-}
-
-/** Whether a distribution's build runs on this computer. Yak marks a
- *  cross-platform build "any", which runs on both. */
-function runsOnHost(distribution: Distribution, host: HostPlatform): boolean {
-  if (host === "other") return false;
-  if (distribution.platform === "any") return true;
-  return distribution.platform === (host === "windows" ? "win" : "mac");
-}
-
-/**
- * Put the builds that run on this computer first, cross-platform ones next,
- * and the other platform's last, so the download a reader wants is the one
- * under the cursor. Sorting is stable, so the server's order survives within
- * each band and an unknown host leaves the list untouched.
- */
-function orderDistributionsForHost(
-  distributions: Distribution[],
-  host: HostPlatform
-): Distribution[] {
-  const rank = (distribution: Distribution) => {
-    if (host === "other") return 0;
-    if (distribution.platform === (host === "windows" ? "win" : "mac")) return 0;
-    if (distribution.platform === "any") return 1;
-    return 2;
-  };
-
-  return [...distributions].sort((a, b) => rank(a) - rank(b));
-}
-
-/**
- * The body of a "download the .yak" menu: every build published for one
- * version, the ones that run on this computer first. Shared by the action row
- * and the version history table so both stay in step.
- */
-function DistributionMenuItems({
-  distributions,
-  hostPlatform,
-}: {
-  distributions: Distribution[];
-  hostPlatform: HostPlatform;
-}) {
-  const ordered = orderDistributionsForHost(distributions, hostPlatform);
-
-  return (
-    <>
-      <div className="px-2 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
-        Download package
-      </div>
-      {ordered.map((distribution) => (
-        <Menu.Item key={distribution.url}>
-          {({ active }) => (
-            <a
-              href={distribution.url}
-              download={distribution.filename}
-              className={`flex items-start gap-2 rounded px-2 py-2 text-left text-xs ${active ? "bg-brand-50 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300" : "text-gray-700 dark:text-zinc-200"}`}
-            >
-              <ArrowDownTrayIcon className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
-              <span className="min-w-0">
-                <span className="block truncate font-medium">{distribution.filename}</span>
-                <span className="mt-0.5 block text-[0.65rem] text-gray-500 dark:text-zinc-400">
-                  {formatDistributionTarget(distribution)}
-                  {runsOnHost(distribution, hostPlatform) && (
-                    <span className="ml-1 font-medium text-green-700 dark:text-green-500">
-                      · runs on this computer
-                    </span>
-                  )}
-                </span>
-              </span>
-            </a>
-          )}
-        </Menu.Item>
-      ))}
-    </>
-  );
-}
-
-function Badge({ label, active }: { label: string; active: boolean }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${active
-        ? "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
-        : "bg-gray-50 text-gray-500 ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50"
-        }`}
-    >
-      <span className="sr-only">{active ? `Supported: ${label}` : `Not supported: ${label}`}</span>
-      <span aria-hidden="true">{active ? "✓ " : ""}{label}</span>
-    </span>
-  );
-}
 
 function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: string }) {
   const isSvg = src.endsWith(".svg");
@@ -1411,78 +707,4 @@ function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: s
       title={title}
     />
   );
-}
-
-function Sparkline({ points }: { points: HistoryPoint[] }) {
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
-  const width = 600;
-  const height = 60;
-  const values = points.map((p) => p.downloads);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const positions = timePositions(points.map((p) => p.date));
-
-  const coords = values.map((v, i) => ({
-    x: positions[i] * width,
-    y: height - 4 - ((v - min) / span) * (height - 8),
-  }));
-  const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
-  const area = `${line} L${width},${height} L0,${height} Z`;
-
-  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    setHoverIndex(nearestIndex(positions, ratio));
-  };
-
-  const hover = hoverIndex !== null ? points[hoverIndex] : null;
-
-  return (
-    <div className="relative" onMouseMove={onMouseMove} onMouseLeave={() => setHoverIndex(null)}>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="h-16 w-full"
-        role="img"
-        aria-label={`Download trend from ${points[0].downloads.toLocaleString()} to ${points[points.length - 1].downloads.toLocaleString()} total downloads`}
-        preserveAspectRatio="none"
-      >
-        <path d={area} className="fill-brand-500/10 dark:fill-brand-400/10" />
-        <path d={line} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-brand-500 dark:stroke-brand-400" />
-        {hoverIndex !== null && (
-          <line
-            x1={coords[hoverIndex].x}
-            y1={0}
-            x2={coords[hoverIndex].x}
-            y2={height}
-            strokeWidth="1"
-            vectorEffect="non-scaling-stroke"
-            className="stroke-gray-400 dark:stroke-zinc-500"
-          />
-        )}
-      </svg>
-      {hover && (
-        <div
-          className="pointer-events-none absolute -top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow dark:bg-zinc-100 dark:text-zinc-900"
-          style={{ left: `${(coords[hoverIndex!].x / width) * 100}%` }}
-        >
-          {hover.date} · {hover.downloads.toLocaleString()} downloads
-          {hover.week > 0 && ` · +${hover.week.toLocaleString()}/week`}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function getRelativeTime(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? "s" : ""} ago`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? "s" : ""} ago`;
-  return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? "s" : ""} ago`;
 }

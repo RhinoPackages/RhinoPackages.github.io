@@ -31,8 +31,6 @@ export interface Params {
   sort: Sort;
   page: number;
   p?: string;
-  /** When true, the pre-releases toggle is expanded by default (used with ?p= deep links). */
-  pre: boolean;
   /** Only show packages with a release in the last year. */
   maintained: boolean;
   /** Only show packages without support for the current Rhino release. */
@@ -47,7 +45,6 @@ export const defaultParams: Params = {
   sort: Sort.Trending,
   page: 0,
   p: undefined,
-  pre: false,
   maintained: false,
   deprecated: false,
 };
@@ -89,8 +86,6 @@ interface PackageContext {
   };
   filterCounts: Map<Filters, number>;
   statusCounts: { maintained: number; deprecated: number };
-  /** Normalized owner name to account id, for crediting listed authors. */
-  ownerIdByName: Map<string, number>;
   /** Aggregates for the author currently being filtered on, if any. */
   ownerSummary: OwnerSummary | null;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
@@ -193,14 +188,6 @@ export function PackageProvider({
     }
     return owners.sort((a, b) => a.id - b.id);
   }, [cache]);
-
-  const ownerIdByName = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const owner of owners) {
-      map.set(normalizeName(owner.name), owner.id);
-    }
-    return map;
-  }, [owners]);
 
   const ownerName = useMemo(() => {
     if (params.owner === undefined) return undefined;
@@ -317,7 +304,6 @@ export function PackageProvider({
         stats,
         filterCounts,
         statusCounts,
-        ownerIdByName,
         ownerSummary,
         navigate,
         navigateFilter,
@@ -434,7 +420,6 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
   const page = toInt("page", 0);
 
   const p = searchParams.get("p") || undefined;
-  const pre = searchParams.get("pre") === "true";
   const maintained = searchParams.get("maintained") === "true";
   const deprecated = searchParams.get("deprecated") === "true";
 
@@ -446,7 +431,6 @@ function toParams(searchParams: ReadonlyURLSearchParams | URLSearchParams): Para
     sort,
     page,
     p,
-    pre,
     maintained,
     deprecated,
   };

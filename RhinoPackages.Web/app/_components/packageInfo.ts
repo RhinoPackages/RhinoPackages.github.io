@@ -226,7 +226,8 @@ export function parseWebsiteAction(homepageUrl: Package["homepageUrl"]) {
     return { websiteHref: undefined, emailHref: undefined };
   }
 
-  const trimmedForEmail = raw.replace(/[;,.!?]+$/, "").trim();
+  // Some packages already declare "mailto:addr"; keep a single prefix.
+  const trimmedForEmail = raw.replace(/[;,.!?]+$/, "").trim().replace(/^mailto:/i, "");
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (emailPattern.test(trimmedForEmail)) {
     return { websiteHref: undefined, emailHref: `mailto:${trimmedForEmail}` };

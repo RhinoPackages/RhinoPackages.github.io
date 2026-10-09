@@ -140,8 +140,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <Telemetry />
         {/* Tags <html> with the visitor's OS before first paint, so pages can
-            show only the matching terminal command without a layout shift.
-            Same test as detectHostPlatform in PackageList. */}
+            show only the matching terminal command without a layout shift. */}
         <script
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
