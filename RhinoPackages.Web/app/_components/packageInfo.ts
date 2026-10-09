@@ -1,7 +1,17 @@
 // Pure helpers that describe a package, shared by the directory cards and the
 // static package pages. Free of React hooks so server components can use them.
 
-import { Distribution, Filters, Package, YakVersionHistoryItem, has } from "./packageModel";
+import {
+  Distribution,
+  Filters,
+  Package,
+  YakVersionHistoryItem,
+  formatDate,
+  has,
+  isDeprecated,
+  isMaintained,
+  latestRelease,
+} from "./packageModel";
 
 /** Stand-in for packages whose icon cannot be shown: the yak version endpoint
  *  advertises an `_icon` URL for every package, but plenty of them 404 or are
@@ -22,6 +32,15 @@ export function packagePath(id: string) {
   return `/package/${encodeURIComponent(id)}`;
 }
 
+/**
+ * URL path of an author's static page, e.g. /author/patrick-kastner. Lives here
+ * rather than in authors.ts, which reads data.json from disk and so cannot be
+ * imported by client components.
+ */
+export function authorPath(slug: string) {
+  return `/author/${encodeURIComponent(slug)}`;
+}
+
 /** Yak fills an empty description with the literal "no description". */
 export function hasDescription(pkg: Package) {
   const description = pkg.description.trim();
@@ -36,6 +55,61 @@ export function pluginKind(pkg: Package) {
   if (grasshopper) return "Grasshopper plugin";
   if (rhino) return "Rhino plugin";
   return "Rhino package";
+}
+
+export type StatusTone = "rose" | "amber" | "yellow" | "green";
+
+export interface StatusBadge {
+  label: string;
+  tone: StatusTone;
+  /** Tooltip with the rule behind the label. */
+  title: string;
+}
+
+/**
+ * Every status that applies to a package, most important first: no Rhino 8+
+ * build, inactive, pre-release, new. Lists show the first, the package page
+ * all of them. `lastRelease` (ms) lets a caller holding the full version
+ * history count its newest entry too, like isMaintained().
+ */
+export function statusBadges(pkg: Package, now: number = Date.now(), lastRelease?: number): StatusBadge[] {
+  const badges: StatusBadge[] = [];
+
+  if (isDeprecated(pkg)) {
+    badges.push({
+      label: "No Rhino 8+ build",
+      tone: "rose",
+      title: "No build for the current Rhino release (Rhino 8) or for Rhino 9",
+    });
+  }
+
+  if (!isMaintained(pkg, now, lastRelease)) {
+    const last = Math.max(latestRelease(pkg).getTime(), lastRelease ?? 0);
+    badges.push({
+      label: "Inactive",
+      tone: "amber",
+      title: `Not actively maintained: no release since ${formatDate(last)}`,
+    });
+  }
+
+  if (pkg.prerelease) {
+    badges.push({
+      label: "Pre-release",
+      tone: "yellow",
+      title: "Work in progress: the current version is a pre-release",
+    });
+  }
+
+  const ageDays = pkg.firstReleased ? (now - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24) : null;
+  if (ageDays !== null && ageDays <= 30) {
+    badges.push({
+      label: "New",
+      tone: "green",
+      title: "First released within the last 30 days",
+    });
+  }
+
+  return badges;
 }
 
 /** Rhino releases a package ships builds for, oldest first. */
@@ -114,20 +188,17 @@ export function latestDistributions(pkg: Package, history: YakVersionHistoryItem
   return (newestStable ?? history[0]).distributions;
 }
 
-/** Other packages published by any of this package's owners, most downloaded first. */
-export function packagesBySameOwners(pkg: Package, all: Package[], limit: number) {
-  const owners = new Set(pkg.owners.map((owner) => owner.id));
-  return all
-    .filter((other) => other.id !== pkg.id && other.owners.some((owner) => owners.has(owner.id)))
-    .sort((a, b) => b.downloads - a.downloads)
-    .slice(0, limit);
-}
-
 export function keywordsOf(pkg: Package) {
   return pkg.keywords
     .split(",")
     .map((keyword) => keyword.trim())
     .filter(Boolean);
+}
+
+/** Keywords worth showing as chips: the ones that just repeat the package name are left out. */
+export function displayKeywords(pkg: Package) {
+  const id = pkg.id.toLowerCase();
+  return keywordsOf(pkg).filter((keyword) => keyword.toLowerCase() !== id);
 }
 
 /**
@@ -299,6 +370,78 @@ export function groupVersionHistory(items: YakVersionHistoryItem[]): GroupedVers
       downloadCount: row.downloadCount,
     }))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export interface ReleaseFacts {
+  /** Grouped release rows: the same count the version table shows. */
+  count: number;
+  firstReleased: Date | null;
+  /** Average days between releases, when it can be told. */
+  cadenceDays: number | null;
+  /** Average downloads per day since the first release. */
+  perDay: number | null;
+  /**
+   * Share of the per-release downloads that went to the version the page
+   * shows (pkg.version, named as the page names it). Null when no row is
+   * that version, when it rounds to 0%, or when the rows do not add up to
+   * the package's total downloads, since a share of a different total would
+   * sit next to it unexplained.
+   */
+  latestShare: { version: string; percent: number } | null;
+}
+
+/**
+ * Release facts measured on the grouped history rows, so the count, cadence
+ * and share agree with the table below them (pkg.versionCount counts raw
+ * items and is higher for the packages that publish one build per Rhino
+ * release). Only without a history file does it fall back to the package's
+ * own fields.
+ */
+export function releaseFacts(
+  pkg: Package,
+  rows: GroupedVersionHistoryRow[],
+  now: number = Date.now(),
+): ReleaseFacts {
+  const day = 1000 * 3600 * 24;
+  const times = rows.map((row) => new Date(row.createdAt).getTime()).filter((t) => Number.isFinite(t));
+
+  let firstReleased = pkg.firstReleased ? new Date(pkg.firstReleased) : null;
+  if (!firstReleased && times.length > 0) firstReleased = new Date(Math.min(...times));
+
+  const count = rows.length > 0 ? rows.length : (pkg.versionCount ?? 0);
+  const spanDays = times.length > 1 ? (Math.max(...times) - Math.min(...times)) / day : 0;
+  const cadenceDays =
+    rows.length > 1 && spanDays > 0 ? spanDays / (rows.length - 1) : (pkg.releaseCadenceDays ?? null);
+
+  const ageDays = firstReleased ? (now - firstReleased.getTime()) / day : null;
+  const perDay = ageDays !== null && ageDays >= 1 ? pkg.downloads / ageDays : null;
+
+  // The share belongs to the version the page shows, which is not always the
+  // newest row when versions were uploaded out of order. A row matches by its
+  // grouped version, its install version, or its grouped version with a
+  // trailing Rhino major collapsed off ("3.0" for 3.0.8); the most specific
+  // match wins, stable before pre-release.
+  const total = rows.reduce((sum, row) => sum + row.downloadCount, 0);
+  const matchRank = (row: GroupedVersionHistoryRow): number =>
+    row.version === pkg.version || row.installVersion === pkg.version
+      ? 2
+      : pkg.version.startsWith(`${row.version}.`)
+        ? 1
+        : 0;
+  const current = rows
+    .filter((row) => matchRank(row) > 0)
+    .sort(
+      (a, b) =>
+        Number(a.prerelease) - Number(b.prerelease) ||
+        matchRank(b) - matchRank(a) ||
+        b.version.length - a.version.length,
+    )[0];
+  const rowsMatchTotal = Math.abs(total - pkg.downloads) <= pkg.downloads * 0.1;
+  const percent = current && total > 0 ? Math.round((current.downloadCount / total) * 100) : 0;
+  // A 0% share reads as noise next to the cadence, so it is left out.
+  const latestShare = rowsMatchTotal && percent > 0 ? { version: pkg.version, percent } : null;
+
+  return { count, firstReleased, cadenceDays, perDay, latestShare };
 }
 
 function normalizeVersionForGrouping(item: YakVersionHistoryItem): { baseVersion: string } {

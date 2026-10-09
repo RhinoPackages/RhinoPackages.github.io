@@ -4,8 +4,8 @@ import {
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
   EnvelopeIcon,
-  Squares2X2Icon,
 } from "@heroicons/react/24/solid";
+import CopyButton from "@/app/_components/CopyButton";
 import PackageIcon from "@/app/_components/PackageIcon";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import { timePositions } from "@/app/_components/chart";
@@ -22,34 +22,40 @@ import {
   Package,
   formatDate,
   has,
-  isDeprecated,
-  isMaintained,
+  latestRelease,
 } from "@/app/_components/packageModel";
-import { Author, authorPath, findAuthorByName } from "@/app/_components/authors";
+import { Author, findAuthorByName, isIndexedAuthor } from "@/app/_components/authors";
 import {
+  GroupedVersionHistoryRow,
+  StatusTone,
   YakPlatform,
+  authorPath,
+  displayKeywords,
   formatBytes,
   formatCadence,
   formatDistributionTarget,
   groupVersionHistory,
   hasDescription,
   iconSrc,
-  keywordsOf,
   latestDistributions,
   packageDescription,
   packagePath,
   packageTitle,
-  packagesBySameOwners,
   parseWebsiteAction,
   platformLabel,
+  platformsText,
   pluginKind,
   relatedPackages,
+  releaseFacts,
+  rhinoVersionsText,
+  statusBadges,
   yakInstallCommand,
   yakRhinoRelease,
 } from "@/app/_components/packageInfo";
 
-// The version history table stops here; the rest is a click away in the directory.
-const maxVersionRows = 40;
+// The version history table shows this many releases; the rest sit behind a
+// "Show all" toggle that is still plain HTML.
+const visibleVersionRows = 10;
 
 type Params = { params: { id: string } };
 
@@ -94,39 +100,64 @@ export default function PackagePage({ params }: Params) {
   const versionHistory = loadVersionHistory(pkg.id);
   const downloadHistory = loadDownloadHistory(pkg.id);
 
+  const now = Date.now();
   const builds = latestDistributions(pkg, versionHistory);
   const versionRows = groupVersionHistory(versionHistory);
   const { websiteHref, emailHref } = parseWebsiteAction(pkg.homepageUrl);
-  const keywords = keywordsOf(pkg);
+  const keywords = displayKeywords(pkg);
   const installLink = `rhino://package/search?name=${pkg.id}`;
 
-  const releaseTimes = versionHistory
-    .map((v) => new Date(v.createdAt).getTime())
-    .filter((t) => Number.isFinite(t))
-    .sort((a, b) => a - b);
-  const maintained = isMaintained(pkg, Date.now(), releaseTimes[releaseTimes.length - 1]);
-  const deprecated = isDeprecated(pkg);
-  const releaseCount = releaseTimes.length || pkg.versionCount || 0;
-  const firstReleased = releaseTimes.length > 0 ? new Date(releaseTimes[0]) : pkg.firstReleased ? new Date(pkg.firstReleased) : null;
+  // Rows are newest first; their newest entry counts towards "inactive" too,
+  // since the package's own dates can lag behind a later pre-release.
+  const newestRow = versionRows.length > 0 ? new Date(versionRows[0].createdAt).getTime() : NaN;
+  const badges = statusBadges(pkg, now, Number.isFinite(newestRow) ? newestRow : undefined);
+  const lastRelease = latestRelease(pkg);
+  const releases = releaseFacts(pkg, versionRows, now);
 
-  // Credited authors who also publish on Yak link to their author page.
-  const authors = pkg.authors
+  // Credited names that publish more than one package on Yak link to their author page.
+  const credits = pkg.authors
     .split(",")
     .map((name) => name.trim())
     .filter(Boolean)
-    .map((name) => ({ name, page: findAuthorByName(name) }));
+    .map((name) => {
+      const author = findAuthorByName(name);
+      return { name, page: author && isIndexedAuthor(author) ? author : undefined };
+    });
+
+  // Everything the publishers have on Yak, the same lists their author pages show.
   const publishers = pkg.owners
     .map((owner) => findAuthorByName(owner.name))
     .filter((author): author is Author => author !== undefined)
     .filter((author, i, list) => list.findIndex((other) => other.slug === author.slug) === i);
+  const byPublishers = new Map<string, Package>();
+  for (const author of publishers) {
+    for (const other of author.packages) {
+      if (other.id !== pkg.id) byPublishers.set(other.id, other);
+    }
+  }
+  const moreByAll = Array.from(byPublishers.values()).sort((a, b) => b.downloads - a.downloads);
+  const moreBy = moreByAll.slice(0, 8);
+  const indexedPublishers = publishers.filter(isIndexedAuthor);
+  const seeAll = moreByAll.length > moreBy.length && indexedPublishers.length === 1 ? indexedPublishers[0] : undefined;
+  const related = relatedPackages(pkg, all, 8, new Set(moreBy.map((p) => p.id)));
 
-  const sameOwners = packagesBySameOwners(pkg, all, 8);
-  const related = relatedPackages(pkg, all, 8, new Set(sameOwners.map((p) => p.id)));
   const commandPlatforms: YakPlatform[] = [
     has(Filters.Windows, pkg) ? ("windows" as const) : null,
     has(Filters.Mac, pkg) ? ("mac" as const) : null,
   ].filter((p): p is YakPlatform => p !== null);
   const rhinoRelease = yakRhinoRelease(pkg);
+
+  const perDay = releases.perDay !== null && releases.perDay >= 0.1 ? releases.perDay : null;
+  const releaseHint = [
+    releases.cadenceDays !== null ? formatCadence(releases.cadenceDays) : null,
+    // With a single release the share is trivially 100%.
+    releases.count > 1 && releases.latestShare
+      ? `${releases.latestShare.percent}% of downloads on v${releases.latestShare.version}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const worksWith = [rhinoVersionsText(pkg), platformsText(pkg)].filter(Boolean).join(" · ");
 
   const breadcrumbs = {
     "@context": "https://schema.org",
@@ -169,13 +200,17 @@ export default function PackagePage({ params }: Params) {
           <h1 className="break-long-words text-3xl font-bold text-gray-900 dark:text-zinc-100">{pkg.id}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
             {pluginKind(pkg)} · <span className="font-semibold">v{pkg.version}</span> · updated{" "}
-            <time dateTime={pkg.updated}>{formatDate(pkg.updated)}</time>
+            <time dateTime={lastRelease.toISOString()}>{formatDate(lastRelease)}</time>
           </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {pkg.prerelease && <Pill tone="yellow">Pre-release</Pill>}
-            {deprecated && <Pill tone="rose">Deprecated · no Rhino 8 build</Pill>}
-            {!maintained && <Pill tone="amber">No release in over a year</Pill>}
-          </div>
+          {badges.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {badges.map((badge) => (
+                <Pill key={badge.label} tone={badge.tone} title={badge.title}>
+                  {badge.label}
+                </Pill>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -188,16 +223,40 @@ export default function PackagePage({ params }: Params) {
         <p className="mt-6 italic text-gray-500 dark:text-zinc-400">No description provided.</p>
       )}
 
+      {/* Keywords */}
+      {keywords.length > 0 && (
+        <div id="keywords" className="mt-5">
+          <h2 className="pkg-label">Keywords</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {keywords.map((keyword) => (
+              <a
+                key={keyword}
+                href={`/?tag=${encodeURIComponent(keyword)}`}
+                title={`Packages tagged ${keyword}`}
+                className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 transition-colors hover:bg-brand-50 hover:text-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
+              >
+                {keyword}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="mt-6 flex flex-wrap items-center gap-3">
+        {/* rhino:// links only work on the computer that runs Rhino. */}
         <a
           href={installLink}
           title={`Install ${pkg.id} in Rhino`}
-          className="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30"
+          className="hidden items-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30 md:inline-flex"
         >
           <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
           Install in Rhino
         </a>
+        <p className="pkg-muted w-full md:hidden">
+          Install from the computer that runs Rhino ·{" "}
+          <a href="#install" className="pkg-link">How to install</a>
+        </p>
         {builds.length === 1 && (
           <a
             href={builds[0].url}
@@ -205,6 +264,12 @@ export default function PackagePage({ params }: Params) {
             title={`Download ${builds[0].filename} (${formatDistributionTarget(builds[0])})`}
             className="pkg-button"
           >
+            <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
+            Download .yak
+          </a>
+        )}
+        {builds.length > 1 && (
+          <a href="#files" title={`Choose one of ${builds.length} builds of v${pkg.version}`} className="pkg-button">
             <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
             Download .yak
           </a>
@@ -221,96 +286,72 @@ export default function PackagePage({ params }: Params) {
             Email the author
           </a>
         )}
-        <a href={`/?p=${encodeURIComponent(pkg.id)}`} className="pkg-button">
-          <Squares2X2Icon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
-          Open in directory
-        </a>
       </div>
-      {builds.length > 1 && (
-        <div className="mt-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
-            Download v{pkg.version}
-          </h2>
-          <DistributionLinks distributions={builds} />
-        </div>
-      )}
 
       {/* Facts */}
-      <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40 sm:grid-cols-3 lg:grid-cols-4">
-        <Fact label="Total downloads" value={pkg.downloads.toLocaleString("en-US")} />
+      <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40 lg:grid-cols-4">
         <Fact
-          label="Recent downloads"
-          value={`+${(pkg.downloadsWeek ?? 0).toLocaleString("en-US")} / week`}
-          hint={`+${(pkg.downloadsMonth ?? 0).toLocaleString("en-US")} in the last month`}
+          label="Total downloads"
+          value={pkg.downloads.toLocaleString("en-US")}
+          hint={
+            perDay !== null
+              ? `~${perDay >= 10 ? Math.round(perDay).toLocaleString("en-US") : perDay.toFixed(1)}/day`
+              : undefined
+          }
         />
-        <Fact label="Latest version" value={`v${pkg.version}`} hint={formatDate(pkg.updated)} />
+        <Fact
+          label="This week"
+          value={`+${(pkg.downloadsWeek ?? 0).toLocaleString("en-US")}`}
+          hint={`+${(pkg.downloadsMonth ?? 0).toLocaleString("en-US")} this month`}
+        />
         <Fact
           label="Releases"
-          value={releaseCount > 0 ? releaseCount.toLocaleString("en-US") : "—"}
-          hint={pkg.releaseCadenceDays ? formatCadence(pkg.releaseCadenceDays) : undefined}
+          value={releases.count > 0 ? releases.count.toLocaleString("en-US") : "—"}
+          hint={releaseHint || undefined}
         />
-        <Fact label="First released" value={firstReleased ? formatDate(firstReleased) : "—"} />
+        <Fact label="First released" value={releases.firstReleased ? formatDate(releases.firstReleased) : "—"} />
+        <Fact label="Works with" value={worksWith || "—"} />
         <Fact label="Download size" value={pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : "—"} />
-        <Fact label="License" value={pkg.license || "Not declared"} />
-        <div className="flex flex-col gap-1">
-          <dt className="pkg-label">Authors</dt>
-          <dd className="break-long-words text-sm font-medium text-gray-900 dark:text-zinc-100">
-            {authors.length === 0
+        <Fact
+          label="License"
+          value={pkg.license || <span className="font-normal text-gray-500 dark:text-zinc-400">Not declared</span>}
+        />
+        <Fact
+          label="Credits"
+          value={
+            credits.length === 0
               ? "—"
-              : authors.map((author, i) => (
-                  <span key={author.name}>
-                    {author.page ? (
-                      <a href={authorPath(author.page.slug)} title={`All packages by ${author.name}`} className="pkg-link">
-                        {author.name}
+              : credits.map((credit, i) => (
+                  <span key={credit.name}>
+                    {credit.page ? (
+                      <a href={authorPath(credit.page.slug)} title={`All packages by ${credit.name}`} className="pkg-link">
+                        {credit.name}
                       </a>
                     ) : (
-                      author.name
+                      credit.name
                     )}
-                    {i < authors.length - 1 ? ", " : ""}
+                    {i < credits.length - 1 ? ", " : ""}
                   </span>
-                ))}
-          </dd>
-        </div>
+                ))
+          }
+        />
       </dl>
-
-      {/* Compatibility */}
-      <section aria-labelledby="compatibility" className="mt-8">
-        <h2 id="compatibility" className="pkg-heading">Compatibility</h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Badge label="Windows" active={has(Filters.Windows, pkg)} />
-          <Badge label="Mac" active={has(Filters.Mac, pkg)} />
-          <Badge label="Rhino 6" active={has(Filters.Rhino6, pkg)} />
-          <Badge label="Rhino 7" active={has(Filters.Rhino7, pkg)} />
-          <Badge label="Rhino 8" active={has(Filters.Rhino8, pkg)} />
-          <Badge label="Rhino 9 (WIP)" active={has(Filters.Rhino9, pkg)} />
-          <Badge label="Rhino plugin" active={has(Filters.Rhino, pkg)} />
-          <Badge label="Grasshopper plugin" active={has(Filters.Grasshopper, pkg)} />
-        </div>
-        {keywords.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="sr-only">Keywords: </span>
-            {keywords.map((keyword) => (
-              <a
-                key={keyword}
-                href={`/?tag=${encodeURIComponent(keyword)}`}
-                title={`Packages tagged ${keyword}`}
-                className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 transition-colors hover:bg-brand-50 hover:text-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
-              >
-                {keyword}
-              </a>
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Install */}
       <section aria-labelledby="install" className="mt-8">
         <h2 id="install" className="pkg-heading">How to install {pkg.id}</h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
           <li>
-            Click <a href={installLink} className="pkg-link">Install in Rhino</a> to open Rhino&apos;s
-            Package Manager with {pkg.id} selected, or run <Code>_PackageManager</Code> inside Rhino and
-            search for <span className="font-semibold">{pkg.id}</span>.
+            <span className="hidden md:inline">
+              Click <a href={installLink} className="pkg-link">Install in Rhino</a> to open Rhino&apos;s
+              Package Manager with {pkg.id} selected, or run <Code>_PackageManager</Code> inside Rhino and
+              search for <span className="font-semibold">{pkg.id}</span>.
+            </span>
+            <span className="md:hidden">
+              On the computer running Rhino, run <Code>_PackageManager</Code> and search for{" "}
+              <span className="font-semibold">{pkg.id}</span>.
+            </span>{" "}
+            <CopyButton text={pkg.id} label="Copy name" ariaLabel={`Copy the package name ${pkg.id}`} />
           </li>
           {commandPlatforms.length > 0 && (
             <li>
@@ -318,25 +359,71 @@ export default function PackagePage({ params }: Params) {
               {/* Both commands ship in the HTML; globals.css hides the other OS's
                   one once the layout's script has tagged <html data-os>. */}
               <div className="yak-commands">
-                {commandPlatforms.map((platform) => (
-                  <div key={platform} data-yak-platform={platform} className="mt-2">
-                    <span className="pkg-muted">
-                      {platformLabel(platform)} ({platform === "windows" ? "PowerShell" : "Terminal"})
-                    </span>
-                    <pre className="mt-1 overflow-x-auto rounded-md bg-white px-3 py-2 font-mono text-xs text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700">
-                      <code>{yakInstallCommand(platform, rhinoRelease, pkg.id)}</code>
-                    </pre>
-                  </div>
-                ))}
+                {commandPlatforms.map((platform) => {
+                  const command = yakInstallCommand(platform, rhinoRelease, pkg.id);
+                  return (
+                    <div key={platform} data-yak-platform={platform} className="mt-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="pkg-muted">
+                          {platformLabel(platform)} ({platform === "windows" ? "PowerShell" : "Terminal"})
+                        </span>
+                        <CopyButton
+                          text={command}
+                          label="Copy"
+                          ariaLabel={`Copy the ${platformLabel(platform)} install command`}
+                        />
+                      </div>
+                      <pre className="mt-1 overflow-x-auto rounded-md bg-white px-3 py-2 font-mono text-xs text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700">
+                        <code>{command}</code>
+                      </pre>
+                    </div>
+                  );
+                })}
               </div>
             </li>
           )}
           {builds.length > 0 && (
-            <li>Or download the .yak file above and drag it onto an open Rhino window.</li>
+            <li>
+              Or download a .yak file and drag it onto an open Rhino window.
+              <DistributionLinks id="files" distributions={builds} />
+            </li>
           )}
         </ol>
         <p className="mt-2 text-xs text-gray-500 dark:text-zinc-400">Restart Rhino once the install finishes.</p>
       </section>
+
+      {moreBy.length > 0 && (
+        <section aria-labelledby="same-owner" className="mt-10">
+          <h2 id="same-owner" className="pkg-heading">
+            More by{" "}
+            {publishers.map((author, i) => (
+              <span key={author.slug}>
+                {isIndexedAuthor(author) ? (
+                  <a href={authorPath(author.slug)} className="pkg-link">{author.name}</a>
+                ) : (
+                  author.name
+                )}
+                {i < publishers.length - 1 ? ", " : ""}
+              </span>
+            ))}
+          </h2>
+          <PackageLinks packages={moreBy} />
+          {seeAll && (
+            <p className="mt-3 text-sm">
+              <a href={authorPath(seeAll.slug)} className="pkg-link">
+                See all {seeAll.packages.length} by {seeAll.name} →
+              </a>
+            </p>
+          )}
+        </section>
+      )}
+
+      {related.length > 0 && (
+        <section aria-labelledby="related" className="mt-10">
+          <h2 id="related" className="pkg-heading">Related packages</h2>
+          <PackageLinks packages={related} />
+        </section>
+      )}
 
       {/* Download trend */}
       {downloadHistory.length >= 2 && (
@@ -353,81 +440,16 @@ export default function PackagePage({ params }: Params) {
           <p className="mt-3 text-sm text-gray-500 dark:text-zinc-400">No version history available.</p>
         ) : (
           <>
-            <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
-              <table className="pkg-table w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-                <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
-                  <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Version</th>
-                    <th scope="col">Builds</th>
-                    <th scope="col" className="text-right">Downloads</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                  {versionRows.slice(0, maxVersionRows).map((row) => (
-                    <tr key={`${row.version}-${row.createdAt}`}>
-                      <td className="whitespace-nowrap">{formatDate(row.createdAt)}</td>
-                      <td className="font-mono text-gray-900 dark:text-zinc-100">
-                        {row.version}
-                        {row.prerelease && (
-                          <span className="ml-2 rounded-full bg-brand-50 px-1.5 py-0.5 font-sans text-[0.6rem] font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
-                            Pre-release
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <ul className="flex flex-col gap-1">
-                          {row.distributions.map((distribution) => (
-                            <li key={distribution.url}>
-                              <a href={distribution.url} download={distribution.filename} className="pkg-link">
-                                {formatDistributionTarget(distribution)}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                      <td className="whitespace-nowrap text-right tabular-nums">
-                        {row.downloadCount > 0 ? row.downloadCount.toLocaleString("en-US") : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {versionRows.length > maxVersionRows && (
-              <p className="pkg-muted mt-2">
-                Showing the latest {maxVersionRows} of {versionRows.length} releases.{" "}
-                <a href={`/?p=${encodeURIComponent(pkg.id)}`} className="pkg-link">
-                  See every release in the directory
-                </a>
-                .
-              </p>
+            <VersionTable packageId={pkg.id} rows={versionRows.slice(0, visibleVersionRows)} />
+            {versionRows.length > visibleVersionRows && (
+              <details className="mt-3">
+                <summary className="pkg-link cursor-pointer text-sm">Show all {releases.count} releases</summary>
+                <VersionTable packageId={pkg.id} rows={versionRows.slice(visibleVersionRows)} />
+              </details>
             )}
           </>
         )}
       </section>
-
-      {sameOwners.length > 0 && (
-        <section aria-labelledby="same-owner" className="mt-10">
-          <h2 id="same-owner" className="pkg-heading">
-            More by{" "}
-            {publishers.map((author, i) => (
-              <span key={author.slug}>
-                <a href={authorPath(author.slug)} className="pkg-link">{author.name}</a>
-                {i < publishers.length - 1 ? ", " : ""}
-              </span>
-            ))}
-          </h2>
-          <PackageLinks packages={sameOwners} />
-        </section>
-      )}
-
-      {related.length > 0 && (
-        <section aria-labelledby="related" className="mt-10">
-          <h2 id="related" className="pkg-heading">Related packages</h2>
-          <PackageLinks packages={related} />
-        </section>
-      )}
 
       <p className="mt-10 text-xs text-gray-500 dark:text-zinc-400">
         Package data comes from Rhino&apos;s{" "}
@@ -439,7 +461,7 @@ export default function PackagePage({ params }: Params) {
   );
 }
 
-function Fact({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Fact({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
     <div className="flex flex-col gap-1">
       <dt className="pkg-label">{label}</dt>
@@ -451,24 +473,19 @@ function Fact({ label, value, hint }: { label: string; value: string; hint?: str
   );
 }
 
-function Pill({ tone, children }: { tone: "yellow" | "rose" | "amber"; children: React.ReactNode }) {
-  const tones = {
+function Pill({ tone, title, children }: { tone: StatusTone; title: string; children: React.ReactNode }) {
+  const tones: Record<StatusTone, string> = {
     yellow: "bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20",
     rose: "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20",
     amber: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20",
+    green: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
   };
   return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${tones[tone]}`}>
+    <span
+      title={title}
+      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${tones[tone]}`}
+    >
       {children}
-    </span>
-  );
-}
-
-function Badge({ label, active }: { label: string; active: boolean }) {
-  return (
-    <span className={active ? "pkg-badge pkg-badge-on" : "pkg-badge"}>
-      <span className="sr-only">{active ? `Supported: ${label}` : `Not supported: ${label}`}</span>
-      <span aria-hidden="true">{active ? "✓ " : ""}{label}</span>
     </span>
   );
 }
@@ -481,9 +498,9 @@ function Code({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DistributionLinks({ distributions }: { distributions: Distribution[] }) {
+function DistributionLinks({ id, distributions }: { id?: string; distributions: Distribution[] }) {
   return (
-    <ul className="mt-2 flex flex-col gap-1.5">
+    <ul id={id} className="mt-2 flex flex-col gap-1.5">
       {distributions.map((distribution) => (
         <li key={distribution.url} className="text-sm">
           <a href={distribution.url} download={distribution.filename} className="pkg-link break-all">
@@ -493,6 +510,85 @@ function DistributionLinks({ distributions }: { distributions: Distribution[] })
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * One table of release rows. The "Show all" toggle renders a second one, so
+ * from md up the columns have fixed widths to keep the two lined up; on a
+ * phone both use the auto layout so the table stays close to the screen
+ * width. The Install column needs Rhino on the same computer, so it stays
+ * off phones.
+ */
+function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVersionHistoryRow[] }) {
+  return (
+    <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
+      <table className="pkg-table w-full text-left text-sm text-gray-600 md:min-w-[38rem] md:table-fixed dark:text-zinc-400">
+        <colgroup>
+          <col className="md:w-28" />
+          <col />
+          <col />
+          <col className="md:w-28" />
+          <col className="hidden md:table-column md:w-24" />
+        </colgroup>
+        <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Version</th>
+            <th scope="col">Builds</th>
+            <th scope="col" className="text-right">Downloads</th>
+            <th scope="col" className="hidden md:table-cell">Install</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
+          {rows.map((row) => (
+            <tr key={`${row.version}-${row.createdAt}`}>
+              <td className="whitespace-nowrap">{formatDate(row.createdAt)}</td>
+              <td className="break-long-words font-mono text-gray-900 dark:text-zinc-100">
+                {row.version}
+                {row.prerelease && (
+                  <span className="ml-2 rounded-full bg-brand-50 px-1.5 py-0.5 font-sans text-[0.6rem] font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
+                    Pre-release
+                  </span>
+                )}
+              </td>
+              <td>
+                <ul className="flex flex-col gap-1">
+                  {row.distributions.map((distribution) => (
+                    <li key={distribution.url}>
+                      <a href={distribution.url} download={distribution.filename} className="pkg-link">
+                        {formatDistributionTarget(distribution)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </td>
+              <td className="whitespace-nowrap text-right tabular-nums">
+                {row.downloadCount > 0 ? row.downloadCount.toLocaleString("en-US") : "—"}
+              </td>
+              <td className="hidden whitespace-nowrap md:table-cell">
+                {row.installVersion ? (
+                  <a
+                    href={`rhino://package/search?name=${packageId}&version=${row.installVersion}`}
+                    aria-label={`Install ${packageId} version ${row.installVersion}`}
+                    className="pkg-link"
+                  >
+                    Install
+                  </a>
+                ) : (
+                  // A row that merges several versions has no single version to
+                  // install; a link without &version would install the latest.
+                  <span title="Several builds; install from Rhino's Package Manager">
+                    <span aria-hidden="true">—</span>
+                    <span className="sr-only">Several builds; install from Rhino&apos;s Package Manager</span>
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

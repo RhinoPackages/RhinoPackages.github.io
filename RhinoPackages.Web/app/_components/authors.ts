@@ -88,9 +88,9 @@ export function findAuthorByName(name: string): Author | undefined {
   return authorsByName!.get(normalizeName(name));
 }
 
-export function authorPath(slug: string) {
-  return `/author/${encodeURIComponent(slug)}`;
-}
+// Defined in packageInfo.ts so client components can use it without pulling in
+// this file's disk access; re-exported for the server pages that already import it here.
+export { authorPath } from "./packageInfo";
 
 export function isIndexedAuthor(author: Author) {
   return author.packages.length >= minIndexedPackages;

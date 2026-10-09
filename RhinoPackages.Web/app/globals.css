@@ -44,14 +44,6 @@ html[data-os="mac"] .yak-commands > [data-yak-platform="windows"]:not(:only-chil
     @apply text-xs text-gray-500 dark:text-zinc-400;
   }
 
-  .pkg-badge {
-    @apply inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50;
-  }
-
-  .pkg-badge-on {
-    @apply bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20;
-  }
-
   .pkg-card {
     @apply flex h-full items-start gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-colors hover:border-brand-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700 dark:focus-visible:ring-brand-400;
   }
