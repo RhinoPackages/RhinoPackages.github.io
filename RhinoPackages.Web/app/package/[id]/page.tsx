@@ -49,6 +49,7 @@ import {
   releaseFacts,
   rhinoVersionsText,
   statusBadges,
+  statusToneClasses,
   yakInstallCommand,
   yakRhinoRelease,
 } from "@/app/_components/packageInfo";
@@ -474,16 +475,10 @@ function Fact({ label, value, hint }: { label: string; value: React.ReactNode; h
 }
 
 function Pill({ tone, title, children }: { tone: StatusTone; title: string; children: React.ReactNode }) {
-  const tones: Record<StatusTone, string> = {
-    yellow: "bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20",
-    rose: "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20",
-    amber: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20",
-    green: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
-  };
   return (
     <span
       title={title}
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${tones[tone]}`}
+      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusToneClasses[tone]}`}
     >
       {children}
     </span>

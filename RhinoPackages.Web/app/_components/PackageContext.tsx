@@ -8,12 +8,14 @@ import {
   has,
   isDeprecated,
   isMaintained,
+  latestRelease,
   matchesFilters,
   matchesOwner,
   normalizeName,
   pageResults,
   useApi,
 } from "./api";
+import type { AuthorRef } from "./packageInfo";
 
 export enum Sort {
   Downloads,
@@ -86,6 +88,12 @@ interface PackageContext {
   };
   filterCounts: Map<Filters, number>;
   statusCounts: { maintained: number; deprecated: number };
+  /** Every author, as the server page computed them: slugs and counts match the author pages. */
+  authors: AuthorRef[];
+  /** `authors` by normalizeName(name), to link a name on a card to its author page. */
+  authorByName: Map<string, AuthorRef>;
+  /** Name of the author currently being filtered on, resolved from any of their account ids. */
+  ownerName: string | undefined;
   /** Aggregates for the author currently being filtered on, if any. */
   ownerSummary: OwnerSummary | null;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
@@ -102,9 +110,11 @@ export function usePackageContext() {
 export function PackageProvider({
   children,
   initialCache = [],
+  authors = [],
 }: {
   children: React.ReactNode;
   initialCache?: Package[];
+  authors?: AuthorRef[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -188,6 +198,11 @@ export function PackageProvider({
     }
     return owners.sort((a, b) => a.id - b.id);
   }, [cache]);
+
+  const authorByName = useMemo(
+    () => new Map(authors.map((author) => [normalizeName(author.name), author])),
+    [authors],
+  );
 
   const ownerName = useMemo(() => {
     if (params.owner === undefined) return undefined;
@@ -304,6 +319,9 @@ export function PackageProvider({
         stats,
         filterCounts,
         statusCounts,
+        authors,
+        authorByName,
+        ownerName,
         ownerSummary,
         navigate,
         navigateFilter,
@@ -362,7 +380,8 @@ function filter(
   }
 
   if (sort === Sort.Date) {
-    filtered = filtered.sort((a, b) => (a.updated < b.updated ? 1 : -1));
+    // The date the card shows ("updated 3 days ago"), so the order matches it.
+    filtered = filtered.sort((a, b) => latestRelease(b).getTime() - latestRelease(a).getTime());
   } else if (sort === Sort.Trending) {
     filtered = filtered.sort((a, b) => (trendingScores.get(a.id)! < trendingScores.get(b.id)! ? 1 : -1));
   } else if (sort === Sort.Rising) {

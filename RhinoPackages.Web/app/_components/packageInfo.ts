@@ -4,6 +4,7 @@
 import {
   Distribution,
   Filters,
+  Owner,
   Package,
   YakVersionHistoryItem,
   formatDate,
@@ -11,6 +12,7 @@ import {
   isDeprecated,
   isMaintained,
   latestRelease,
+  normalizeName,
 } from "./packageModel";
 
 /** Stand-in for packages whose icon cannot be shown: the yak version endpoint
@@ -41,6 +43,22 @@ export function authorPath(slug: string) {
   return `/author/${encodeURIComponent(slug)}`;
 }
 
+/**
+ * What the directory's client code needs to know about an author, so cards can
+ * link a name to its page without loading the author data themselves (see
+ * authorRefs() in authors.ts). Defined here for the same reason as authorPath.
+ */
+export interface AuthorRef {
+  /** Lowest account id: the one the directory's "?owner=" filter uses. */
+  id: number;
+  slug: string;
+  name: string;
+  /** Packages published or credited; the figure the author page shows. */
+  count: number;
+  /** Has a page that search engines see: 2+ packages. */
+  indexed: boolean;
+}
+
 /** Yak fills an empty description with the literal "no description". */
 export function hasDescription(pkg: Package) {
   const description = pkg.description.trim();
@@ -58,6 +76,14 @@ export function pluginKind(pkg: Package) {
 }
 
 export type StatusTone = "rose" | "amber" | "yellow" | "green";
+
+/** Pill colours per status tone, light and dark; shared by the cards and the package page. */
+export const statusToneClasses: Record<StatusTone, string> = {
+  rose: "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20",
+  amber: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20",
+  yellow: "bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20",
+  green: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
+};
 
 export interface StatusBadge {
   label: string;
@@ -141,6 +167,38 @@ export function platformsText(pkg: Package) {
     (p): p is string => Boolean(p),
   );
   return platforms.length > 0 ? joinWithAnd(platforms) : null;
+}
+
+/** "Win & Mac", "Windows only", "Mac only", or null: the short form the cards use. */
+export function platformsShort(pkg: Package) {
+  const windows = has(Filters.Windows, pkg);
+  const mac = has(Filters.Mac, pkg);
+  if (windows && mac) return "Win & Mac";
+  if (windows) return "Windows only";
+  if (mac) return "Mac only";
+  return null;
+}
+
+/**
+ * The accounts that publish a package, one per person: accounts sharing a name
+ * collapse into the one with the lowest id, in the order the names first
+ * appear. The owner named `matchName` (the author filter) comes first.
+ */
+export function uniqueOwners(pkg: Package, matchName?: string): Owner[] {
+  const byName = new Map<string, Owner>();
+  for (const owner of pkg.owners) {
+    const key = normalizeName(owner.name);
+    const seen = byName.get(key);
+    if (!seen || owner.id < seen.id) byName.set(key, owner);
+  }
+
+  const owners = Array.from(byName.values());
+  if (matchName) {
+    const target = normalizeName(matchName);
+    const isMatch = (owner: Owner) => Number(normalizeName(owner.name) === target);
+    owners.sort((a, b) => isMatch(b) - isMatch(a));
+  }
+  return owners;
 }
 
 /** Collapse whitespace and cut at a word boundary. */

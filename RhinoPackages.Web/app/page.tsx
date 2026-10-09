@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import HomePageClient from "./_components/HomePageClient";
 import Spinner from "./_components/Spinner";
+import { authorRefs } from "./_components/authors";
 import { loadPackages } from "./_components/packageData";
 import { openGraphDefaults, siteUrl } from "./_components/seo";
 
@@ -42,6 +43,7 @@ const homeStructuredData = {
 
 export default function Page() {
   const packages = loadPackages();
+  const authors = authorRefs();
 
   return (
     <>
@@ -57,7 +59,7 @@ export default function Page() {
           </div>
         }
       >
-        <HomePageClient initialCache={packages} />
+        <HomePageClient initialCache={packages} authors={authors} />
       </Suspense>
 
       <script

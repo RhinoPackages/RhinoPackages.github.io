@@ -1,27 +1,54 @@
-import { memo, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { Fragment, memo, useEffect, useRef, useState } from "react";
 import {
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
-  CalendarIcon,
   EnvelopeIcon,
   ChevronDownIcon,
-  CheckIcon,
-  LinkIcon,
   MagnifyingGlassIcon,
-  StarIcon,
   UserIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, Package, formatDate, isMaintained, latestRelease } from "@/app/_components/api";
-import { displayKeywords, formatBytes, packagePath, parseWebsiteAction } from "./packageInfo";
-import { Params, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
+import {
+  pageResults,
+  Package,
+  compactNumber,
+  formatDate,
+  latestRelease,
+  matchesOwner,
+  normalizeName,
+  relativeTime,
+} from "@/app/_components/api";
+import {
+  AuthorRef,
+  authorPath,
+  displayKeywords,
+  formatBytes,
+  hasDescription,
+  packagePath,
+  parseWebsiteAction,
+  platformsShort,
+  pluginKind,
+  rhinoVersionsText,
+  statusBadges,
+  statusToneClasses,
+  uniqueOwners,
+} from "./packageInfo";
+import { Params, Sort, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
 import Spinner from "./Spinner";
 
 export default function PackageList() {
-  const { controls, packages, filteredCount, navigate, stats, status, ownerSummary } =
-    usePackageContext();
+  const {
+    controls,
+    packages,
+    filteredCount,
+    navigate,
+    stats,
+    status,
+    ownerSummary,
+    ownerName,
+    authorByName,
+  } = usePackageContext();
   const expandedId = controls.p ?? null;
   const showHeaderLoading = status.isLoading && packages.length > 0;
 
@@ -205,6 +232,8 @@ export default function PackageList() {
                 isExpanded={expandedId === pkg.id}
                 navigate={navigate}
                 controls={controls}
+                ownerName={ownerName}
+                authorByName={authorByName}
               />
             );
           })}
@@ -229,6 +258,9 @@ const quickViewKeywords = 10;
 
 /** Longest license the quick view's fact line shows; longer ones are EULA text for the package page. */
 const quickViewLicenseMax = 24;
+
+/** Publisher names a card names before "+N"; the package page lists them all. */
+const ownerNamesShown = 2;
 
 function OwnerStat({
   label,
@@ -296,13 +328,16 @@ const PackageCard = memo(function PackageCard({
   isExpanded,
   navigate,
   controls,
+  ownerName,
+  authorByName,
 }: {
   pkg: Package;
   isExpanded: boolean;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   controls: Params;
+  ownerName: string | undefined;
+  authorByName: Map<string, AuthorRef>;
 }) {
-  const [copied, setCopied] = useState(false);
   const onToggle = () => {
     if (isExpanded) {
       // Collapsing removes the quick view's height. If the reader has scrolled
@@ -319,19 +354,6 @@ const PackageCard = memo(function PackageCard({
     }
     navigate({ p: isExpanded ? undefined : pkg.id });
   };
-
-  // The canonical page address, so a pasted link lands on the package page
-  // rather than on the list with this card open.
-  const handleCopyLink = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(`${window.location.origin}${packagePath(pkg.id)}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  function has(constant: Filters) {
-    return constant === (pkg.filters & constant);
-  }
 
   const { websiteHref, emailHref } = parseWebsiteAction(pkg.homepageUrl);
 
@@ -351,260 +373,167 @@ const PackageCard = memo(function PackageCard({
     pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : null,
     license ? `${license}${/licen/i.test(license) ? "" : " license"}` : null,
   ].filter(Boolean);
-  const date = formatDate(pkg.updated);
-  const downloads = pkg.downloads.toLocaleString();
+
+  // The one most important status; the package page lists them all.
+  const badge = statusBadges(pkg)[0];
+  const lastRelease = latestRelease(pkg);
   const downloadsWeek = pkg.downloadsWeek ?? 0;
+  // The weekly figure is what the Trending and Rising sorts rank by; under any
+  // other sort it is just a second number next to the total.
+  const showWeek =
+    downloadsWeek > 0 && (controls.sort === Sort.Trending || controls.sort === Sort.Rising);
 
-  const isTrending = downloadsWeek >= 30 && downloadsWeek > pkg.downloads * 0.01;
-  const hasDescription =
-    pkg.description.trim().length > 0 && pkg.description.trim().toLowerCase() !== "no description";
-  const ageDays = pkg.firstReleased
-    ? (Date.now() - new Date(pkg.firstReleased).getTime()) / (1000 * 3600 * 24)
-    : null;
-  const isNew = ageDays !== null && ageDays <= 30;
-  // The same rule as the sidebar's Maintained filter and the package page.
-  const maintained = isMaintained(pkg);
-  // Nothing published for the current Rhino release. Packages that target
-  // Rhino 9 only are forward-looking, not deprecated.
-  const isDeprecated = !has(Filters.Rhino8) && !has(Filters.Rhino9);
+  // Publishers, the filtered author first so the card says why it is listed.
+  const owners = uniqueOwners(pkg, ownerName);
+  const shownOwners = owners.slice(0, ownerNamesShown);
+  const hiddenOwners = owners.slice(ownerNamesShown);
+  // The filter also matches names that are only in the credit list. Then the
+  // filtered author is on none of the accounts above, so say so.
+  const filteredName = ownerName ? normalizeName(ownerName) : undefined;
+  const isCreditedOnly =
+    controls.owner !== undefined &&
+    matchesOwner(pkg, controls.owner, ownerName) &&
+    !pkg.owners.some((o) => o.id === controls.owner || normalizeName(o.name) === filteredName);
 
-  const supportedPlatformsList = [
-    has(Filters.Windows) && "Windows",
-    has(Filters.Mac) && "Mac",
-    has(Filters.Rhino6) && "Rhino 6",
-    has(Filters.Rhino7) && "Rhino 7",
-    has(Filters.Rhino8) && "Rhino 8",
-    has(Filters.Rhino9) && "Rhino 9 (WIP)",
-    has(Filters.Rhino) && "Rhino plugin",
-    has(Filters.Grasshopper) && "Grasshopper plugin",
-  ].filter(Boolean);
+  const by =
+    shownOwners.length > 0 ? (
+      <>
+        by{" "}
+        {shownOwners.map((owner, i) => {
+          // Only authors with a page of their own are linked; for the rest the
+          // page would just repeat the package.
+          const author = authorByName.get(normalizeName(owner.name));
+          return (
+            <Fragment key={owner.id}>
+              {i > 0 && ", "}
+              {author?.indexed ? (
+                <a
+                  href={authorPath(author.slug)}
+                  className="rounded-sm underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400"
+                >
+                  {owner.name}
+                </a>
+              ) : (
+                owner.name
+              )}
+            </Fragment>
+          );
+        })}
+        {hiddenOwners.length > 0 && (
+          <>
+            {" "}
+            <span title={`Also: ${hiddenOwners.map((owner) => owner.name).join(", ")}`}>
+              +{hiddenOwners.length}
+            </span>
+          </>
+        )}
+      </>
+    ) : null;
+
+  // Three groups so a phone can break between them instead of mid-phrase;
+  // from sm up they run together as one line, which wraps only between
+  // segments, never inside one.
+  const metaGroups = [
+    [
+      by,
+      isCreditedOnly ? (
+        <span key="credited" title={`${ownerName} is credited in this package's author list, not a publisher`}>
+          {ownerName} credited
+        </span>
+      ) : null,
+      pluginKind(pkg),
+    ],
+    [rhinoVersionsText(pkg), platformsShort(pkg)],
+    [
+      `${compactNumber(pkg.downloads)} ${pkg.downloads === 1 ? "download" : "downloads"}`,
+      showWeek ? `+${compactNumber(downloadsWeek)} this week` : null,
+      <time key="updated" dateTime={lastRelease.toISOString()} title={formatDate(lastRelease)} className="whitespace-nowrap">
+        updated {relativeTime(lastRelease)}
+      </time>,
+    ],
+  ]
+    .map((group) => group.filter(Boolean))
+    .filter((group) => group.length > 0);
 
   return (
     <li
       id={packageAnchorId(pkg.id)}
-      className={`flex scroll-mt-20 flex-col md:scroll-mt-4 overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 dark:bg-zinc-900/40 md:p-6 ${isExpanded
-        ? "border-brand-300 shadow-md dark:border-brand-700 dark:bg-zinc-900/80"
-        : "border-gray-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:hover:border-brand-700 dark:hover:bg-zinc-900/80"
-        } p-4`}
+      className={`flex scroll-mt-20 flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm transition-colors dark:bg-zinc-900/40 md:scroll-mt-4 md:p-5 ${isExpanded
+        ? "border-brand-300 dark:border-brand-700 dark:bg-zinc-900/80"
+        : "border-gray-200 hover:border-gray-300 dark:border-zinc-800 dark:hover:border-zinc-600"
+        }`}
     >
-      {/* Stays stacked until there is room for the icon strip beside the
-          title; side by side any earlier squeezes the name to one letter
-          per line. */}
-      <div
-        className="mb-2 flex cursor-pointer flex-col gap-2 rounded-lg transition-shadow lg:flex-row lg:gap-0"
-        onClick={onToggle}
-      >
-        <div className="flex min-w-0 flex-grow gap-x-4">
-          <PackageIcon className="h-[2.5rem] w-[2.5rem]" src={pkg.iconUrl} size={40} />
-          <div className="flex min-w-0 flex-col">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggle();
-                }}
-                aria-expanded={isExpanded}
-                aria-controls={`package-details-${pkg.id}`}
-                className="break-long-words rounded-sm text-left text-lg font-bold text-gray-900 transition-colors hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:hover:text-brand-400 dark:focus-visible:ring-brand-400"
-              >
-                {pkg.id}
-              </button>
-              {pkg.prerelease && (
-                <span
-                  title="Work in progress (Pre-release)"
-                  className="rounded-full bg-yellow-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20"
-                >
-                  <span aria-hidden="true">wip</span>
-                  <span className="sr-only">Pre-release</span>
-                </span>
-              )}
-              {isNew && (
-                <span
-                  title="First released within the last 30 days"
-                  className="rounded-full bg-green-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
-                >
-                  new
-                </span>
-              )}
-              {isTrending && (
-                <span
-                  title={`Trending: ${downloadsWeek.toLocaleString()} downloads this week`}
-                  className="rounded-full bg-orange-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-500/20"
-                >
-                  {/* Icon-only when other badges are present to avoid crowding the title row */}
-                  <span aria-hidden="true">{pkg.prerelease || isNew ? "🔥" : "🔥 trending"}</span>
-                  <span className="sr-only">Trending this week</span>
-                </span>
-              )}
-              {isDeprecated && (
-                <span
-                  title="Deprecated: no build for the current Rhino release (Rhino 8)"
-                  className="rounded-full bg-rose-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20"
-                >
-                  deprecated
-                </span>
-              )}
-              {!maintained && (
-                <span
-                  title={`Not actively maintained: no release since ${formatDate(latestRelease(pkg))}`}
-                  className="rounded-full bg-amber-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20"
-                >
-                  <span aria-hidden="true">inactive</span>
-                  <span className="sr-only">Not actively maintained</span>
-                </span>
-              )}
-              <p className="max-w-full break-all text-xs font-semibold text-gray-500 dark:text-zinc-400 md:whitespace-nowrap md:break-normal">
-                v{pkg.version}
-              </p>
-            </div>
-            <div className="mt-1 flex items-center">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-1" title="Authors">
-                <UserIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-                <span className="sr-only">Authors: </span>
-                {pkg.owners.map((owner, i) => {
-                  const isActive = controls.owner === owner.id;
-                  return (
-                  <span key={owner.id} className="text-xs text-gray-600 dark:text-zinc-400">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate({ owner: isActive ? undefined : owner.id });
-                      }}
-                      aria-pressed={isActive}
-                      title={isActive ? `Clear author filter: ${owner.name}` : `Filter by author: ${owner.name}`}
-                      aria-label={isActive ? `Clear author filter: ${owner.name}` : `Filter by author: ${owner.name}`}
-                      className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${isActive ? "text-brand-700 font-bold dark:text-brand-400" : "hover:text-brand-600 dark:hover:text-brand-400"}`}
-                    >
-                      {owner.name}
-                    </button>
-                    {i < pkg.owners.length - 1 ? "," : ""}
-                  </span>
-                )})}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex w-full flex-shrink-0 flex-grow-0 justify-between lg:w-auto lg:justify-end">
-          <span className="sr-only">
-            {supportedPlatformsList.length > 0
-              ? `Supports ${supportedPlatformsList.join(", ")}`
-              : "No platform compatibility specified"}
-          </span>
-          <div className="items-top mt-1 flex flex-wrap gap-4" aria-hidden="true">
-            <div className="flex gap-1">
-              <Icon isEnabled={has(Filters.Windows)} src="/icons/win.svg" alt="Windows" />
-              <Icon isEnabled={has(Filters.Mac)} src="/icons/mac.svg" alt="Mac" />
-            </div>
-            <div className="flex gap-1">
-              <Icon isEnabled={has(Filters.Rhino6)} src="/icons/rhino6.png" alt="Rhino 6" />
-              <Icon isEnabled={has(Filters.Rhino7)} src="/icons/rhino7.png" alt="Rhino 7" />
-              <Icon isEnabled={has(Filters.Rhino8)} src="/icons/rhino8.png" alt="Rhino 8" />
-              <Icon isEnabled={has(Filters.Rhino9)} src="/icons/rhino9.png" alt="Rhino 9 (WIP)" />
-            </div>
-            <div className="flex gap-1">
-              <Icon isEnabled={has(Filters.Rhino)} src="/icons/rhp.png" alt="Rhino plugin" />
-              <Icon
-                isEnabled={has(Filters.Grasshopper)}
-                src="/icons/gha.png"
-                alt="Grasshopper plugin"
-              />
-            </div>
-          </div>
-          <div className="ml-4 flex flex-col items-end justify-start gap-1">
-            <div className="flex items-center gap-1" title="Total downloads">
-              <StarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-              <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
-                <span className="sr-only">Downloads: </span>
-                {downloads}
-              </p>
-            </div>
-            {downloadsWeek > 0 && (
-              <div className="flex items-center gap-1" title="Downloads in the last 7 days">
-                <p className="text-xs font-medium text-brand-600 dark:text-brand-400">
-                  <span className="sr-only">Weekly downloads: </span>+
-                  {downloadsWeek.toLocaleString()}/week
-                </p>
-              </div>
-            )}
-            {/* The copy button rides alongside the date rather than taking a
-                row of its own, where it read as an orphan on narrow cards. */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1" title="Last updated">
-                <CalendarIcon className="h-3.5 w-3.5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-                <p className="text-xs font-medium text-gray-600 dark:text-zinc-400">
-                  <span className="sr-only">Last updated: </span>
-                  {date}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                title={copied ? "Copied to clipboard!" : `Copy link to ${pkg.id}`}
-                aria-label={`Copy link to ${pkg.id}`}
-                className={`flex flex-shrink-0 items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-                  }`}
-              >
-                {copied ? (
-                  <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                ) : (
-                  <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                )}
-                {/* The check icon carries the confirmation on its own where
-                    the label would push the row into the platform icons. */}
-                {copied && (
-                  <span className="hidden text-[10px] font-bold uppercase sm:inline" aria-hidden="true">
-                    Copied!
-                  </span>
-                )}
-              </button>
-            </div>
-            <div aria-live="polite" className="sr-only">
-              {copied ? "Link copied to clipboard!" : ""}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            aria-expanded={isExpanded}
-            aria-label={isExpanded ? `Collapse ${pkg.id} details` : `Expand ${pkg.id} details`}
-            title={isExpanded ? `Collapse ${pkg.id} details` : `Expand ${pkg.id} details`}
-            aria-controls={`package-details-${pkg.id}`}
-            className="ml-4 flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
+      <div className="flex items-center gap-3">
+        <PackageIcon className="h-10 w-10 flex-shrink-0" src={pkg.iconUrl} size={40} />
+        {/* A plain link, not next/link: with up to 1,275 cards on the page,
+            prefetching every package page would cost more than it saves. The
+            chevron is the only control that expands the card. */}
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+          <a
+            href={packagePath(pkg.id)}
+            className="break-long-words rounded-sm text-lg font-bold text-gray-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:focus-visible:ring-brand-400"
           >
-            <ChevronDownIcon
-              aria-hidden="true"
-              className={`h-5 w-5 text-gray-400 transition-transform duration-300 dark:text-zinc-500 ${isExpanded ? "rotate-180" : ""
-                }`}
-            />
-          </button>
+            {pkg.id}
+          </a>
+          {badge && (
+            <span
+              title={badge.title}
+              className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[0.7rem] font-medium leading-4 ring-1 ring-inset ${statusToneClasses[badge.tone]}`}
+            >
+              {badge.label}
+            </span>
+          )}
         </div>
-      </div>
-      <div className="mt-2 flex min-w-0 items-start gap-4 md:gap-6">
-        {hasDescription ? (
-          <p className={`break-long-words min-w-0 flex-grow whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300 ${isExpanded ? "" : "line-clamp-4"}`}>
-            {pkg.description}
-          </p>
-        ) : (
-          <p className="min-w-0 flex-grow text-sm italic leading-relaxed text-gray-500 dark:text-zinc-400">
-            No description provided
-          </p>
-        )}
+        {/* rhino:// cannot run on a phone, so Install starts at md. */}
         <a
           href={link}
           aria-label={`Install ${pkg.id}`}
           title={`Install ${pkg.id}`}
-          className="hidden items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:flex"
+          className="hidden flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:inline-flex"
         >
           <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
           Install
         </a>
+        {/* The padding makes a 44px target; the negative margin keeps it from
+            making the row taller. */}
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isExpanded}
+          aria-controls={`package-details-${pkg.id}`}
+          aria-label={isExpanded ? `Hide quick view of ${pkg.id}` : `Show quick view of ${pkg.id}`}
+          title={isExpanded ? `Hide quick view of ${pkg.id}` : `Show quick view of ${pkg.id}`}
+          className="-m-2 flex-shrink-0 rounded-full p-3 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
+        >
+          <ChevronDownIcon
+            aria-hidden="true"
+            className={`h-5 w-5 text-gray-500 transition-transform duration-300 dark:text-zinc-400 ${isExpanded ? "rotate-180" : ""
+              }`}
+          />
+        </button>
       </div>
+      <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400 md:pl-[3.25rem]">
+        {metaGroups.map((group, i) => (
+          <span key={i} className="block sm:inline">
+            {i > 0 && <span className="hidden sm:inline"> · </span>}
+            {group.map((part, j) => (
+              <Fragment key={j}>
+                {j > 0 && " · "}
+                {typeof part === "string" ? <span className="whitespace-nowrap">{part}</span> : part}
+              </Fragment>
+            ))}
+          </span>
+        ))}
+      </p>
+      {hasDescription(pkg) ? (
+        <p className={`break-long-words mt-2 min-w-0 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300 md:pl-[3.25rem] ${isExpanded ? "" : "line-clamp-2"}`}>
+          {pkg.description}
+        </p>
+      ) : (
+        <p className="mt-2 min-w-0 text-sm italic leading-relaxed text-gray-500 dark:text-zinc-400 md:pl-[3.25rem]">
+          No description provided
+        </p>
+      )}
       {/* Quick view: a peek and a hand-off to the package page. It repeats
           nothing from the rows above and fetches nothing; /package/[id] owns
           the detail, the release history and the install help. */}
@@ -691,20 +620,3 @@ const PackageCard = memo(function PackageCard({
     </li>
   );
 });
-
-function Icon({ isEnabled, src, alt }: { isEnabled: boolean; src: string; alt: string }) {
-  const isSvg = src.endsWith(".svg");
-  const title = isEnabled ? `Supported on ${alt}` : `Not supported on ${alt}`;
-  return (
-    <Image
-      className={`h-[1.2rem] w-[1.2rem] ${isSvg ? "dark:invert" : "dark:brightness-110"}${isEnabled ? "" : " opacity-25"
-        }`}
-      src={src}
-      width={32}
-      height={32}
-      alt=""
-      aria-hidden="true"
-      title={title}
-    />
-  );
-}

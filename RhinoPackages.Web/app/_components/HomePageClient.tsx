@@ -7,12 +7,19 @@ import { PackageProvider, usePackageContext, hasActiveFilters } from "./PackageC
 import PackageList from "./PackageList";
 import Sidebar, { SearchBar, SidebarFilters } from "./Sidebar";
 import type { Package } from "./api";
+import type { AuthorRef } from "./packageInfo";
 
-export default function HomePageClient({ initialCache = [] }: { initialCache?: Package[] }) {
+export default function HomePageClient({
+  initialCache = [],
+  authors = [],
+}: {
+  initialCache?: Package[];
+  authors?: AuthorRef[];
+}) {
   // Only the filter controls differ between breakpoints; the list itself is
   // rendered once so cards are not mounted and diffed twice.
   return (
-    <PackageProvider initialCache={initialCache}>
+    <PackageProvider initialCache={initialCache} authors={authors}>
       {/* The divider belongs to the sidebar, which is hidden on phones. It
           has to be gated on the breakpoint too: Tailwind's divide-x skips
           elements with the hidden *attribute*, not the class, so on a phone

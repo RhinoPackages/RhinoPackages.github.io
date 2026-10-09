@@ -1,4 +1,5 @@
 import { loadPackages } from "./packageData";
+import type { AuthorRef } from "./packageInfo";
 import { Package, matchesOwner, normalizeName } from "./packageModel";
 
 /**
@@ -94,4 +95,20 @@ export { authorPath } from "./packageInfo";
 
 export function isIndexedAuthor(author: Author) {
   return author.packages.length >= minIndexedPackages;
+}
+
+/**
+ * Every author in the shape the directory's client code takes (no package
+ * lists), derived from loadAuthors() so slugs and counts always match the
+ * author pages. Passed from the server page, which can read the data, to the
+ * cards, which cannot.
+ */
+export function authorRefs(): AuthorRef[] {
+  return loadAuthors().map((author) => ({
+    id: author.id,
+    slug: author.slug,
+    name: author.name,
+    count: author.packages.length,
+    indexed: isIndexedAuthor(author),
+  }));
 }
