@@ -4,8 +4,6 @@ import {
   ArrowTopRightOnSquareIcon,
   EnvelopeIcon,
   ChevronDownIcon,
-  MagnifyingGlassIcon,
-  UserIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import {
@@ -35,6 +33,7 @@ import {
 } from "./packageInfo";
 import { Params, Sort, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
+import SortSelect from "./SortSelect";
 import Spinner from "./Spinner";
 
 export default function PackageList() {
@@ -42,10 +41,9 @@ export default function PackageList() {
     controls,
     packages,
     filteredCount,
+    totalPackages,
     navigate,
-    stats,
     status,
-    ownerSummary,
     ownerName,
     authorByName,
   } = usePackageContext();
@@ -55,6 +53,21 @@ export default function PackageList() {
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
   const hasFilters = hasActiveFilters(controls);
+
+  // The one count on the page. "1,275 Rhino & Grasshopper plugins" says what
+  // the directory is; once something narrows the list it becomes "7 of 1,275
+  // plugins". The data is on the page from the first render, so the loading
+  // and error words only show if it ever is not.
+  const heading =
+    totalPackages === 0
+      ? status.isError
+        ? "Failed to load plugins."
+        : "Loading plugins..."
+      : filteredCount < totalPackages
+        ? `${filteredCount.toLocaleString()} of ${totalPackages.toLocaleString()} plugins`
+        : `${totalPackages.toLocaleString()} Rhino & Grasshopper plugins`;
+  // The filtered author's page, if they have one (2+ packages).
+  const filteredAuthor = ownerName ? authorByName.get(normalizeName(ownerName)) : undefined;
 
   // A ?p= deep link expands its package but leaves the reader at the top of
   // the page, with the card itself often thousands of pixels down. Bring it
@@ -114,69 +127,18 @@ export default function PackageList() {
 
   return (
     <div className="flex min-w-0 w-full flex-col">
-      {/* Author profile header, shown when filtering by a single author */}
-      {ownerSummary && (
-        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50/40 p-4 dark:border-brand-800/60 dark:bg-brand-900/10">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <UserIcon className="h-5 w-5 text-brand-500 dark:text-brand-400" aria-hidden="true" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
-                {ownerSummary.name}
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate({ owner: undefined })}
-              className="rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-white hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-            >
-              Clear author filter
-            </button>
-          </div>
-          <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4 lg:grid-cols-5">
-            <OwnerStat label="Packages" value={ownerSummary.packages.toLocaleString()} />
-            <OwnerStat
-              label="Owned / Credited"
-              value={`${ownerSummary.owned.toLocaleString()} / ${ownerSummary.credited.toLocaleString()}`}
-            />
-            <OwnerStat label="Downloads" value={ownerSummary.downloads.toLocaleString()} />
-            <OwnerStat
-              label="This Week"
-              value={ownerSummary.weekly > 0 ? `+${ownerSummary.weekly.toLocaleString()}` : "—"}
-              accent
-            />
-            <OwnerStat
-              label="Last Release"
-              value={ownerSummary.lastUpdated ? formatDate(ownerSummary.lastUpdated) : "—"}
-              hint={
-                ownerSummary.firstReleased
-                  ? `Publishing since ${formatDate(ownerSummary.firstReleased)}`
-                  : undefined
-              }
-            />
-          </dl>
-        </div>
-      )}
-
-      {/* Stats Banner / Header */}
-      <div className="mt-4 mb-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 lg:flex-row lg:items-center">
-        <div>
-          <div className="flex min-h-8 items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
-              Packages Directory
-            </h2>
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
-              {showHeaderLoading && <Spinner />}
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-zinc-400" aria-live="polite" aria-atomic="true">
-            {status.isLoading
-              ? "Loading packages..."
-              : status.isError
-                ? "Failed to load packages."
-                : packages.length === 0
-                  ? "No packages found matching your criteria."
-                  : `Showing ${packages.length} of ${filteredCount} packages`}
-          </p>
+      {/* What the list shows and how it is ordered. Each chip is an active
+          filter and undoes itself. */}
+      <div className="mb-4 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <h1
+            className="text-base font-semibold text-gray-900 dark:text-zinc-100"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {heading}
+          </h1>
+          {showHeaderLoading && <Spinner />}
           {/* The keyword chips live on the cards, so without this the only
               cue that a tag is filtering the list is the URL. */}
           {controls.tag && (
@@ -185,37 +147,43 @@ export default function PackageList() {
               onClick={() => navigate({ tag: undefined })}
               title={`Remove keyword filter: ${controls.tag}`}
               aria-label={`Remove keyword filter: ${controls.tag}`}
-              className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
+              className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
             >
               Keyword: {controls.tag}
               <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           )}
-        </div>
-        <a
-          href="/stats"
-          title="View full directory statistics"
-          className="group hidden divide-x divide-gray-200 rounded-md text-sm transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:divide-zinc-800 dark:focus-visible:ring-brand-400 lg:flex"
-        >
-          <div className="flex flex-col pr-4">
-            <span className="text-gray-500 dark:text-zinc-400">Total Packages</span>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalPackages.toLocaleString() ?? "-"}</span>
-          </div>
-          <div className="flex flex-col px-4">
-            <span className="text-gray-500 dark:text-zinc-400">Total Downloads</span>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats?.totalDownloads.toLocaleString() ?? "-"}</span>
-          </div>
-          {(stats?.weeklyDownloads ?? 0) > 0 && (
-            <div className="flex flex-col px-4">
-              <span className="text-gray-500 dark:text-zinc-400">This Week</span>
-              <span className="font-semibold text-gray-900 dark:text-zinc-100">{stats.weeklyDownloads.toLocaleString()}</span>
-            </div>
+          {/* No numbers here: the heading owns the count and the profile owns
+              the author's totals. */}
+          {ownerName && (
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-brand-100 py-1 pl-2.5 pr-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30">
+              <span className="min-w-0 break-long-words">Author: {ownerName}</span>
+              {filteredAuthor?.indexed && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <a
+                    href={authorPath(filteredAuthor.slug)}
+                    className="whitespace-nowrap rounded-sm underline underline-offset-2 hover:text-brand-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-200 dark:focus-visible:ring-brand-400"
+                  >
+                    Profile →
+                  </a>
+                </>
+              )}
+              {/* The padding makes a 24px target; the negative margin keeps it
+                  from making the chip taller. */}
+              <button
+                type="button"
+                onClick={() => navigate({ owner: undefined })}
+                title={`Remove author filter: ${ownerName}`}
+                aria-label={`Remove author filter: ${ownerName}`}
+                className="-my-1 flex-shrink-0 rounded-full p-1.5 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
+              >
+                <XMarkIcon className="h-3 w-3" aria-hidden="true" />
+              </button>
+            </span>
           )}
-          <div className="flex flex-col pl-4">
-            <span className="text-gray-500 dark:text-zinc-400">Updated Monthly</span>
-            <span className="font-semibold text-brand-600 dark:text-brand-400">{stats?.recentUpdates.toLocaleString() ?? "-"}</span>
-          </div>
-        </a>
+        </div>
+        <SortSelect />
       </div>
 
       {packages.length === 0 && status.isLoading ? (
@@ -228,35 +196,27 @@ export default function PackageList() {
           <svg className="mx-auto h-12 w-12 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h3 className="mt-4 text-sm font-semibold text-red-800 dark:text-red-300">Error loading packages</h3>
+          <h2 className="mt-4 text-sm font-semibold text-red-800 dark:text-red-300">Error loading packages</h2>
           <p className="mt-1 text-sm text-red-700 dark:text-red-400">{status.message}</p>
         </div>
       ) : packages.length === 0 && status.isIdle ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-          <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-          <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-100">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+          <p className="text-sm text-gray-500 dark:text-zinc-400">
             {controls.search
-              ? `No results for "${controls.search}"`
-              : controls.tag
-                ? `No packages tagged "${controls.tag}"`
-                : "No packages found"}
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-            {controls.search ? "Check for typos or try adjusting your search and filters." : "Try adjusting your search or filters to find what you're looking for."}
+              ? `Check "${controls.search}" for typos, or try fewer filters.`
+              : "Try fewer filters."}
           </p>
           {hasFilters && (
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={() => {
-                  navigate(defaultParams);
-                  document.getElementById("main-content")?.focus({ preventScroll: true });
-                }}
-                className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
-              >
-                Clear all filters
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigate(defaultParams);
+                document.getElementById("main-content")?.focus({ preventScroll: true });
+              }}
+              className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
+            >
+              Clear all filters
+            </button>
           )}
         </div>
       ) : (
@@ -349,31 +309,6 @@ const quickViewLicenseMax = 24;
 
 /** Publisher names a card names before "+N"; the package page lists them all. */
 const ownerNamesShown = 2;
-
-function OwnerStat({
-  label,
-  value,
-  accent = false,
-  hint,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-  hint?: string;
-}) {
-  return (
-    <div className="flex flex-col" title={hint}>
-      <dt className="text-xs text-gray-500 dark:text-zinc-400">{label}</dt>
-      <dd
-        className={`font-semibold ${
-          accent ? "text-brand-600 dark:text-brand-400" : "text-gray-900 dark:text-zinc-100"
-        }`}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}
 
 function InfiniteScrollTrigger({ onIntersect }: { onIntersect: () => void }) {
   const [ref, setRef] = useState<HTMLDivElement | null>(null);

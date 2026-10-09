@@ -14,9 +14,9 @@ export default function NotFound() {
         className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500"
         aria-hidden="true"
       />
-      <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">
+      <h1 className="mt-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">
         Page not found
-      </h2>
+      </h1>
       <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
         We couldn&apos;t find the page you&apos;re looking for. It might have been moved, or the address
         might be misspelled. Try searching for it instead.

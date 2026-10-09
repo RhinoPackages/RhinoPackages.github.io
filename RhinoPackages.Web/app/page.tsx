@@ -54,8 +54,15 @@ export default function Page() {
         fallback={
           // Fills the viewport so the footer is already off-screen and nothing
           // below moves when the client content replaces it (layout shift).
-          <div className="flex min-h-screen justify-center pt-10">
-            <Spinner />
+          // The exported HTML has only this, so it carries the page's h1: the
+          // words the list's own heading opens with.
+          <div className="min-h-screen pt-4">
+            <h1 className="text-base font-semibold text-gray-900 dark:text-zinc-100">
+              {`${packages.length.toLocaleString("en-US")} Rhino & Grasshopper plugins`}
+            </h1>
+            <div className="flex justify-center pt-10">
+              <Spinner />
+            </div>
           </div>
         }
       >

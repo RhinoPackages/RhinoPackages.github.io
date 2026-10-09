@@ -44,7 +44,7 @@ export default function HomePageClient({
 /**
  * Phone-only header: the search box stays on screen (sticky) instead of
  * being tucked behind a hamburger, with a "Filters" button next to it that
- * opens the rest of the sidebar controls (sort, platform, versions, etc.)
+ * opens the rest of the sidebar controls (author, platform, versions, etc.)
  * in a bottom sheet.
  */
 function MobileSearchBar() {

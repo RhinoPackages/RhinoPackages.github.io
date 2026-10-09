@@ -185,23 +185,17 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
           />
         </svg>
-        <h3 className="mt-4 text-sm font-semibold text-red-800 dark:text-red-300">
+        <h2 className="mt-4 text-sm font-semibold text-red-800 dark:text-red-300">
           Error loading statistics
-        </h3>
+        </h2>
         <p className="mt-1 text-sm text-red-700 dark:text-red-400">{status.message}</p>
       </div>
     );
   }
 
+  // The page heading and the spacing around this are the server page's.
   return (
-    <div className="flex flex-col gap-8 pb-12 pt-8">
-      <div>
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">Directory Stats</h1>
-        <p className="text-sm text-gray-500 dark:text-zinc-400">
-          Live statistics for all packages, updated daily from the Yak package manager.
-        </p>
-      </div>
-
+    <div className="flex flex-col gap-8">
       {/* Headline numbers */}
       <section aria-labelledby="stats-overview">
         <h2 id="stats-overview" className="sr-only">

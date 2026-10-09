@@ -55,23 +55,13 @@ export const defaultParams: Params = {
  * Whether anything is narrowing the list. Shared by the sidebar's reset
  * button, the mobile filter badge and the empty state, which each used to
  * carry their own copy of this check and drifted apart as params were added.
- * Page and expanded package are navigation state, not filters.
+ * Page and expanded package are navigation state, and sort only orders the
+ * list, so none of them are filters.
  */
 export function hasActiveFilters(controls: Params) {
-  return (["search", "tag", "owner", "filters", "sort", "maintained", "deprecated"] as const).some(
+  return (["search", "tag", "owner", "filters", "maintained", "deprecated"] as const).some(
     (key) => controls[key] !== defaultParams[key],
   );
-}
-
-export interface OwnerSummary {
-  name: string;
-  packages: number;
-  owned: number;
-  credited: number;
-  downloads: number;
-  weekly: number;
-  lastUpdated?: string;
-  firstReleased?: string;
 }
 
 interface PackageContext {
@@ -80,12 +70,8 @@ interface PackageContext {
   owners: Owner[];
   status: Status;
   controls: Params;
-  stats: {
-    totalPackages: number;
-    totalDownloads: number;
-    recentUpdates: number;
-    weeklyDownloads: number;
-  };
+  /** Every package in the directory, before any filter. */
+  totalPackages: number;
   filterCounts: Map<Filters, number>;
   statusCounts: { maintained: number; deprecated: number };
   /** Every author, as the server page computed them: slugs and counts match the author pages. */
@@ -94,8 +80,6 @@ interface PackageContext {
   authorByName: Map<string, AuthorRef>;
   /** Name of the author currently being filtered on, resolved from any of their account ids. */
   ownerName: string | undefined;
-  /** Aggregates for the author currently being filtered on, if any. */
-  ownerSummary: OwnerSummary | null;
   navigate: (value: { [Key in keyof Params]?: Params[Key] }) => void;
   navigateFilter: (filter: Filters, value: boolean) => void;
   setSearch: (text: string) => void;
@@ -217,46 +201,6 @@ export function PackageProvider({
     return filter(cache ?? [], params, trendingScores, ownerName);
   }, [cache, params, trendingScores, ownerName]);
 
-  const ownerSummary = useMemo<OwnerSummary | null>(() => {
-    if (params.owner === undefined || !ownerName) return null;
-
-    const target = normalizeName(ownerName);
-    const matched = (cache ?? []).filter((pkg) => matchesOwner(pkg, params.owner!, ownerName));
-    if (matched.length === 0) return null;
-
-    let owned = 0;
-    let downloads = 0;
-    let weekly = 0;
-    let lastUpdated: string | undefined;
-    let firstReleased: string | undefined;
-
-    for (const pkg of matched) {
-      const isOwner = pkg.owners.some(
-        (o) => o.id === params.owner || normalizeName(o.name) === target,
-      );
-      if (isOwner) owned++;
-
-      downloads += pkg.downloads;
-      weekly += pkg.downloadsWeek ?? 0;
-
-      if (!lastUpdated || pkg.updated > lastUpdated) lastUpdated = pkg.updated;
-      if (pkg.firstReleased && (!firstReleased || pkg.firstReleased < firstReleased)) {
-        firstReleased = pkg.firstReleased;
-      }
-    }
-
-    return {
-      name: ownerName,
-      packages: matched.length,
-      owned,
-      credited: matched.length - owned,
-      downloads,
-      weekly,
-      lastUpdated,
-      firstReleased,
-    };
-  }, [cache, params.owner, ownerName]);
-
   const filterCounts = useMemo(() => {
     const flags = [
       Filters.Windows,
@@ -288,26 +232,6 @@ export function PackageProvider({
     return { maintained, deprecated };
   }, [cache]);
 
-  const stats = useMemo(() => {
-    let totalDownloads = 0;
-    let recentUpdates = 0;
-    let weeklyDownloads = 0;
-    const now = Date.now();
-    for (const pkg of cache ?? []) {
-      totalDownloads += pkg.downloads;
-      weeklyDownloads += pkg.downloadsWeek ?? 0;
-      if ((now - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24) <= 30) {
-        recentUpdates++;
-      }
-    }
-    return {
-      totalPackages: cache?.length ?? 0,
-      totalDownloads,
-      recentUpdates,
-      weeklyDownloads,
-    };
-  }, [cache]);
-
   return (
     <PackageContext.Provider
       value={{
@@ -316,13 +240,12 @@ export function PackageProvider({
         owners,
         status,
         controls,
-        stats,
+        totalPackages: cache?.length ?? 0,
         filterCounts,
         statusCounts,
         authors,
         authorByName,
         ownerName,
-        ownerSummary,
         navigate,
         navigateFilter,
         setSearch,

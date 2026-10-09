@@ -19,7 +19,7 @@ export default function Error({
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50">
         <XMarkIcon className="h-8 w-8 text-red-600 dark:text-red-400" aria-hidden="true" />
       </div>
-      <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">Something went wrong</h2>
+      <h1 className="mt-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">Something went wrong</h1>
       <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
         We encountered an error while loading the application.
       </p>

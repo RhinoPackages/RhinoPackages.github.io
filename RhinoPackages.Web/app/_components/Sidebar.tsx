@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Switch } from "@headlessui/react";
-import { BarsArrowDownIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Filters } from "@/app/_components/api";
 import { defaultParams, hasActiveFilters, usePackageContext } from "./PackageContext";
@@ -23,8 +23,8 @@ export default function Sidebar() {
 }
 
 /**
- * Everything but the search box: sort, platform/version/type filters,
- * maintenance status, and the reset/archive links. Split out from the
+ * Everything but the search box: the author picker, platform/version/type
+ * filters, maintenance status, and the reset/archive links. Split out from the
  * search box so the mobile sticky bar can show search directly and put
  * the rest behind a "Filters" sheet instead of hiding both behind one
  * hamburger toggle.
@@ -37,7 +37,6 @@ export function SidebarFilters() {
   return (
     <div className="flex w-full flex-col items-start gap-3">
       <OwnersControl />
-      <Sort />
       <Spacer />
       <fieldset className="flex w-full flex-col gap-3">
         <legend className="sr-only">Platform compatibility</legend>
@@ -347,37 +346,6 @@ export function SearchBar() {
           <XMarkIcon className="h-5 w-5 sm:ml-1" aria-hidden="true" />
         </button>
       )}
-    </div>
-  );
-}
-
-function Sort() {
-  const { navigate, controls } = usePackageContext();
-
-  return (
-    <div className="group relative mt-1 flex w-full flex-col">
-      <label htmlFor="sort-packages" className="sr-only">
-        Sort packages by
-      </label>
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <BarsArrowDownIcon
-          className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400"
-          aria-hidden="true"
-        />
-      </div>
-      <select
-        id="sort-packages"
-        aria-label="Sort packages by"
-        title="Sort packages by"
-        className="w-full rounded-md border-0 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
-        value={controls.sort}
-        onChange={(e) => navigate({ sort: Number(e.target.value) })}
-      >
-        <option value={0}>Downloads</option>
-        <option value={1}>Latest updates</option>
-        <option value={2}>Trending</option>
-        <option value={3}>Rising stars</option>
-      </select>
     </div>
   );
 }

@@ -27,19 +27,28 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  // Reads ?author= and ?rising= from the query string, so it needs its own
-  // boundary now that the layout no longer provides one.
+  // The heading is plain server markup, so the exported HTML has its h1. The
+  // tables below it read ?author= and ?rising= from the query string, which
+  // needs a boundary of its own now that the layout no longer provides one.
   return (
-    <Suspense
-      fallback={
-        // Fills the viewport so the footer is already off-screen and nothing
-        // below moves when the client content replaces it (layout shift).
-        <div className="flex min-h-screen justify-center pt-10">
-          <Spinner />
-        </div>
-      }
-    >
-      <StatsPageClient />
-    </Suspense>
+    <div className="flex flex-col gap-8 pb-12 pt-8">
+      <div>
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">Directory Stats</h1>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">
+          Live statistics for all packages, updated daily from the Yak package manager.
+        </p>
+      </div>
+      <Suspense
+        fallback={
+          // Fills the viewport so the footer is already off-screen and nothing
+          // below moves when the client content replaces it (layout shift).
+          <div className="flex min-h-screen justify-center pt-2">
+            <Spinner />
+          </div>
+        }
+      >
+        <StatsPageClient />
+      </Suspense>
+    </div>
   );
 }

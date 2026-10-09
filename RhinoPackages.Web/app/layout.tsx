@@ -177,12 +177,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 />
                 {/* Never truncated: if the title and links don't fit on one
                     row (very narrow phones), the links wrap below instead. */}
-                <h1 className="whitespace-nowrap pt-1 text-base tracking-wider xs:text-xl">
+                <span className="whitespace-nowrap pt-1 text-base tracking-wider xs:text-xl">
                   <span className="font-bold text-gray-900 dark:text-white">
                     Rhino
                   </span>{" "}
                   <span className="font-light text-gray-500 dark:text-zinc-400">Packages</span>
-                </h1>
+                </span>
               </a>
               <div className="flex min-w-0 flex-wrap items-center gap-0.5 sm:gap-2">
                 {navLinks.map(({ href, label, title, Icon }) => (
