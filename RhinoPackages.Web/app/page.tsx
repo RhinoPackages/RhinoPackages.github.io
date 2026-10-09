@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import HomePageClient from "./_components/HomePageClient";
 import Spinner from "./_components/Spinner";
 import { authorRefs } from "./_components/authors";
-import { loadPackages } from "./_components/packageData";
+import { loadDataDate, loadPackages } from "./_components/packageData";
+import { directoryHeading } from "./_components/packageInfo";
 import { openGraphDefaults, siteUrl } from "./_components/seo";
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ const homeStructuredData = {
 export default function Page() {
   const packages = loadPackages();
   const authors = authorRefs();
+  const dataDate = loadDataDate();
 
   return (
     <>
@@ -55,10 +57,10 @@ export default function Page() {
           // Fills the viewport so the footer is already off-screen and nothing
           // below moves when the client content replaces it (layout shift).
           // The exported HTML has only this, so it carries the page's h1: the
-          // words the list's own heading opens with.
+          // list's own heading while nothing is narrowed.
           <div className="min-h-screen pt-4">
             <h1 className="text-base font-semibold text-gray-900 dark:text-zinc-100">
-              {`${packages.length.toLocaleString("en-US")} Rhino & Grasshopper plugins`}
+              {directoryHeading(packages.length)}
             </h1>
             <div className="flex justify-center pt-10">
               <Spinner />
@@ -66,7 +68,7 @@ export default function Page() {
           </div>
         }
       >
-        <HomePageClient initialCache={packages} authors={authors} />
+        <HomePageClient initialCache={packages} authors={authors} dataDate={dataDate?.toISOString()} />
       </Suspense>
 
       <script

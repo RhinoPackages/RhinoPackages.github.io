@@ -111,15 +111,15 @@ export function has(constant: Filters, pkg: Package) {
   return constant === (pkg.filters & constant);
 }
 
-/** The sidebar's checkbox groups, as one bitmask per group. */
+/** The sidebar's chip groups (platform, Rhino version, plugin type), as one bitmask per group. */
 export const filterGroups: Filters[] = [
   Filters.Windows | Filters.Mac,
   Filters.Rhino6 | Filters.Rhino7 | Filters.Rhino8 | Filters.Rhino9,
   Filters.Rhino | Filters.Grasshopper,
 ];
 
-// Faceted filtering: a package has to match at least one of the boxes checked
-// within a group, and every group that has a box checked. Testing the whole
+// Faceted filtering: a package has to match at least one of the chips pressed
+// within a group, and every group that has a chip pressed. Testing the whole
 // selection with has() instead would demand all of them, so "Rhino 7 + Rhino 8"
 // used to mean "supports both" rather than "supports either".
 export function matchesFilters(selected: Filters, pkg: Package) {
@@ -131,7 +131,7 @@ export function matchesFilters(selected: Filters, pkg: Package) {
   return true;
 }
 
-export { TIME_ZONE, compactNumber, formatDate, formatDateTime, relativeTime } from "./format";
+export { TIME_ZONE, compactNumber, formatDate, formatDateTime, formatDay, formatMonth, relativeTime } from "./format";
 
 /**
  * The date a package last shipped anything. `updated` is the date of the
@@ -146,8 +146,9 @@ export function latestRelease(pkg: Pick<Package, "updated" | "lastReleased">) {
 }
 
 // A package is considered maintained when it published a release within the
-// last year, and deprecated when it ships nothing for the current Rhino
-// release. Rhino 9 only targets are forward-looking, not deprecated.
+// last year, and to have no Rhino 8+ build (isDeprecated) when it ships nothing
+// for the current Rhino release or for Rhino 9. Rhino 9 only targets are
+// forward-looking, so they count as current.
 export const MAINTAINED_DAYS = 365;
 
 /** `lastRelease` (ms) lets a caller holding the full version history count its newest entry too. */

@@ -7,6 +7,21 @@ export function formatDate(value: string | number | Date) {
   return new Date(value).toLocaleDateString("en-US", { timeZone: TIME_ZONE });
 }
 
+/**
+ * A snapshot's calendar day ("2026-10-08") in the same format as formatDate().
+ * Parsed as midnight UTC, the day would show as the evening before in US
+ * Eastern time, so it is read at noon, where both zones agree.
+ */
+export function formatDay(day: string) {
+  return formatDate(`${day}T12:00:00Z`);
+}
+
+/** A month key ("2017-06") as "6/2017": formatDate()'s numeric style, without the day. */
+export function formatMonth(key: string) {
+  const [year, month] = key.split("-").map(Number);
+  return `${month}/${year}`;
+}
+
 export function formatDateTime(value: string | number | Date) {
   return new Date(value).toLocaleString("en-US", {
     timeZone: TIME_ZONE,

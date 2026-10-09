@@ -5,16 +5,19 @@ import { createPortal } from "react-dom";
 import { FunnelIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { PackageProvider, usePackageContext, drawerActive } from "./PackageContext";
 import PackageList from "./PackageList";
-import Sidebar, { ResetButton, SearchBar, SidebarFilters } from "./Sidebar";
+import Sidebar, { ResetButton, SearchBar, SidebarFilters, SiteNote } from "./Sidebar";
 import type { Package } from "./api";
 import type { AuthorRef } from "./packageInfo";
 
 export default function HomePageClient({
   initialCache = [],
   authors = [],
+  dataDate,
 }: {
   initialCache?: Package[];
   authors?: AuthorRef[];
+  /** Day of the newest data snapshot, as an ISO string; shown beside the filters. */
+  dataDate?: string;
 }) {
   // Only the filter controls differ between breakpoints; the list itself is
   // rendered once so cards are not mounted and diffed twice.
@@ -33,13 +36,16 @@ export default function HomePageClient({
               on the left. */}
           <div className="pr-6 pt-6 md:sticky md:top-0 md:max-h-screen md:overflow-y-auto md:pl-1">
             <Sidebar />
+            <div className="mt-6 w-[14rem] pb-6">
+              <SiteNote dataDate={dataDate} />
+            </div>
           </div>
         </div>
         <div className="min-w-0 flex-1 md:pl-6">
           {/* Sticky here, not inside MobileSearchBar: a sticky element only
               sticks within its parent, and this wrapper is the list column. */}
           <div className="sticky top-0 z-20 md:hidden">
-            <MobileSearchBar />
+            <MobileSearchBar dataDate={dataDate} />
           </div>
           <PackageList />
         </div>
@@ -54,7 +60,7 @@ export default function HomePageClient({
  * opens the rest of the sidebar controls (author, platform, versions, etc.)
  * in a bottom sheet.
  */
-function MobileSearchBar() {
+function MobileSearchBar({ dataDate }: { dataDate?: string }) {
   const [open, setOpen] = useState(false);
   // Portal target: rendering the sheet where it's declared would nest it
   // inside this bar's `backdrop-blur`, which (like `transform`) creates a
@@ -91,7 +97,7 @@ function MobileSearchBar() {
   const showLabel =
     totalPackages === 0
       ? "Show packages"
-      : `Show ${filteredCount.toLocaleString()} ${filteredCount === 1 ? "package" : "packages"}`;
+      : `Show ${filteredCount.toLocaleString("en-US")} ${filteredCount === 1 ? "package" : "packages"}`;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -108,7 +114,7 @@ function MobileSearchBar() {
   }, [open]);
 
   return (
-    <div className="-mx-4 flex items-center gap-2 bg-slate-50/95 px-4 py-3 backdrop-blur-sm dark:bg-zinc-950/95">
+    <div className="-mx-4 flex items-center gap-2 bg-slate-50/95 px-4 py-2 backdrop-blur-sm dark:bg-zinc-950/95">
       <div className="min-w-0 flex-1">
         <SearchBar />
       </div>
@@ -120,7 +126,7 @@ function MobileSearchBar() {
         aria-haspopup="dialog"
         aria-label={hasFilters ? "Open filters (active filters applied)" : "Open filters"}
         title={hasFilters ? "Open filters (active filters applied)" : "Open filters"}
-        className="relative flex flex-shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
+        className="relative flex min-h-[2.75rem] flex-shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:ring-brand-400"
       >
         <FunnelIcon className="h-4 w-4" aria-hidden="true" />
         Filters
@@ -150,12 +156,15 @@ function MobileSearchBar() {
                   onClick={closeSheet}
                   aria-label="Close filters"
                   title="Close filters"
-                  className="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                  className="-my-1.5 -mr-1.5 rounded-md p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                 >
                   <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
               <SidebarFilters inSheet />
+              <div className="mt-6">
+                <SiteNote dataDate={dataDate} />
+              </div>
               {/* Pinned to the sheet's bottom edge, so the way out is on
                   screen however far the chips scroll. Opaque, and as wide as
                   the sheet, so nothing shows through or around it. */}

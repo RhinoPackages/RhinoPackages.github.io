@@ -19,6 +19,7 @@ import {
 import {
   AuthorRef,
   authorPath,
+  directoryHeading,
   displayKeywords,
   formatBytes,
   hasDescription,
@@ -64,8 +65,8 @@ export default function PackageList() {
         ? "Failed to load plugins."
         : "Loading plugins..."
       : filteredCount < totalPackages
-        ? `${filteredCount.toLocaleString()} of ${totalPackages.toLocaleString()} plugins`
-        : `${totalPackages.toLocaleString()} Rhino & Grasshopper plugins`;
+        ? `${filteredCount.toLocaleString("en-US")} of ${totalPackages.toLocaleString("en-US")} plugins`
+        : directoryHeading(totalPackages);
   // The filtered author's page, if they have one (2+ packages).
   const filteredAuthor = ownerName ? authorByName.get(normalizeName(ownerName)) : undefined;
 
@@ -140,14 +141,16 @@ export default function PackageList() {
           </h1>
           {showHeaderLoading && <Spinner />}
           {/* The keyword chips live on the cards, so without this the only
-              cue that a tag is filtering the list is the URL. */}
+              cue that a tag is filtering the list is the URL. The before: boxes
+              on both chips and on the author link make 36-40px targets without
+              changing how the chips look. */}
           {controls.tag && (
             <button
               type="button"
               onClick={() => navigate({ tag: undefined })}
               title={`Remove keyword filter: ${controls.tag}`}
               aria-label={`Remove keyword filter: ${controls.tag}`}
-              className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
+              className="relative inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-500/30 transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
             >
               Keyword: {controls.tag}
               <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -163,20 +166,21 @@ export default function PackageList() {
                   <span aria-hidden="true">·</span>
                   <a
                     href={authorPath(filteredAuthor.slug)}
-                    className="whitespace-nowrap rounded-sm underline underline-offset-2 hover:text-brand-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-200 dark:focus-visible:ring-brand-400"
+                    className="relative whitespace-nowrap rounded-sm underline underline-offset-2 before:absolute before:-inset-x-[3px] before:-inset-y-2.5 hover:text-brand-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-brand-200 dark:focus-visible:ring-brand-400"
                   >
                     Profile →
                   </a>
                 </>
               )}
               {/* The padding makes a 24px target; the negative margin keeps it
-                  from making the chip taller. */}
+                  from making the chip taller. The before: box adds height on
+                  the sides that touch no other control. */}
               <button
                 type="button"
                 onClick={() => navigate({ owner: undefined })}
                 title={`Remove author filter: ${ownerName}`}
                 aria-label={`Remove author filter: ${ownerName}`}
-                className="-my-1 flex-shrink-0 rounded-full p-1.5 transition-colors hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
+                className="relative -my-1 flex-shrink-0 rounded-full p-1.5 transition-colors before:absolute before:-inset-y-2 before:-right-1 before:left-0 hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-900/60 dark:focus-visible:ring-brand-400"
               >
                 <XMarkIcon className="h-3 w-3" aria-hidden="true" />
               </button>
@@ -432,7 +436,7 @@ const PackageCard = memo(function PackageCard({
               {author?.indexed ? (
                 <a
                   href={authorPath(author.slug)}
-                  className="rounded-sm underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400"
+                  className="pkg-quiet-link"
                 >
                   {owner.name}
                 </a>
@@ -595,7 +599,7 @@ const PackageCard = memo(function PackageCard({
                   })}
                   {keywords.length > shownKeywords.length && (
                     <a href={`${packagePath(pkg.id)}#keywords`} className="pkg-link text-xs font-medium">
-                      All {keywords.length.toLocaleString()} keywords →
+                      All {keywords.length.toLocaleString("en-US")} keywords →
                     </a>
                   )}
                 </div>

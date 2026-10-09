@@ -2,8 +2,10 @@
 
 import { usePathname } from "next/navigation";
 
+// The before: box makes the icon-only phone links 44px tall to tap without
+// widening them (the header has no room for more) or changing how they look.
 const linkClasses =
-  "flex items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 sm:px-3";
+  "relative flex items-center gap-1.5 rounded-md px-1.5 py-1.5 text-sm font-medium transition-colors before:absolute before:inset-x-0 before:-inset-y-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 sm:px-3 sm:before:hidden";
 
 // The current page reads like a hovered link that stays put.
 const idleClasses =

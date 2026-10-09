@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Squares2X2Icon } from "@heroicons/react/24/solid";
+import Fact from "@/app/_components/Fact";
 import PackageIcon from "@/app/_components/PackageIcon";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import { authorPath, findAuthor, isIndexedAuthor, loadAuthors } from "@/app/_components/authors";
@@ -165,45 +166,34 @@ export default function AuthorPage({ params }: Params) {
             <Fact label="This week" value={`+${weekly.toLocaleString("en-US")}`} />
             <Fact label="Active" value={active || "—"} />
           </dl>
+
+          {/* Only for authors with a profile: a one-package author's header line already links the package, and a card would say it twice. */}
+          <section aria-labelledby="packages" className="mt-10">
+            <h2 id="packages" className="pkg-heading">Packages by {author.name}</h2>
+            <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {packages.map((pkg) => {
+                const status = statusBadges(pkg, now)[0];
+                return (
+                  <li key={pkg.id}>
+                    <a href={packagePath(pkg.id)} className="pkg-card">
+                      <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={iconSrc(pkg.iconUrl)} size={32} />
+                      <span className="min-w-0">
+                        <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">
+                          {pkg.id}
+                          {status && <span className="pkg-muted font-normal"> · {status.label}</span>}
+                        </span>
+                        <span className="pkg-muted block">
+                          {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         </>
       )}
-
-      <section aria-labelledby="packages" className="mt-10">
-        <h2 id="packages" className="pkg-heading">Packages by {author.name}</h2>
-        <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {packages.map((pkg) => {
-            const status = statusBadges(pkg, now)[0];
-            return (
-              <li key={pkg.id}>
-                <a href={packagePath(pkg.id)} className="pkg-card">
-                  <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={iconSrc(pkg.iconUrl)} size={32} />
-                  <span className="min-w-0">
-                    <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">
-                      {pkg.id}
-                      {status && <span className="pkg-muted font-normal"> · {status.label}</span>}
-                    </span>
-                    <span className="pkg-muted block">
-                      {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
-                    </span>
-                  </span>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
     </article>
-  );
-}
-
-function Fact({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="pkg-label">{label}</dt>
-      <dd className="break-long-words text-sm font-medium text-gray-900 dark:text-zinc-100">
-        {value}
-        {hint && <span className="pkg-muted block font-normal">{hint}</span>}
-      </dd>
-    </div>
   );
 }

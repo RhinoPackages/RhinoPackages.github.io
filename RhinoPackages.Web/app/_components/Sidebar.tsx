@@ -2,7 +2,7 @@ import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { Switch } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { Filters } from "@/app/_components/api";
+import { Filters, formatDate } from "@/app/_components/api";
 import { defaultParams, isNarrowed, usePackageContext } from "./PackageContext";
 import OwnersControl from "./OwnersControl";
 
@@ -65,7 +65,7 @@ export function SidebarFilters({ inSheet = false }: { inSheet?: boolean }) {
         />
         <a
           href="/faq#status"
-          className="self-start rounded-sm text-xs text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400"
+          className="pkg-quiet-link self-start py-1 text-xs text-gray-500 dark:text-zinc-400"
         >
           What do these mean?
         </a>
@@ -83,6 +83,32 @@ export function SidebarFilters({ inSheet = false }: { inSheet?: boolean }) {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The footer's data date and Rhino Version Archive link, repeated beside the
+ * filters. The list scrolls without end, so on the home page the footer is
+ * effectively out of reach, and these two would not be reachable at all.
+ */
+export function SiteNote({ dataDate }: { dataDate?: string }) {
+  return (
+    <div className="flex flex-col items-start gap-1 text-xs text-gray-500 dark:text-zinc-400">
+      {dataDate && (
+        <a href="/faq#updates" className="pkg-quiet-link py-1">
+          Data updated {formatDate(dataDate)}
+        </a>
+      )}
+      <a
+        href="https://rhinoversions.github.io"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pkg-quiet-link py-1"
+      >
+        Rhino Version Archive
+        <span className="sr-only"> (opens in a new tab)</span>
+      </a>
     </div>
   );
 }
@@ -150,7 +176,7 @@ function FilterChip({ label, name, filter }: ChipProps) {
       aria-pressed={pressed}
       aria-label={name}
       onClick={() => navigateFilter(filter, !pressed)}
-      className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium ring-inset transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:focus-visible:outline-brand-400 ${
+      className={`min-h-[2.75rem] min-w-[2.75rem] cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium ring-inset transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 md:min-h-0 md:min-w-0 dark:focus-visible:outline-brand-400 ${
         pressed
           ? "bg-brand-100 text-brand-800 ring-2 ring-brand-500 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-400"
           : "bg-slate-100 text-slate-600 ring-1 ring-slate-500/10 hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
@@ -194,10 +220,10 @@ function Toggle({
   hint?: string;
 }) {
   return (
-    <Switch.Group as="div" className="flex w-full items-center justify-between">
+    <Switch.Group as="div" className="flex min-h-[2.75rem] w-full items-center justify-between md:min-h-0">
       <Switch.Label
         as="label"
-        className="min-w-0 cursor-pointer select-none pr-3 text-sm text-gray-900 dark:text-zinc-300"
+        className="flex min-w-0 flex-1 cursor-pointer select-none items-center self-stretch pr-3 text-sm text-gray-900 dark:text-zinc-300"
         title={hint}
       >
         {title}
@@ -209,7 +235,7 @@ function Toggle({
             aria-label={title}
             className={`${
               checked ? "bg-brand-500 dark:bg-brand-600" : "bg-gray-200 dark:bg-zinc-700"
-            } relative inline-flex h-5 w-11 flex-shrink-0 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
+            } relative inline-flex h-5 w-11 flex-shrink-0 cursor-pointer rounded-full border-[0.125rem] border-transparent transition-colors duration-200 ease-in-out before:absolute before:inset-x-0 before:-inset-y-3 md:before:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950`}
           >
             <span
               aria-hidden="true"
@@ -307,7 +333,7 @@ export function SearchBar() {
             }
           }
         }}
-        className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-2.5 pl-10 pr-14 text-base sm:py-2 sm:text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
       {!localSearch && (
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LetterBar from "@/app/_components/LetterBar";
 import { Author, authorPath, isIndexedAuthor, loadAuthors } from "@/app/_components/authors";
 import { packagePath } from "@/app/_components/packageInfo";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
@@ -47,24 +48,7 @@ export default function AuthorsIndexPage() {
         <a href="/" className="pkg-link">directory</a>.
       </p>
 
-      <nav aria-label="Jump to letter" className="sticky top-0 z-10 -mx-4 mt-6 bg-slate-50/95 px-4 py-2 backdrop-blur-sm dark:bg-zinc-950/95">
-        {/* One scrolling row below sm: wrapped, the bar is three rows (~108px) and
-            covers the heading a tap jumps to. The padding keeps focus rings from
-            being clipped by the scroll container; the right-edge fade (cleared by the
-            end padding once scrolled) hints that more letters scroll. */}
-        <ul className="-m-0.5 flex flex-nowrap gap-1 overflow-x-auto p-0.5 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:pr-0.5 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden">
-          {keys.map((key) => (
-            <li key={key} className="shrink-0">
-              <a
-                href={`#${anchorFor(key)}`}
-                className="inline-flex min-w-[2rem] items-center justify-center rounded-md px-2 py-1 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 hover:text-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-brand-400"
-              >
-                {key}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <LetterBar keys={keys} anchorFor={anchorFor} />
 
       {keys.map((key) => (
         <section key={key} id={anchorFor(key)} aria-labelledby={`heading-${anchorFor(key)}`} className="mt-8 scroll-mt-16 sm:scroll-mt-20">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Filters, Package, TotalsPoint, compactNumber, formatDate, has, latestRelease, useApi } from "@/app/_components/api";
+import { Filters, Package, TotalsPoint, compactNumber, formatDate, formatDay, formatMonth, has, latestRelease, useApi } from "@/app/_components/api";
 import { AuthorRanking, packagePath } from "@/app/_components/packageInfo";
 import { useEffect, useMemo, useState } from "react";
 import { nearestIndex, timePositions } from "./chart";
@@ -112,9 +112,10 @@ export default function StatsPageClient({
 
     for (let y = startYear, m = startMonth; y < now.getFullYear() || (y === now.getFullYear() && m <= now.getMonth() + 1); ) {
       if (m === 1) januaries.push({ index: values.length, year: y });
-      running += months.get(`${y}-${String(m).padStart(2, "0")}`) ?? 0;
+      const key = `${y}-${String(m).padStart(2, "0")}`;
+      running += months.get(key) ?? 0;
       values.push(running);
-      labels.push(`${y}-${String(m).padStart(2, "0")}`);
+      labels.push(formatMonth(key));
       m++;
       if (m > 12) {
         m = 1;
@@ -128,7 +129,7 @@ export default function StatsPageClient({
       .filter((j, i) => i % yearStep === 0)
       .map((j) => ({ position: values.length > 1 ? j.index / (values.length - 1) : 0, label: String(j.year) }));
 
-    return { values, labels, start: keys[0], end: "today", ticks };
+    return { values, labels, start: formatMonth(keys[0]), end: "today", ticks };
   }, [cache]);
 
   // Small packages gaining unusual momentum: weekly downloads as a share
@@ -209,14 +210,14 @@ export default function StatsPageClient({
           Overview
         </h2>
         <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatTile label="Packages" value={stats.totalPackages.toLocaleString()} />
-          <StatTile label="Total Downloads" value={stats.totalDownloads.toLocaleString()} />
+          <StatTile label="Packages" value={stats.totalPackages.toLocaleString("en-US")} />
+          <StatTile label="Total Downloads" value={stats.totalDownloads.toLocaleString("en-US")} />
           <StatTile
             label="Downloads / Week"
-            value={stats.weeklyDownloads > 0 ? stats.weeklyDownloads.toLocaleString() : "—"}
+            value={stats.weeklyDownloads > 0 ? stats.weeklyDownloads.toLocaleString("en-US") : "—"}
             accent
           />
-          <StatTile label="New This Month" value={stats.newThisMonth.length.toLocaleString()} />
+          <StatTile label="New This Month" value={stats.newThisMonth.length.toLocaleString("en-US")} />
         </dl>
       </section>
 
@@ -318,11 +319,11 @@ export default function StatsPageClient({
           </h2>
           <LineChart
             values={totals.map((t) => t.downloads)}
-            labels={totals.map((t) => t.date)}
+            labels={totals.map((t) => formatDay(t.date))}
             dates={totals.map((t) => t.date)}
             unit="downloads"
-            startLabel={totals[0].date}
-            endLabel={totals[totals.length - 1].date}
+            startLabel={formatDay(totals[0].date)}
+            endLabel={formatDay(totals[totals.length - 1].date)}
           />
         </section>
       )}
@@ -344,7 +345,7 @@ export default function StatsPageClient({
           <TableSearch
             id="author-filter"
             label="Filter authors"
-            placeholder={`Search ${rankedAuthors.length.toLocaleString()} authors...`}
+            placeholder={`Search ${rankedAuthors.length.toLocaleString("en-US")} authors...`}
             value={authorQuery}
             onChange={updateAuthorQuery}
           />
@@ -369,7 +370,7 @@ export default function StatsPageClient({
                     {author.href ? (
                       <a
                         href={author.href}
-                        className="font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                        className="pkg-quiet-link font-medium text-gray-900 dark:text-zinc-100"
                       >
                         {author.name}
                       </a>
@@ -384,8 +385,8 @@ export default function StatsPageClient({
                       </>
                     )}
                   </td>
-                  <td className="px-2 py-2 text-right tabular-nums sm:px-4">{author.packages.toLocaleString()}</td>
-                  <td className="px-2 py-2 text-right tabular-nums sm:px-4">{author.downloads.toLocaleString()}</td>
+                  <td className="px-2 py-2 text-right tabular-nums sm:px-4">{author.packages.toLocaleString("en-US")}</td>
+                  <td className="px-2 py-2 text-right tabular-nums sm:px-4">{author.downloads.toLocaleString("en-US")}</td>
                 </tr>
               ))}
               {visibleAuthors.length === 0 && (
@@ -421,7 +422,7 @@ export default function StatsPageClient({
             <TableSearch
               id="movers-filter"
               label="Filter weekly movers"
-              placeholder={`Search ${moversAll.length.toLocaleString()} packages...`}
+              placeholder={`Search ${moversAll.length.toLocaleString("en-US")} packages...`}
               value={moversQuery}
               onChange={updateMoversQuery}
             />
@@ -430,34 +431,34 @@ export default function StatsPageClient({
             <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
               <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
                 <tr>
-                  <th scope="col" className="px-4 py-2">#</th>
-                  <th scope="col" className="px-4 py-2">Package</th>
-                  <th scope="col" className="px-4 py-2 text-right">This Week</th>
-                  <th scope="col" className="px-4 py-2 text-right">This Month</th>
-                  <th scope="col" className="px-4 py-2 text-right">Total</th>
+                  <th scope="col" className="px-2 py-2 sm:px-4">#</th>
+                  <th scope="col" className="w-full px-2 py-2 sm:px-4">Package</th>
+                  <th scope="col" className="px-2 py-2 text-right sm:px-4">This Week</th>
+                  <th scope="col" className="hidden px-4 py-2 text-right sm:table-cell">This Month</th>
+                  <th scope="col" className="px-2 py-2 text-right sm:px-4">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
                 {movers.map(({ pkg, rank }) => (
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{rank}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-2 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400 sm:px-4">{rank}</td>
+                    <td className="max-w-0 px-2 py-0 sm:px-4">
                       <a
                         href={packagePath(pkg.id)}
                         title={`Show ${pkg.id}`}
-                        className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                        className="flex items-center gap-2 py-2.5 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400 sm:py-2"
                       >
                         <PackageThumb pkg={pkg} />
                         <span className="truncate">{pkg.id}</span>
                       </a>
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
-                      +{(pkg.downloadsWeek ?? 0).toLocaleString()}
+                    <td className="px-2 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400 sm:px-4">
+                      +{(pkg.downloadsWeek ?? 0).toLocaleString("en-US")}
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
-                      {(pkg.downloadsMonth ?? 0) > 0 ? `+${(pkg.downloadsMonth ?? 0).toLocaleString()}` : "—"}
+                    <td className="hidden px-4 py-2 text-right tabular-nums sm:table-cell">
+                      {(pkg.downloadsMonth ?? 0) > 0 ? `+${(pkg.downloadsMonth ?? 0).toLocaleString("en-US")}` : "—"}
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums">{pkg.downloads.toLocaleString()}</td>
+                    <td className="px-2 py-2 text-right tabular-nums sm:px-4">{pkg.downloads.toLocaleString("en-US")}</td>
                   </tr>
                 ))}
                 {movers.length === 0 && (
@@ -494,7 +495,7 @@ export default function StatsPageClient({
             <TableSearch
               id="rising-filter"
               label="Filter rising packages"
-              placeholder={`Search ${risingAll.length.toLocaleString()} packages...`}
+              placeholder={`Search ${risingAll.length.toLocaleString("en-US")} packages...`}
               value={risingQuery}
               onChange={updateRisingQuery}
             />
@@ -503,32 +504,32 @@ export default function StatsPageClient({
             <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
               <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
                 <tr>
-                  <th scope="col" className="px-4 py-2">#</th>
-                  <th scope="col" className="px-4 py-2">Package</th>
-                  <th scope="col" className="px-4 py-2 text-right">This Week</th>
-                  <th scope="col" className="px-4 py-2 text-right">Total</th>
-                  <th scope="col" className="px-4 py-2 text-right">Momentum</th>
+                  <th scope="col" className="px-2 py-2 sm:px-4">#</th>
+                  <th scope="col" className="w-full px-2 py-2 sm:px-4">Package</th>
+                  <th scope="col" className="px-2 py-2 text-right sm:px-4">This Week</th>
+                  <th scope="col" className="hidden px-4 py-2 text-right sm:table-cell">Total</th>
+                  <th scope="col" className="px-2 py-2 text-right sm:px-4">Momentum</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
                 {risingStars.map(({ pkg, ratio, rank }) => (
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{rank}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-2 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400 sm:px-4">{rank}</td>
+                    <td className="max-w-0 px-2 py-0 sm:px-4">
                       <a
                         href={packagePath(pkg.id)}
                         title={`Show ${pkg.id}`}
-                        className="flex items-center gap-2 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
+                        className="flex items-center gap-2 py-2.5 font-medium text-gray-900 transition-colors hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400 sm:py-2"
                       >
                         <PackageThumb pkg={pkg} />
                         <span className="truncate">{pkg.id}</span>
                       </a>
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400">
-                      +{(pkg.downloadsWeek ?? 0).toLocaleString()}
+                    <td className="px-2 py-2 text-right tabular-nums text-brand-600 dark:text-brand-400 sm:px-4">
+                      +{(pkg.downloadsWeek ?? 0).toLocaleString("en-US")}
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums">{pkg.downloads.toLocaleString()}</td>
-                    <td className="px-4 py-2 text-right tabular-nums" title="Share of lifetime downloads earned in the last 7 days">
+                    <td className="hidden px-4 py-2 text-right tabular-nums sm:table-cell">{pkg.downloads.toLocaleString("en-US")}</td>
+                    <td className="px-2 py-2 text-right tabular-nums sm:px-4" title="Share of lifetime downloads earned in the last 7 days">
                       {(ratio * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -556,13 +557,13 @@ export default function StatsPageClient({
             id="stats-new"
             className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
           >
-            New This Month ({stats.newThisMonth.length.toLocaleString()})
+            New This Month ({stats.newThisMonth.length.toLocaleString("en-US")})
           </h2>
           <RecentList packages={stats.newThisMonth.slice(0, 15)} dateOf={(pkg) => pkg.firstReleased!} />
           {stats.newThisMonth.length > 15 && (
             <details className="mt-3">
               <summary className="pkg-link cursor-pointer text-sm">
-                Show all {stats.newThisMonth.length.toLocaleString()}
+                Show all {stats.newThisMonth.length.toLocaleString("en-US")}
               </summary>
               <div className="mt-3">
                 <RecentList packages={stats.newThisMonth.slice(15)} dateOf={(pkg) => pkg.firstReleased!} />
@@ -580,7 +581,7 @@ export default function StatsPageClient({
               id="stats-updated"
               className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
             >
-              Updated This Month ({stats.updatedThisMonthCount.toLocaleString()})
+              Updated This Month ({stats.updatedThisMonthCount.toLocaleString("en-US")})
             </h2>
             <span className="text-xs text-gray-500 dark:text-zinc-400">
               Not counting the new packages above
@@ -673,7 +674,7 @@ function LineChart({
         viewBox={`0 0 ${width} ${height}`}
         className="h-36 w-full"
         role="img"
-        aria-label={`Chart from ${min.toLocaleString()} to ${max.toLocaleString()}`}
+        aria-label={`Chart from ${min.toLocaleString("en-US")} to ${max.toLocaleString("en-US")}`}
         preserveAspectRatio="none"
       >
         {[0.25, 0.5, 0.75].map((f) => (
@@ -726,7 +727,7 @@ function LineChart({
           style={{ left: `${Math.min(92, Math.max(8, (coords[hoverIndex].x / width) * 100))}%` }}
         >
           {labels[hoverIndex] ? `${labels[hoverIndex]} · ` : ""}
-          {values[hoverIndex].toLocaleString()}
+          {values[hoverIndex].toLocaleString("en-US")}
           {unit ? ` ${unit}` : ""}
         </div>
       )}
@@ -749,7 +750,7 @@ function LineChart({
       <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">
         <span>{startLabel}</span>
         <span className="order-last w-full text-center xs:order-none xs:w-auto xs:text-left">
-          {min.toLocaleString()} → {max.toLocaleString()}
+          {min.toLocaleString("en-US")} → {max.toLocaleString("en-US")}
         </span>
         <span>{endLabel}</span>
       </div>
@@ -804,7 +805,7 @@ function TableSearch({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:placeholder:text-zinc-400 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-2.5 pl-9 pr-3 text-base sm:py-1.5 sm:text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:placeholder:text-zinc-400 dark:focus:ring-brand-500"
       />
     </div>
   );
@@ -853,7 +854,7 @@ function BarSection({
               <div className="mb-1 flex items-center justify-between text-sm">
                 <span className="text-gray-700 dark:text-zinc-300">{row.label}</span>
                 <span className="tabular-nums text-gray-500 dark:text-zinc-400">
-                  {weight === "downloads" ? compactNumber(value) : value.toLocaleString()} · {percent}%
+                  {weight === "downloads" ? compactNumber(value) : value.toLocaleString("en-US")} · {percent}%
                 </span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">

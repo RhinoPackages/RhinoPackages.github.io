@@ -6,6 +6,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
 import CopyButton from "@/app/_components/CopyButton";
+import Fact from "@/app/_components/Fact";
 import PackageIcon from "@/app/_components/PackageIcon";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import { timePositions } from "@/app/_components/chart";
@@ -20,7 +21,9 @@ import {
   Filters,
   HistoryPoint,
   Package,
+  compactNumber,
   formatDate,
+  formatDay,
   has,
   latestRelease,
 } from "@/app/_components/packageModel";
@@ -455,23 +458,11 @@ export default function PackagePage({ params }: Params) {
   );
 }
 
-function Fact({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="pkg-label">{label}</dt>
-      <dd className="break-long-words text-sm font-medium text-gray-900 dark:text-zinc-100">
-        {value}
-        {hint && <span className="pkg-muted block font-normal">{hint}</span>}
-      </dd>
-    </div>
-  );
-}
-
 function Pill({ tone, title, children }: { tone: StatusTone; title: string; children: React.ReactNode }) {
   return (
     <span
       title={title}
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusToneClasses[tone]}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusToneClasses[tone]}`}
     >
       {children}
     </span>
@@ -506,7 +497,9 @@ function DistributionLinks({ id, distributions }: { id?: string; distributions: 
  * from md up the columns have fixed widths to keep the two lined up; on a
  * phone both use the auto layout so the table stays close to the screen
  * width. The Install column needs Rhino on the same computer, so it stays
- * off phones.
+ * off phones. The Builds column is left off too, below sm: with it the table
+ * is wider than a phone and scrolls sideways inside its box, hiding the
+ * downloads. The current release's builds are listed under "How to install".
  */
 function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVersionHistoryRow[] }) {
   return (
@@ -515,7 +508,7 @@ function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVer
         <colgroup>
           <col className="md:w-28" />
           <col />
-          <col />
+          <col className="hidden sm:table-column" />
           <col className="md:w-28" />
           <col className="hidden md:table-column md:w-24" />
         </colgroup>
@@ -523,7 +516,7 @@ function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVer
           <tr>
             <th scope="col">Date</th>
             <th scope="col">Version</th>
-            <th scope="col">Builds</th>
+            <th scope="col" className="hidden sm:table-cell">Builds</th>
             <th scope="col" className="text-right">Downloads</th>
             <th scope="col" className="hidden md:table-cell">Install</th>
           </tr>
@@ -535,12 +528,12 @@ function VersionTable({ packageId, rows }: { packageId: string; rows: GroupedVer
               <td className="break-long-words font-mono text-gray-900 dark:text-zinc-100">
                 {row.version}
                 {row.prerelease && (
-                  <span className="ml-2 rounded-full bg-brand-50 px-1.5 py-0.5 font-sans text-[0.6rem] font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
+                  <span className={`mt-1 block w-fit rounded-full px-1.5 py-0.5 font-sans text-[0.6rem] font-medium ring-1 ring-inset sm:ml-2 sm:mt-0 sm:inline ${statusToneClasses.yellow}`}>
                     Pre-release
                   </span>
                 )}
               </td>
-              <td>
+              <td className="hidden sm:table-cell">
                 <ul className="flex flex-col gap-1">
                   {row.distributions.map((distribution) => (
                     <li key={distribution.url}>
@@ -593,7 +586,7 @@ function PackageLinks({ packages }: { packages: Package[] }) {
             <span className="min-w-0">
               <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">{other.id}</span>
               <span className="pkg-muted block">
-                {pluginKind(other)} · {other.downloads.toLocaleString("en-US")} downloads
+                {pluginKind(other)} · {compactNumber(other.downloads)} {other.downloads === 1 ? "download" : "downloads"}
               </span>
             </span>
           </a>
@@ -627,9 +620,8 @@ function TrendChart({ points }: { points: HistoryPoint[] }) {
         <path d={line} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-brand-500 dark:stroke-brand-400" />
       </svg>
       <figcaption className="mt-2 text-xs text-gray-500 dark:text-zinc-400">
-        {/* Snapshot dates are plain calendar days; formatDate would shift them a day. */}
-        {first.downloads.toLocaleString("en-US")} downloads on {first.date} →{" "}
-        {last.downloads.toLocaleString("en-US")} on {last.date}
+        {first.downloads.toLocaleString("en-US")} downloads on {formatDay(first.date)} →{" "}
+        {last.downloads.toLocaleString("en-US")} on {formatDay(last.date)}
       </figcaption>
     </figure>
   );

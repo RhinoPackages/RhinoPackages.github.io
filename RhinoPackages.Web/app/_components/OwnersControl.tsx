@@ -64,7 +64,7 @@ export default function OwnersControl() {
           ref={inputRef}
           spellCheck={false}
           autoComplete="off"
-          className={`w-full rounded-md border-0 bg-white py-2 pl-10 ${inputPadding} text-ellipsis text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500`}
+          className={`w-full rounded-md border-0 bg-white py-2.5 pl-10 sm:py-2 ${inputPadding} text-ellipsis text-base sm:text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500`}
           aria-label="Filter by author"
           aria-keyshortcuts="Escape"
           title={selected?.name ?? "Filter by author"}
@@ -148,7 +148,7 @@ export default function OwnersControl() {
                 key={author.slug}
                 value={author}
                 className={({ selected, active }) =>
-                  `flex items-baseline gap-1 px-3 py-2 cursor-pointer
+                  `flex items-baseline gap-1 px-3 py-3 cursor-pointer md:py-2
                     ${active ? "bg-brand-600 text-white" : "text-gray-900 dark:text-zinc-300"}
                     ${selected ? "font-semibold" : "font-normal"}
                     ${selected && !active ? "text-brand-700 dark:text-brand-400" : ""}`

@@ -82,6 +82,14 @@ export function hasDescription(pkg: Package) {
   return description.length > 0 && description.toLowerCase() !== "no description";
 }
 
+/**
+ * The home page's h1 while nothing narrows the list. The exported HTML (before
+ * the list loads) and the list's own heading both say it, so it is written once.
+ */
+export function directoryHeading(total: number) {
+  return `${total.toLocaleString("en-US")} Rhino & Grasshopper plugins`;
+}
+
 /** Rhino plugin, Grasshopper plugin, both, or neither flag set. */
 export function pluginKind(pkg: Package) {
   const rhino = has(Filters.Rhino, pkg);

@@ -60,7 +60,7 @@ export default function NotFoundSearch() {
           placeholder="Search packages..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="block w-full min-w-0 rounded-md border-0 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500"
+          className="block w-full min-w-0 rounded-md border-0 bg-white px-3 py-2.5 text-base sm:py-2 sm:text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500"
         />
         <button type="submit" className="pkg-button justify-center">
           Search

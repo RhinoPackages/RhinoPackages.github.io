@@ -1,8 +1,6 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
-import Spinner from "./_components/Spinner";
 import { ThemeProvider } from "./_components/ThemeProvider";
 import { ThemeToggle } from "./_components/ThemeToggle";
 import ContributorsBubbles from "./_components/ContributorsBubbles";
@@ -140,10 +138,6 @@ const navLinks = [
 
 const repositoryUrl = "https://github.com/RhinoPackages/RhinoPackages.github.io";
 
-// Footer links share one look.
-const footerLinkClasses =
-  "rounded-sm underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 hover:decoration-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:decoration-zinc-600 dark:hover:text-zinc-100 dark:hover:decoration-zinc-400 dark:focus-visible:ring-brand-400";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const dataDate = loadDataDate();
   const version = process.env.NEXT_PUBLIC_VERSION;
@@ -219,12 +213,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* The one place the site says where its data comes from. The date
                   is the last data snapshot; the build itself goes in the title.
                   Two groups: one line from sm up, one line each on phones, so a
-                  wrap never strands a separator. */}
+                  wrap never strands a separator. The home page's list never
+                  ends, so it repeats the date and the archive link beside its
+                  filters (SiteNote). */}
               <p>
                 <span className="block sm:inline">
                   <span className="whitespace-nowrap">
                     Data from{" "}
-                    <a href="https://yak.rhino3d.com" className={footerLinkClasses}>
+                    <a href="https://yak.rhino3d.com" className="pkg-quiet-link">
                       Yak
                     </a>
                   </span>
@@ -234,7 +230,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       <a
                         href="/faq#updates"
                         title={`Site built ${formatDateTime(new Date())}${version ? ` · ${version}` : ""}`}
-                        className={`whitespace-nowrap ${footerLinkClasses}`}
+                        className="pkg-quiet-link whitespace-nowrap"
                       >
                         updated {formatDate(dataDate)}
                       </a>
@@ -249,7 +245,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     href="https://rhinoversions.github.io"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`whitespace-nowrap ${footerLinkClasses}`}
+                    className="pkg-quiet-link whitespace-nowrap"
                   >
                     Rhino Version Archive
                     <span className="sr-only"> (opens in a new tab)</span>
@@ -259,7 +255,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     href={repositoryUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`whitespace-nowrap ${footerLinkClasses}`}
+                    className="pkg-quiet-link whitespace-nowrap"
                   >
                     Source on GitHub
                     <span className="sr-only"> (opens in a new tab)</span>
