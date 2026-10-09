@@ -1,9 +1,9 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { Switch } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Filters } from "@/app/_components/api";
-import { defaultParams, hasActiveFilters, usePackageContext } from "./PackageContext";
+import { defaultParams, isNarrowed, usePackageContext } from "./PackageContext";
 import OwnersControl from "./OwnersControl";
 
 export default function Sidebar() {
@@ -13,7 +13,7 @@ export default function Sidebar() {
     <form
       role="search"
       action={() => navigate({})}
-      className="sticky top-6 flex w-[14rem] flex-shrink-0 flex-col items-start gap-3"
+      className="flex w-[14rem] flex-shrink-0 flex-col items-start gap-3"
     >
       <SearchBar />
       <SidebarFilters />
@@ -27,11 +27,12 @@ export default function Sidebar() {
  * list; ordering lives on the results line. Split out from the search box so
  * the mobile sticky bar can show search directly and put the rest behind a
  * "Filters" sheet instead of hiding both behind one hamburger toggle.
+ *
+ * `inSheet` leaves Reset out: the sheet pins its own footer with Reset and
+ * "Show N packages", which have to stay on screen however far the chips scroll.
  */
-export function SidebarFilters() {
-  const { navigate, status, controls } = usePackageContext();
-
-  const hasFilters = hasActiveFilters(controls);
+export function SidebarFilters({ inSheet = false }: { inSheet?: boolean }) {
+  const { status } = usePackageContext();
 
   return (
     <div className="flex w-full flex-col items-start gap-4">
@@ -69,25 +70,7 @@ export function SidebarFilters() {
           What do these mean?
         </a>
       </fieldset>
-      <button
-        type="button"
-        aria-disabled={!hasFilters}
-        title={!hasFilters ? "No filters active" : "Reset all filters"}
-        onClick={(e) => {
-          if (!hasFilters) {
-            e.preventDefault();
-            return;
-          }
-          navigate(defaultParams);
-        }}
-        className={`mt-2 flex w-full items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:focus-visible:ring-brand-400 ${
-          !hasFilters
-            ? "cursor-not-allowed opacity-50"
-            : "hover:bg-gray-50 active:bg-gray-200 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
-        }`}
-      >
-        Reset filters
-      </button>
+      {!inSheet && <ResetButton className="mt-2 w-full px-3 py-1.5" />}
 
       {status.isError && (
         <div className="mt-6 flex min-h-[2.5rem] min-w-[2.5rem] flex-col items-center self-center">
@@ -101,6 +84,38 @@ export function SidebarFilters() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Clears every param, search and keyword included. Dimmed rather than removed
+ * while nothing narrows the list, so the layout does not jump. `className`
+ * carries the size, which differs between the sidebar and the sheet footer.
+ */
+export function ResetButton({ className }: { className: string }) {
+  const { navigate, controls } = usePackageContext();
+  const narrowed = isNarrowed(controls);
+
+  return (
+    <button
+      type="button"
+      aria-disabled={!narrowed}
+      title={!narrowed ? "No filters active" : "Reset all filters"}
+      onClick={(e) => {
+        if (!narrowed) {
+          e.preventDefault();
+          return;
+        }
+        navigate(defaultParams);
+      }}
+      className={`flex items-center justify-center rounded-md bg-white text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:focus-visible:ring-brand-400 ${className} ${
+        !narrowed
+          ? "cursor-not-allowed opacity-50"
+          : "hover:bg-gray-50 active:bg-gray-200 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
+      }`}
+    >
+      Reset filters
+    </button>
   );
 }
 
@@ -211,6 +226,9 @@ function Toggle({
 
 export function SearchBar() {
   const { controls, navigate } = usePackageContext();
+  // The desktop sidebar and the phone's sticky bar each mount one, so a fixed
+  // id would be on the page twice.
+  const inputId = useId();
   const [localSearch, setLocalSearch] = useState(controls.search);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -257,7 +275,7 @@ export function SearchBar() {
 
   return (
     <div className="group relative flex w-full rounded-md shadow-sm">
-      <label htmlFor="search-packages" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Search packages
       </label>
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -267,7 +285,7 @@ export function SearchBar() {
         />
       </div>
       <input
-        id="search-packages"
+        id={inputId}
         ref={inputRef}
         type="text"
         role="searchbox"

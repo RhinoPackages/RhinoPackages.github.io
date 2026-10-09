@@ -50,14 +50,26 @@ export const defaultParams: Params = {
 };
 
 /**
- * Whether anything is narrowing the list. Shared by the sidebar's reset
- * button, the mobile filter badge and the empty state, which each used to
- * carry their own copy of this check and drifted apart as params were added.
- * Page and expanded package are navigation state, and sort only orders the
- * list, so none of them are filters.
+ * Whether anything is narrowing the list. Shared by the reset buttons and the
+ * empty state, which each used to carry their own copy of this check and
+ * drifted apart as params were added. Page and expanded package are
+ * navigation state, and sort only orders the list, so none of them are
+ * filters.
  */
-export function hasActiveFilters(controls: Params) {
+export function isNarrowed(controls: Params) {
   return (["search", "tag", "owner", "filters", "maintained", "deprecated"] as const).some(
+    (key) => controls[key] !== defaultParams[key],
+  );
+}
+
+/**
+ * Whether anything the mobile Filters sheet holds is set. Search and keyword
+ * are narrowing too, but the sheet does not contain them (they have the search
+ * box and a results-line chip), so a dot on "Filters" for them would send the
+ * reader into a sheet with nothing selected.
+ */
+export function drawerActive(controls: Params) {
+  return (["owner", "filters", "maintained", "deprecated"] as const).some(
     (key) => controls[key] !== defaultParams[key],
   );
 }

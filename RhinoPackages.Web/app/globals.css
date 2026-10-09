@@ -14,6 +14,13 @@ html[data-os="mac"] .yak-commands > [data-yak-platform="windows"]:not(:only-chil
   display: none;
 }
 
+/* The home page's mobile Filters sheet sets data-sheet on <body> while it is
+   open. The scroll-to-top button floats above the sheet (z-50 vs z-40) and
+   would cover its footer, so hide it until the sheet closes. */
+body[data-sheet="open"] .scroll-to-top {
+  display: none;
+}
+
 .break-long-words {
   overflow-wrap: anywhere;
   word-break: break-word;

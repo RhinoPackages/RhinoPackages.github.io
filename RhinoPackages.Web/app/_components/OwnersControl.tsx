@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useId, useMemo, useState, useRef } from "react";
 import { ChevronUpDownIcon, UserIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Combobox } from "@headlessui/react";
 import { normalizeName } from "./api";
@@ -18,6 +18,9 @@ function fold(text: string) {
  */
 export default function OwnersControl() {
   const { authors, authorByName, ownerName, navigate } = usePackageContext();
+  // The desktop sidebar and the phone's Filters sheet can each have one on the
+  // page, so a fixed id would repeat.
+  const inputId = useId();
   const [filteredAuthors, setFilteredAuthors] = useState(authors);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +52,7 @@ export default function OwnersControl() {
       onChange={(value: AuthorRef | null) => navigate({ owner: value?.id })}
       nullable
     >
-      <label htmlFor="filter-author" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Filter by author
       </label>
       <div className="group relative flex w-full">
@@ -57,7 +60,7 @@ export default function OwnersControl() {
           <UserIcon className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" aria-hidden="true" />
         </div>
         <Combobox.Input
-          id="filter-author"
+          id={inputId}
           ref={inputRef}
           spellCheck={false}
           autoComplete="off"

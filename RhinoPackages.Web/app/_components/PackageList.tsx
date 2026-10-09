@@ -31,7 +31,7 @@ import {
   statusToneClasses,
   uniqueOwners,
 } from "./packageInfo";
-import { Params, Sort, usePackageContext, defaultParams, hasActiveFilters } from "./PackageContext";
+import { Params, Sort, usePackageContext, defaultParams, isNarrowed } from "./PackageContext";
 import PackageIcon from "./PackageIcon";
 import SortSelect from "./SortSelect";
 import Spinner from "./Spinner";
@@ -52,7 +52,7 @@ export default function PackageList() {
 
   const disablePagination = packages.length === 0 || (controls.page === 0 && packages.length !== pageResults);
 
-  const hasFilters = hasActiveFilters(controls);
+  const narrowed = isNarrowed(controls);
 
   // The one count on the page. "1,275 Rhino & Grasshopper plugins" says what
   // the directory is; once something narrows the list it becomes "7 of 1,275
@@ -206,7 +206,7 @@ export default function PackageList() {
               ? `Check "${controls.search}" for typos, or try fewer filters.`
               : "Try fewer filters."}
           </p>
-          {hasFilters && (
+          {narrowed && (
             <button
               type="button"
               onClick={() => {
