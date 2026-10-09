@@ -34,7 +34,7 @@ export default function OwnersControl() {
           ref={inputRef}
           spellCheck={false}
           autoComplete="off"
-          className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+          className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500"
           aria-label="Filter by author"
           aria-keyshortcuts="Escape"
           title="Filter by author"
@@ -83,10 +83,10 @@ export default function OwnersControl() {
             title="Clear author filter"
             aria-label="Clear author filter"
             aria-keyshortcuts="Escape"
-            className="absolute inset-y-1 right-8 flex items-center justify-center rounded-md px-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
+            className="absolute inset-y-1 right-8 flex items-center justify-center rounded-md px-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
           >
             <span className="hidden items-center gap-1 sm:flex">
-              <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500">Esc</kbd>
+              <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-500 dark:border-zinc-700 dark:text-zinc-400">Esc</kbd>
             </span>
             <XMarkIcon className="h-4 w-4 sm:ml-1" aria-hidden="true" />
           </button>
@@ -105,7 +105,7 @@ export default function OwnersControl() {
               <span className="block font-medium text-gray-900 dark:text-zinc-100">
                 {query ? `No authors found for "${query}"` : "No authors found"}
               </span>
-              <span className="mt-0.5 block text-[0.65rem] text-gray-400 dark:text-zinc-500">
+              <span className="mt-0.5 block text-[0.65rem] text-gray-500 dark:text-zinc-400">
                 {query ? "Check for typos or try a different name." : "Try searching for a different name."}
               </span>
             </div>

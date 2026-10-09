@@ -213,7 +213,7 @@ function Toggle({
         <span className="select-none text-sm text-gray-900 dark:text-zinc-300">
           {title}
           {count > 0 && (
-            <span className="ml-1 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+            <span className="ml-1 text-xs tabular-nums text-gray-500 dark:text-zinc-400">
               ({count.toLocaleString()})
             </span>
           )}
@@ -321,11 +321,11 @@ export function SearchBar() {
             }
           }
         }}
-        className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-2 pl-10 pr-14 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:ring-zinc-700 dark:focus:ring-brand-500"
       />
       {!localSearch && (
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 group-focus-within:hidden dark:border-zinc-700 dark:text-zinc-500 sm:inline-block">
+          <kbd className="hidden rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-500 group-focus-within:hidden dark:border-zinc-700 dark:text-zinc-400 sm:inline-block">
             /
           </kbd>
         </div>
@@ -337,10 +337,10 @@ export function SearchBar() {
           title="Clear search (Esc)"
           aria-label="Clear search (Esc)"
           aria-keyshortcuts="Escape"
-          className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
+          className="absolute inset-y-1 right-1 flex items-center justify-center rounded-md px-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 dark:focus-visible:ring-brand-400"
         >
           <span className="hidden items-center gap-1 sm:flex">
-            <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-400 dark:border-zinc-700 dark:text-zinc-500">
+            <kbd className="rounded border border-gray-200 px-1.5 font-sans text-[0.65rem] font-medium text-gray-500 dark:border-zinc-700 dark:text-zinc-400">
               Esc
             </kbd>
           </span>

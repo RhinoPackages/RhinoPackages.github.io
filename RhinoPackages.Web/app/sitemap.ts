@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { loadPackages } from "./_components/packageData";
+import { latestRelease } from "./_components/packageModel";
 import { packagePath } from "./_components/packageInfo";
 import { authorPath, isIndexedAuthor, loadAuthors } from "./_components/authors";
 
@@ -13,9 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = "https://rhinopackages.github.io";
   const lastModified = new Date();
   const packages = loadPackages();
-
-  const latestRelease = (updated: string, lastReleased?: string | null) =>
-    new Date(Math.max(new Date(updated).getTime(), lastReleased ? new Date(lastReleased).getTime() : 0));
 
   return [
     {
@@ -50,7 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     ...packages.map((pkg) => ({
       url: `${siteUrl}${packagePath(pkg.id)}`,
-      lastModified: latestRelease(pkg.updated, pkg.lastReleased),
+      lastModified: latestRelease(pkg),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
@@ -60,7 +58,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       .map((author) => ({
         url: `${siteUrl}${authorPath(author.slug)}`,
         lastModified: new Date(
-          Math.max(...author.packages.map((pkg) => latestRelease(pkg.updated, pkg.lastReleased).getTime())),
+          Math.max(...author.packages.map((pkg) => latestRelease(pkg).getTime())),
         ),
         changeFrequency: "weekly" as const,
         priority: 0.6,

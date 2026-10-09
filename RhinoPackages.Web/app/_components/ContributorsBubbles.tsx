@@ -75,7 +75,7 @@ export default async function ContributorsBubbles() {
 
   return (
     <div className="mt-4">
-      <p id="contributors-heading" className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+      <p id="contributors-heading" className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
         Contributors
       </p>
       <ul aria-labelledby="contributors-heading" className="flex flex-wrap justify-center gap-2">

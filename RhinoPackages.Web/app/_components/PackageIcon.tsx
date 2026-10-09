@@ -22,6 +22,11 @@ export default function PackageIcon({
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const ref = useRef<HTMLImageElement>(null);
   const isBroken = !src || failedSrc === src;
+  // Plenty of Yak icons are a black logo on a transparent background, which
+  // vanishes on the dark theme. A light backing keeps them visible there; on
+  // the light theme it would be white on white, so it is dark only. Callers
+  // that round the icon themselves keep their own radius.
+  const backing = className?.includes("rounded") ? "dark:bg-white/80" : "rounded-md dark:bg-white/80";
 
   useEffect(() => {
     // The pages are statically exported, so an icon can finish failing before
@@ -33,7 +38,7 @@ export default function PackageIcon({
   return (
     <Image
       ref={ref}
-      className={className}
+      className={className ? `${backing} ${className}` : backing}
       src={isBroken ? defaultIconUrl : src}
       width={size}
       height={size}

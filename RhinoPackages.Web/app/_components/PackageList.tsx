@@ -18,7 +18,7 @@ import {
   UserIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, normalizeName } from "@/app/_components/api";
+import { pageResults, Filters, HistoryPoint, Package, Distribution, YakVersionHistoryItem, formatDate, formatDateTime, isMaintained, latestRelease, normalizeName } from "@/app/_components/api";
 import {
   YakPlatform,
   formatBytes,
@@ -501,17 +501,10 @@ const PackageCard = memo(function PackageCard({
     const cadence =
       count > 1 && spanDays > 0 ? spanDays / (count - 1) : (pkg.releaseCadenceDays ?? null);
 
-    return { count, first: new Date(first), last: new Date(last), cadence };
+    return { count, first: new Date(first), cadence };
   })();
-  // A package counts as maintained when it shipped anything — including a
-  // pre-release — within the last year. `updated` alone can lag the newest
-  // release, so take whichever is later once the history is available.
-  const lastReleaseTime = Math.max(
-    new Date(pkg.updated).getTime(),
-    releaseStats?.last.getTime() ?? 0,
-  );
-  const daysSinceUpdate = (Date.now() - lastReleaseTime) / (1000 * 3600 * 24);
-  const isMaintained = daysSinceUpdate <= 365;
+  // The same rule as the sidebar's Maintained filter and the package page.
+  const maintained = isMaintained(pkg);
   // Nothing published for the current Rhino release. Packages that target
   // Rhino 9 only are forward-looking, not deprecated.
   const isDeprecated = !has(Filters.Rhino8) && !has(Filters.Rhino9);
@@ -548,6 +541,7 @@ const PackageCard = memo(function PackageCard({
     has(Filters.Rhino6) && "Rhino 6",
     has(Filters.Rhino7) && "Rhino 7",
     has(Filters.Rhino8) && "Rhino 8",
+    has(Filters.Rhino9) && "Rhino 9 (WIP)",
     has(Filters.Rhino) && "Rhino plugin",
     has(Filters.Grasshopper) && "Grasshopper plugin",
   ].filter(Boolean);
@@ -618,9 +612,9 @@ const PackageCard = memo(function PackageCard({
                   deprecated
                 </span>
               )}
-              {!isMaintained && (
+              {!maintained && (
                 <span
-                  title={`Not actively maintained: no release since ${date}`}
+                  title={`Not actively maintained: no release since ${formatDate(latestRelease(pkg))}`}
                   className="rounded-full bg-amber-50 px-2 py-1 text-[0.65rem] font-bold uppercase leading-none tracking-wider text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20"
                 >
                   <span aria-hidden="true">inactive</span>
@@ -717,7 +711,7 @@ const PackageCard = memo(function PackageCard({
                 aria-label={`Copy link to ${pkg.id}`}
                 className={`flex flex-shrink-0 items-center gap-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400 rounded-sm ${copied
                   ? "text-green-600 dark:text-green-400"
-                  : "text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                  : "text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300"
                   }`}
               >
                 {copied ? (
@@ -764,7 +758,7 @@ const PackageCard = memo(function PackageCard({
             {pkg.description}
           </p>
         ) : (
-          <p className="min-w-0 flex-grow text-sm italic leading-relaxed text-gray-400 dark:text-zinc-500">
+          <p className="min-w-0 flex-grow text-sm italic leading-relaxed text-gray-500 dark:text-zinc-400">
             No description provided
           </p>
         )}
@@ -818,7 +812,7 @@ const PackageCard = memo(function PackageCard({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {/* Download trends from Yak API */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Total Downloads</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Total Downloads</span>
                 <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">{downloads}</span>
                 {(downloadsWeek > 0 || downloadsMonth > 0) && (
                   <span className="text-xs text-gray-500 dark:text-zinc-400">
@@ -834,17 +828,17 @@ const PackageCard = memo(function PackageCard({
 
               {/* Last Updated */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Last Updated</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Last Updated</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{formatDateTime(pkg.updated)}</span>
                 <span className="text-xs text-gray-500 dark:text-zinc-400">{relativeTime}</span>
                 <span
                   className={`inline-flex w-fit items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                    isMaintained
+                    maintained
                       ? "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
                       : "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-500/20"
                   }`}
                 >
-                  {isMaintained ? "Actively maintained" : "No release in over a year"}
+                  {maintained ? "Actively maintained" : "No release in over a year"}
                 </span>
                 {isDeprecated && (
                   <span className="inline-flex w-fit items-center rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-500/20">
@@ -855,7 +849,7 @@ const PackageCard = memo(function PackageCard({
 
               {/* Release history */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Releases</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Releases</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
                   {releaseStats ? `${releaseStats.count.toLocaleString()} version${releaseStats.count === 1 ? "" : "s"}` : "—"}
                   {releaseStats?.cadence != null && (
@@ -876,7 +870,7 @@ const PackageCard = memo(function PackageCard({
 
               {/* Download size and license */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                   Download
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">
@@ -889,7 +883,7 @@ const PackageCard = memo(function PackageCard({
 
               {/* Authors */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Authors</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Authors</span>
                 <span className="flex flex-wrap items-center gap-x-1 text-sm text-gray-900 dark:text-zinc-100">
                   {creditedAuthors.length === 0 && "—"}
                   {creditedAuthors.map((author, i) => (
@@ -917,7 +911,7 @@ const PackageCard = memo(function PackageCard({
 
               {/* Platform Compatibility */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Platforms</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Platforms</span>
                 <div className="flex flex-wrap gap-2">
                   <Badge label="Windows" active={has(Filters.Windows)} />
                   <Badge label="Mac" active={has(Filters.Mac)} />
@@ -926,7 +920,7 @@ const PackageCard = memo(function PackageCard({
 
               {/* Version Compatibility */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Rhino Versions</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Rhino Versions</span>
                 <div className="flex flex-wrap gap-2">
                   <Badge label="Rhino 6" active={has(Filters.Rhino6)} />
                   <Badge label="Rhino 7" active={has(Filters.Rhino7)} />
@@ -937,7 +931,7 @@ const PackageCard = memo(function PackageCard({
 
               {/* Plugin Type */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Plugin Type</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Plugin Type</span>
                 <div className="flex flex-wrap gap-2">
                   <Badge label="Rhino" active={has(Filters.Rhino)} />
                   <Badge label="Grasshopper" active={has(Filters.Grasshopper)} />
@@ -1085,7 +1079,7 @@ const PackageCard = memo(function PackageCard({
                     {platformLabel(shownPlatform)} only
                   </span>
                 )}
-                <span className="text-[0.7rem] text-gray-500 dark:text-zinc-500">
+                <span className="text-[0.7rem] text-gray-500 dark:text-zinc-400">
                   {shownPlatform === "windows" ? "PowerShell" : "Terminal"}
                 </span>
               </div>
@@ -1110,7 +1104,7 @@ const PackageCard = memo(function PackageCard({
                 </button>
               </div>
 
-              <p className="mt-2 text-[0.7rem] leading-relaxed text-gray-500 dark:text-zinc-500">
+              <p className="mt-2 text-[0.7rem] leading-relaxed text-gray-500 dark:text-zinc-400">
                 Assumes a default Rhino {rhinoRelease} installation — yak is not on your PATH, so
                 the full path is part of the command. Restart Rhino once it finishes.
                 {orderedLatest.length > 0 && (
@@ -1162,7 +1156,7 @@ const PackageCard = memo(function PackageCard({
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-                    <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+                    <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
                       <tr>
                         <th scope="col" className="rounded-tl-md px-4 py-2">Date</th>
                         <th scope="col" className="px-4 py-2">Version</th>
@@ -1393,7 +1387,7 @@ function Badge({ label, active }: { label: string; active: boolean }) {
     <span
       className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${active
         ? "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20"
-        : "bg-gray-50 text-gray-500 ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-500 dark:ring-zinc-700/50"
+        : "bg-gray-50 text-gray-500 ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50"
         }`}
     >
       <span className="sr-only">{active ? `Supported: ${label}` : `Not supported: ${label}`}</span>

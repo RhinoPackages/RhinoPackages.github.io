@@ -131,15 +131,29 @@ export function matchesFilters(selected: Filters, pkg: Package) {
   return true;
 }
 
-export { TIME_ZONE, formatDate, formatDateTime } from "./format";
+export { TIME_ZONE, compactNumber, formatDate, formatDateTime, relativeTime } from "./format";
+
+/**
+ * The date a package last shipped anything. `updated` is the date of the
+ * current version, which can predate a later pre-release, so take whichever
+ * of it and `lastReleased` is newer. Every surface that shows or judges a
+ * package's activity reads this one date.
+ */
+export function latestRelease(pkg: Pick<Package, "updated" | "lastReleased">) {
+  return new Date(
+    Math.max(new Date(pkg.updated).getTime(), pkg.lastReleased ? new Date(pkg.lastReleased).getTime() : 0),
+  );
+}
 
 // A package is considered maintained when it published a release within the
 // last year, and deprecated when it ships nothing for the current Rhino
 // release. Rhino 9 only targets are forward-looking, not deprecated.
 export const MAINTAINED_DAYS = 365;
 
-export function isMaintained(pkg: Package, now: number = Date.now()) {
-  return (now - new Date(pkg.updated).getTime()) / (1000 * 3600 * 24) <= MAINTAINED_DAYS;
+/** `lastRelease` (ms) lets a caller holding the full version history count its newest entry too. */
+export function isMaintained(pkg: Package, now: number = Date.now(), lastRelease?: number) {
+  const last = Math.max(latestRelease(pkg).getTime(), lastRelease ?? 0);
+  return (now - last) / (1000 * 3600 * 24) <= MAINTAINED_DAYS;
 }
 
 export function isDeprecated(pkg: Package) {

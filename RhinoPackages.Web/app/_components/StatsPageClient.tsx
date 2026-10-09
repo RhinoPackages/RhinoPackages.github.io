@@ -1,6 +1,6 @@
 "use client";
 
-import { Filters, Package, TotalsPoint, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
+import { Filters, Package, TotalsPoint, compactNumber, formatDate, formatDateTime, has, isCreditableName, normalizeName, useApi } from "@/app/_components/api";
 import { packagePath } from "@/app/_components/packageInfo";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -215,7 +215,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             value={stats.weeklyDownloads > 0 ? stats.weeklyDownloads.toLocaleString() : "—"}
             accent
           />
-          <StatTile label="New This Month" value={stats.newThisMonth.length.toLocaleString()} />
+          <StatTile label="New This Month" value={stats.newThisMonthCount.toLocaleString()} />
           <StatTile label="Updated This Month" value={stats.updatedThisMonth.toLocaleString()} />
           <StatTile label="Last Updated" value={stats.lastUpdated} small />
         </dl>
@@ -226,7 +226,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2
             id="stats-distribution"
-            className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
           >
             Ecosystem Breakdown
           </h2>
@@ -294,7 +294,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           <div className="mb-2 flex items-center justify-between">
             <h2
               id="stats-growth"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
             >
               Directory Growth
             </h2>
@@ -319,7 +319,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           <div className="mb-2 flex items-center justify-between">
             <h2
               id="stats-totals"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
             >
               Total Downloads Over Time
             </h2>
@@ -344,7 +344,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           <div className="flex flex-col gap-0.5">
             <h2
               id="stats-authors"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
             >
               Top Authors by Downloads
             </h2>
@@ -362,7 +362,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         </div>
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
           <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-            <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+            <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
               <tr>
                 <th scope="col" className="px-4 py-2">#</th>
                 <th scope="col" className="px-4 py-2">Author</th>
@@ -378,7 +378,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
               {visibleAuthors.map((author) => (
                 <tr key={author.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                  <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+                  <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">
                     {author.rank}
                   </td>
                   <td className="px-4 py-2">
@@ -403,7 +403,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                         </Link>
                       ))}
                       {author.items.length > 12 && (
-                        <span className="text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+                        <span className="text-xs tabular-nums text-gray-500 dark:text-zinc-400">
                           +{author.items.length - 12}
                         </span>
                       )}
@@ -422,7 +422,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                         </Link>
                       ))}
                       {author.creditedItems.length > 6 && (
-                        <span className="text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+                        <span className="text-xs tabular-nums text-gray-500 dark:text-zinc-400">
                           +{author.creditedItems.length - 6}
                         </span>
                       )}
@@ -440,8 +440,8 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                     {author.credited > 0 ? (
                       <span className="flex flex-col items-end leading-tight">
                         <span>{author.credited.toLocaleString()}</span>
-                        <span className="text-[0.65rem] text-gray-400 dark:text-zinc-500">
-                          {compact(author.creditedDownloads)}
+                        <span className="text-[0.65rem] text-gray-500 dark:text-zinc-400">
+                          {compactNumber(author.creditedDownloads)}
                         </span>
                       </span>
                     ) : (
@@ -491,7 +491,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             <div className="flex flex-col gap-0.5">
               <h2
                 id="stats-movers"
-                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
               >
                 Weekly Movers
               </h2>
@@ -509,7 +509,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           </div>
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
             <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-              <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+              <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
                 <tr>
                   <th scope="col" className="px-4 py-2">#</th>
                   <th scope="col" className="px-4 py-2">Package</th>
@@ -521,7 +521,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
                 {movers.map((pkg, i) => (
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{i + 1}</td>
+                    <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{i + 1}</td>
                     <td className="px-4 py-2">
                       <Link
                         href={packagePath(pkg.id)}
@@ -561,7 +561,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
             <div className="flex flex-col gap-0.5">
               <h2
                 id="stats-rising"
-                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
               >
                 Rising Stars
               </h2>
@@ -579,7 +579,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
           </div>
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
             <table className="w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-              <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+              <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
                 <tr>
                   <th scope="col" className="px-4 py-2">#</th>
                   <th scope="col" className="px-4 py-2">Package</th>
@@ -591,7 +591,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
               <tbody className="divide-y divide-gray-200 dark:divide-zinc-700/50">
                 {risingStars.map(({ pkg, ratio, rank }) => (
                   <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">{rank}</td>
+                    <td className="px-4 py-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">{rank}</td>
                     <td className="px-4 py-2">
                       <Link
                         href={packagePath(pkg.id)}
@@ -629,7 +629,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         <section aria-labelledby="stats-new">
           <h2
             id="stats-new"
-            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
           >
             New This Month
           </h2>
@@ -659,7 +659,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
         <section aria-labelledby="stats-updated">
           <h2
             id="stats-updated"
-            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500"
+            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
           >
             Updated This Month
           </h2>
@@ -673,7 +673,7 @@ export default function StatsPageClient({ initialCache = [] }: { initialCache?: 
                   <span className="flex min-w-0 items-center gap-2">
                     <PackageThumb pkg={pkg} />
                     <span className="truncate font-medium text-gray-900 dark:text-zinc-100">{pkg.id}</span>
-                    <span className="flex-shrink-0 text-xs text-gray-400 dark:text-zinc-500">v{pkg.version}</span>
+                    <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">v{pkg.version}</span>
                   </span>
                   <span className="flex-shrink-0 text-xs text-gray-500 dark:text-zinc-400">
                     {formatDate(pkg.updated)}
@@ -739,7 +739,7 @@ function LineChart({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-start justify-between text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+      <div className="flex items-start justify-between text-xs tabular-nums text-gray-500 dark:text-zinc-400">
         <span>{max.toLocaleString()}</span>
         <span>{quarter(0.5).toLocaleString()}</span>
         <span className="opacity-0">.</span>
@@ -808,7 +808,7 @@ function LineChart({
       )}
       </div>
       {ticks.length > 0 && (
-        <div className="relative h-4 text-[10px] tabular-nums text-gray-400 dark:text-zinc-500">
+        <div className="relative h-4 text-[10px] tabular-nums text-gray-500 dark:text-zinc-400">
           {ticks.map((tick) => (
             <span
               key={tick.label}
@@ -822,7 +822,7 @@ function LineChart({
       )}
       {/* On narrow phones the three labels have no room side by side, so the
           range drops to its own line instead of colliding with the dates. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs tabular-nums text-gray-400 dark:text-zinc-500">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs tabular-nums text-gray-500 dark:text-zinc-400">
         <span>{startLabel}</span>
         <span className="order-last w-full text-center xs:order-none xs:w-auto xs:text-left">
           {min.toLocaleString()} → {max.toLocaleString()}
@@ -842,10 +842,6 @@ type Weight = "packages" | "downloads";
 
 function share(value: number, total: number) {
   return total > 0 ? Math.round((value / total) * 100) : 0;
-}
-
-function compact(value: number) {
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
 function PackageThumb({ pkg }: { pkg: Package }) {
@@ -884,7 +880,7 @@ function TableSearch({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:focus:ring-brand-500"
+        className="w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 transition-shadow placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:placeholder:text-zinc-400 dark:focus:ring-brand-500"
       />
     </div>
   );
@@ -903,7 +899,7 @@ function StatTile({
 }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-      <dt className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+      <dt className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
         {label}
       </dt>
       <dd
@@ -934,7 +930,7 @@ function BarSection({
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
         {title}
       </h3>
       {note && <p className="mb-3 mt-1 text-xs text-gray-500 dark:text-zinc-400">{note}</p>}
@@ -947,7 +943,7 @@ function BarSection({
               <div className="mb-1 flex items-center justify-between text-sm">
                 <span className="text-gray-700 dark:text-zinc-300">{row.label}</span>
                 <span className="tabular-nums text-gray-500 dark:text-zinc-400">
-                  {weight === "downloads" ? compact(value) : value.toLocaleString()} · {percent}%
+                  {weight === "downloads" ? compactNumber(value) : value.toLocaleString()} · {percent}%
                 </span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
@@ -1053,9 +1049,14 @@ function getStats(cache: Package[]) {
     if (has(Filters.Rhino9, pkg)) add(dist.rhino9, pkg);
 
     // Key by name, not id: a few people publish from more than one account
-    // and would otherwise show up as separate rows with split totals.
+    // and would otherwise show up as separate rows with split totals. Some
+    // packages list two of the same person's accounts, so count each person
+    // once per package, the way their author page does.
+    const counted = new Set<string>();
     for (const owner of pkg.owners) {
       const key = normalizeName(owner.name);
+      if (counted.has(key)) continue;
+      counted.add(key);
       const entry = authors.get(key) ?? {
         id: owner.id,
         name: owner.name,
@@ -1120,6 +1121,8 @@ function getStats(cache: Package[]) {
     lastUpdated: formatDateTime(lastUpdated),
     dist,
     authors: rankedAuthors,
+    // The tile shows the full count; only the list below it is capped.
+    newThisMonthCount: newThisMonth.length,
     newThisMonth: newThisMonth.slice(0, 15),
     updatedThisMonthList: updatedThisMonthList.slice(0, 15),
   };

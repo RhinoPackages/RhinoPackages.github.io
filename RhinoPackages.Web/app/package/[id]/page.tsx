@@ -23,6 +23,7 @@ import {
   formatDate,
   has,
   isDeprecated,
+  isMaintained,
 } from "@/app/_components/packageModel";
 import { Author, authorPath, findAuthorByName } from "@/app/_components/authors";
 import {
@@ -103,11 +104,7 @@ export default function PackagePage({ params }: Params) {
     .map((v) => new Date(v.createdAt).getTime())
     .filter((t) => Number.isFinite(t))
     .sort((a, b) => a - b);
-  const lastReleaseTime = Math.max(
-    new Date(pkg.updated).getTime(),
-    releaseTimes[releaseTimes.length - 1] ?? 0,
-  );
-  const isMaintained = (Date.now() - lastReleaseTime) / (1000 * 3600 * 24) <= 365;
+  const maintained = isMaintained(pkg, Date.now(), releaseTimes[releaseTimes.length - 1]);
   const deprecated = isDeprecated(pkg);
   const releaseCount = releaseTimes.length || pkg.versionCount || 0;
   const firstReleased = releaseTimes.length > 0 ? new Date(releaseTimes[0]) : pkg.firstReleased ? new Date(pkg.firstReleased) : null;
@@ -177,7 +174,7 @@ export default function PackagePage({ params }: Params) {
           <div className="mt-2 flex flex-wrap gap-2">
             {pkg.prerelease && <Pill tone="yellow">Pre-release</Pill>}
             {deprecated && <Pill tone="rose">Deprecated · no Rhino 8 build</Pill>}
-            {!isMaintained && <Pill tone="amber">No release in over a year</Pill>}
+            {!maintained && <Pill tone="amber">No release in over a year</Pill>}
           </div>
         </div>
       </header>
@@ -188,7 +185,7 @@ export default function PackagePage({ params }: Params) {
           {pkg.description}
         </p>
       ) : (
-        <p className="mt-6 italic text-gray-500 dark:text-zinc-500">No description provided.</p>
+        <p className="mt-6 italic text-gray-500 dark:text-zinc-400">No description provided.</p>
       )}
 
       {/* Actions */}
@@ -231,7 +228,7 @@ export default function PackagePage({ params }: Params) {
       </div>
       {builds.length > 1 && (
         <div className="mt-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
             Download v{pkg.version}
           </h2>
           <DistributionLinks distributions={builds} />
@@ -338,7 +335,7 @@ export default function PackagePage({ params }: Params) {
             <li>Or download the .yak file above and drag it onto an open Rhino window.</li>
           )}
         </ol>
-        <p className="mt-2 text-xs text-gray-500 dark:text-zinc-500">Restart Rhino once the install finishes.</p>
+        <p className="mt-2 text-xs text-gray-500 dark:text-zinc-400">Restart Rhino once the install finishes.</p>
       </section>
 
       {/* Download trend */}
@@ -358,7 +355,7 @@ export default function PackagePage({ params }: Params) {
           <>
             <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
               <table className="pkg-table w-full text-left text-sm text-gray-600 dark:text-zinc-400">
-                <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-500 dark:bg-zinc-800/50 dark:text-zinc-500">
+                <thead className="bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400">
                   <tr>
                     <th scope="col">Date</th>
                     <th scope="col">Version</th>
@@ -432,7 +429,7 @@ export default function PackagePage({ params }: Params) {
         </section>
       )}
 
-      <p className="mt-10 text-xs text-gray-500 dark:text-zinc-500">
+      <p className="mt-10 text-xs text-gray-500 dark:text-zinc-400">
         Package data comes from Rhino&apos;s{" "}
         <a href="https://yak.rhino3d.com" className="pkg-link">Yak package manager</a> and is refreshed every
         few hours. <a href="/packages" className="pkg-link">Browse all packages A–Z</a> or{" "}

@@ -115,7 +115,7 @@ function MobileSearchBar() {
                   }}
                   aria-label="Close filters"
                   title="Close filters"
-                  className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                  className="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                 >
                   <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                 </button>

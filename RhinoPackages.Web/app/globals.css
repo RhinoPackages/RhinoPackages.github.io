@@ -33,7 +33,7 @@ html[data-os="mac"] .yak-commands > [data-yak-platform="windows"]:not(:only-chil
   }
 
   .pkg-label {
-    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-500;
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400;
   }
 
   .pkg-heading {
@@ -45,7 +45,7 @@ html[data-os="mac"] .yak-commands > [data-yak-platform="windows"]:not(:only-chil
   }
 
   .pkg-badge {
-    @apply inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-500 dark:ring-zinc-700/50;
+    @apply inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-500/10 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700/50;
   }
 
   .pkg-badge-on {
