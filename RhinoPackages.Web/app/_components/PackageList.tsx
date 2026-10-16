@@ -457,30 +457,26 @@ const PackageCard = memo(function PackageCard({
       </>
     ) : null;
 
-  // Three groups so a phone can break between them instead of mid-phrase;
-  // from sm up they run together as one line, which wraps only between
-  // segments, never inside one.
-  const metaGroups = [
-    [
-      by,
-      isCreditedOnly ? (
-        <span key="credited" title={`${ownerName} is credited in this package's author list, not a publisher`}>
-          {ownerName} credited
-        </span>
-      ) : null,
-      pluginKind(pkg),
-    ],
-    [rhinoVersionsText(pkg), platformsShort(pkg)],
-    [
-      `${compactNumber(pkg.downloads)} ${pkg.downloads === 1 ? "download" : "downloads"}`,
-      showWeek ? `+${compactNumber(downloadsWeek)} this week` : null,
-      <time key="updated" dateTime={lastRelease.toISOString()} title={formatDate(lastRelease)} className="whitespace-nowrap">
-        updated {relativeTime(lastRelease)}
-      </time>,
-    ],
-  ]
-    .map((group) => group.filter(Boolean))
-    .filter((group) => group.length > 0);
+  // Who and what, under the name; the numbers go in the chip row below the
+  // description.
+  const byline = [
+    by,
+    isCreditedOnly ? (
+      <span key="credited" title={`${ownerName} is credited in this package's author list, not a publisher`}>
+        {ownerName} credited
+      </span>
+    ) : null,
+    pluginKind(pkg),
+  ].filter(Boolean);
+  const stats = [
+    rhinoVersionsText(pkg),
+    platformsShort(pkg),
+    `${compactNumber(pkg.downloads)} ${pkg.downloads === 1 ? "download" : "downloads"}`,
+    showWeek ? `+${compactNumber(downloadsWeek)} this week` : null,
+    <time key="updated" dateTime={lastRelease.toISOString()} title={formatDate(lastRelease)}>
+      updated {relativeTime(lastRelease)}
+    </time>,
+  ].filter(Boolean);
 
   return (
     <li
@@ -490,26 +486,36 @@ const PackageCard = memo(function PackageCard({
         : "border-gray-200 hover:border-gray-300 dark:border-zinc-800 dark:hover:border-zinc-600"
         }`}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <PackageIcon className="h-10 w-10 flex-shrink-0" src={pkg.iconUrl} size={40} />
         {/* A plain link, not next/link: with up to 1,275 cards on the page,
             prefetching every package page would cost more than it saves. The
             chevron is the only control that expands the card. */}
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-          <a
-            href={packagePath(pkg.id)}
-            className="break-long-words rounded-sm text-lg font-bold text-gray-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:focus-visible:ring-brand-400"
-          >
-            {pkg.id}
-          </a>
-          {badge && (
-            <span
-              title={badge.title}
-              className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[0.7rem] font-medium leading-4 ring-1 ring-inset ${statusToneClasses[badge.tone]}`}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <a
+              href={packagePath(pkg.id)}
+              className="break-long-words rounded-sm text-lg font-bold leading-6 text-gray-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-zinc-100 dark:focus-visible:ring-brand-400"
             >
-              {badge.label}
-            </span>
-          )}
+              {pkg.id}
+            </a>
+            {badge && (
+              <span
+                title={badge.title}
+                className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[0.7rem] font-medium leading-4 ring-1 ring-inset ${statusToneClasses[badge.tone]}`}
+              >
+                {badge.label}
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-zinc-400">
+            {byline.map((part, i) => (
+              <Fragment key={i}>
+                {i > 0 && " · "}
+                {part}
+              </Fragment>
+            ))}
+          </p>
         </div>
         {/* rhino:// cannot run on a phone, so Install starts at md. */}
         <a
@@ -539,28 +545,22 @@ const PackageCard = memo(function PackageCard({
           />
         </button>
       </div>
-      <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400 md:pl-[3.25rem]">
-        {metaGroups.map((group, i) => (
-          <span key={i} className="block sm:inline">
-            {i > 0 && <span className="hidden sm:inline"> · </span>}
-            {group.map((part, j) => (
-              <Fragment key={j}>
-                {j > 0 && " · "}
-                {typeof part === "string" ? <span className="whitespace-nowrap">{part}</span> : part}
-              </Fragment>
-            ))}
-          </span>
-        ))}
-      </p>
       {hasDescription(pkg) ? (
-        <p className={`break-long-words mt-2 min-w-0 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300 md:pl-[3.25rem] ${isExpanded ? "" : "line-clamp-2"}`}>
+        <p className={`break-long-words mt-3 min-w-0 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300 ${isExpanded ? "" : "line-clamp-2"}`}>
           {pkg.description}
         </p>
       ) : (
-        <p className="mt-2 min-w-0 text-sm italic leading-relaxed text-gray-500 dark:text-zinc-400 md:pl-[3.25rem]">
+        <p className="mt-3 min-w-0 text-sm italic leading-relaxed text-gray-500 dark:text-zinc-400">
           No description provided
         </p>
       )}
+      <ul className="mt-3 flex flex-wrap gap-1.5 border-t border-gray-100 pt-3 text-xs text-gray-600 dark:border-zinc-800 dark:text-zinc-400">
+        {stats.map((part, i) => (
+          <li key={i} className="whitespace-nowrap rounded-md bg-slate-100 px-2 py-0.5 dark:bg-zinc-800">
+            {part}
+          </li>
+        ))}
+      </ul>
       {/* Quick view: a peek and a hand-off to the package page. It repeats
           nothing from the rows above and fetches nothing; /package/[id] owns
           the detail, the release history and the install help. */}
