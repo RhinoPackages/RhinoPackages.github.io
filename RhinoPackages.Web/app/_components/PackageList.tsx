@@ -130,8 +130,8 @@ export default function PackageList() {
     <div className="flex min-w-0 w-full flex-col">
       {/* What the list shows and how it is ordered. Each chip is an active
           filter and undoes itself. */}
-      <div className="mb-4 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="mb-4 mt-4 flex items-center gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
           <h1
             className="text-base font-semibold text-gray-900 dark:text-zinc-100"
             aria-live="polite"

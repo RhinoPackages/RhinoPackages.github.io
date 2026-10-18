@@ -62,10 +62,11 @@ export default function Page() {
           // HomePageClient and PackageList), or the heading drops on hydration.
           <div className="min-h-screen">
             <div className="h-[3.75rem] md:hidden" aria-hidden="true" />
-            <div className="mb-4 mt-4 flex min-h-[2.75rem] items-center sm:min-h-9">
-              <h1 className="text-base font-semibold text-gray-900 dark:text-zinc-100">
+            <div className="mb-4 mt-4 flex min-h-[2.75rem] items-center gap-x-4 sm:min-h-9">
+              <h1 className="min-w-0 flex-1 text-base font-semibold text-gray-900 dark:text-zinc-100">
                 {directoryHeading(packages.length)}
               </h1>
+              <div className="w-40 flex-shrink-0" aria-hidden="true" />
             </div>
             <div className="flex justify-center pt-10">
               <Spinner />
