@@ -9,8 +9,8 @@ import {
 import CopyButton from "@/app/_components/CopyButton";
 import Fact from "@/app/_components/Fact";
 import PackageIcon from "@/app/_components/PackageIcon";
+import TrendChart from "@/app/_components/TrendChart";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
-import { timePositions } from "@/app/_components/chart";
 import {
   findPackage,
   loadDownloadHistory,
@@ -20,11 +20,9 @@ import {
 import {
   Distribution,
   Filters,
-  HistoryPoint,
   Package,
   compactNumber,
   formatDate,
-  formatDay,
   has,
   latestRelease,
 } from "@/app/_components/packageModel";
@@ -647,37 +645,6 @@ function PackageLinks({ packages }: { packages: Package[] }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-/** Static version of the directory's sparkline: no hover, just the curve. */
-function TrendChart({ points }: { points: HistoryPoint[] }) {
-  const width = 600;
-  const height = 80;
-  const values = points.map((p) => p.downloads);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const positions = timePositions(points.map((p) => p.date));
-  const coords = values.map((v, i) => ({
-    x: positions[i] * width,
-    y: height - 4 - ((v - min) / span) * (height - 8),
-  }));
-  const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
-  const first = points[0];
-  const last = points[points.length - 1];
-
-  return (
-    <figure className="mt-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-20 w-full" preserveAspectRatio="none" aria-hidden="true">
-        <path d={`${line} L${width},${height} L0,${height} Z`} className="fill-brand-500/10 dark:fill-brand-400/10" />
-        <path d={line} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-brand-500 dark:stroke-brand-400" />
-      </svg>
-      <figcaption className="mt-2 text-xs text-gray-500 dark:text-zinc-400">
-        {first.downloads.toLocaleString("en-US")} downloads on {formatDay(first.date)} →{" "}
-        {last.downloads.toLocaleString("en-US")} on {formatDay(last.date)}
-      </figcaption>
-    </figure>
   );
 }
 
