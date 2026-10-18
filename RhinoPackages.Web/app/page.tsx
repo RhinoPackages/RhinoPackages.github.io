@@ -57,11 +57,16 @@ export default function Page() {
           // Fills the viewport so the footer is already off-screen and nothing
           // below moves when the client content replaces it (layout shift).
           // The exported HTML has only this, so it carries the page's h1: the
-          // list's own heading while nothing is narrowed.
-          <div className="min-h-screen pt-4">
-            <h1 className="text-base font-semibold text-gray-900 dark:text-zinc-100">
-              {directoryHeading(packages.length)}
-            </h1>
+          // list's own heading while nothing is narrowed. The phone's sticky
+          // search bar and the heading row's height are reserved too (see
+          // HomePageClient and PackageList), or the heading drops on hydration.
+          <div className="min-h-screen">
+            <div className="h-[3.75rem] md:hidden" aria-hidden="true" />
+            <div className="mb-4 mt-4 flex min-h-[2.75rem] items-center sm:min-h-9">
+              <h1 className="text-base font-semibold text-gray-900 dark:text-zinc-100">
+                {directoryHeading(packages.length)}
+              </h1>
+            </div>
             <div className="flex justify-center pt-10">
               <Spinner />
             </div>
