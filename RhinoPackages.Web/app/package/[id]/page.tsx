@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
   ArrowDownTrayIcon,
@@ -49,6 +50,7 @@ import {
   pluginKind,
   relatedPackages,
   releaseFacts,
+  rhinoReleases,
   rhinoVersionsText,
   statusBadges,
   statusToneClasses,
@@ -203,6 +205,10 @@ export default function PackagePage({ params }: Params) {
         <div className="min-w-0">
           <h1 className="break-long-words text-3xl font-bold text-gray-900 dark:text-zinc-100">{pkg.id}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+            <span className="inline-flex items-center gap-1 align-middle">
+              {has(Filters.Rhino, pkg) && <TypeIcon src="/icons/rhp.png" title="Rhino plugin" />}
+              {has(Filters.Grasshopper, pkg) && <TypeIcon src="/icons/gha.png" title="Grasshopper plugin" />}
+            </span>{" "}
             {pluginKind(pkg)} · <span className="font-semibold">v{pkg.version}</span> · updated{" "}
             <time dateTime={lastRelease.toISOString()}>{formatDate(lastRelease)}</time>
           </p>
@@ -314,7 +320,19 @@ export default function PackagePage({ params }: Params) {
           hint={releaseHint || undefined}
         />
         <Fact label="First released" value={releases.firstReleased ? formatDate(releases.firstReleased) : "—"} />
-        <Fact label="Works with" value={worksWith || "—"} />
+        <Fact
+            label="Works with"
+            value={
+              <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+                {rhinoReleases(pkg).map((release) => (
+                  <TypeIcon key={release} src={`/icons/rhino${release}.png`} title={`Rhino ${release}`} />
+                ))}
+                {has(Filters.Windows, pkg) && <TypeIcon src="/icons/win.svg" title="Windows" />}
+                {has(Filters.Mac, pkg) && <TypeIcon src="/icons/mac.svg" title="Mac" />}
+                <span>{worksWith || "—"}</span>
+              </span>
+            }
+          />
         <Fact label="Download size" value={pkg.sizeBytes ? formatBytes(pkg.sizeBytes) : "—"} />
         <Fact
           label="License"
@@ -663,4 +681,9 @@ function TrendChart({ points }: { points: HistoryPoint[] }) {
       </figcaption>
     </figure>
   );
+}
+
+/** A small decorative icon from /public/icons; the text beside it carries the meaning. */
+function TypeIcon({ src, title }: { src: string; title: string }) {
+  return <Image src={src} alt="" aria-hidden="true" title={title} width={20} height={20} className="h-5 w-5 flex-shrink-0 rounded-sm" />;
 }
