@@ -10,12 +10,15 @@ export default function PackageIcon({
   size,
   className,
   title,
+  eager,
 }: {
   src?: string | null;
   alt?: string;
   size: number;
   className?: string;
   title?: string;
+  /** Above the fold: skip lazy loading so the icon is not painted late. */
+  eager?: boolean;
 }) {
   // Keyed by the URL that failed rather than a plain flag, so a card reused
   // for another package retries instead of inheriting the broken state.
@@ -49,6 +52,7 @@ export default function PackageIcon({
       alt={alt}
       aria-hidden={alt ? undefined : "true"}
       title={title}
+      loading={eager ? "eager" : undefined}
       onError={() => setFailedSrc(safeSrc)}
     />
   );

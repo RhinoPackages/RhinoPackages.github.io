@@ -174,6 +174,17 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('RhinoPackages.Web/package-lock.json') }}-
             ${{ runner.os }}-nextjs-
 
+      - name: Cache mirrored package icons
+        uses: actions/cache@v4
+        with:
+          path: RhinoPackages.Web/public/icons/packages
+          key: package-icons-${{ github.run_id }}
+          restore-keys: package-icons-
+
+      - name: Mirror package icons
+        working-directory: ./RhinoPackages.Web
+        run: node scripts/mirror-icons.mjs
+
       - name: Generate Version Tag
         id: version
         run: echo "TAG_NAME=v$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_ENV

@@ -17,3 +17,6 @@ artifacts/
 .vs/
 *.csproj.user
 local.settings.json
+
+# mirrored at build time by scripts/mirror-icons.mjs
+RhinoPackages.Web/public/icons/packages/

@@ -199,7 +199,7 @@ export default function PackagePage({ params }: Params) {
 
       {/* Header */}
       <header className="mt-6 flex gap-4">
-        <PackageIcon className="h-14 w-14 flex-shrink-0 rounded-md" src={pkg.iconUrl} size={56} />
+        <PackageIcon className="h-14 w-14 flex-shrink-0 rounded-md" src={pkg.iconUrl} size={56} eager />
         <div className="min-w-0">
           <h1 className="break-long-words text-3xl font-bold text-gray-900 dark:text-zinc-100">{pkg.id}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
@@ -634,7 +634,7 @@ function PackageLinks({ packages }: { packages: Package[] }) {
             href={packagePath(other.id)}
             className="pkg-card"
           >
-            <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={other.iconUrl} size={32} />
+            <PackageIcon className="h-8 w-8 flex-shrink-0 rounded-sm" src={other.iconUrl} size={32} eager />
             <span className="min-w-0">
               <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">{other.id}</span>
               <span className="pkg-muted block">
