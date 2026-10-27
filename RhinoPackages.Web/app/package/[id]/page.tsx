@@ -318,13 +318,13 @@ export default function PackagePage({ params }: Params) {
             label="Works with"
             value={
               <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-                {has(Filters.Rhino, pkg) && <TypeIcon src="/icons/rhp.png" title="Rhino plugin" />}
+                {has(Filters.Rhino, pkg) && <TypeIcon src="/icons/rhp.png" title="Rhino plugin" invertOnDark />}
                 {has(Filters.Grasshopper, pkg) && <TypeIcon src="/icons/gha.png" title="Grasshopper plugin" />}
                 {rhinoReleases(pkg).map((release) => (
                   <TypeIcon key={release} src={`/icons/rhino${release}.png`} title={`Rhino ${release}`} />
                 ))}
-                {has(Filters.Windows, pkg) && <TypeIcon src="/icons/win.svg" title="Windows" />}
-                {has(Filters.Mac, pkg) && <TypeIcon src="/icons/mac.svg" title="Mac" />}
+                {has(Filters.Windows, pkg) && <TypeIcon src="/icons/win.svg" title="Windows" invertOnDark />}
+                {has(Filters.Mac, pkg) && <TypeIcon src="/icons/mac.svg" title="Mac" invertOnDark />}
                 <span>{worksWith || "—"}</span>
               </span>
             }
@@ -648,7 +648,20 @@ function PackageLinks({ packages }: { packages: Package[] }) {
   );
 }
 
-/** A small decorative icon from /public/icons; the text beside it carries the meaning. */
-function TypeIcon({ src, title }: { src: string; title: string }) {
-  return <Image src={src} alt="" aria-hidden="true" title={title} width={20} height={20} className="h-5 w-5 flex-shrink-0 rounded-sm" />;
+/**
+ * A small decorative icon from /public/icons; the text beside it carries the meaning.
+ * `invertOnDark` is for single-colour dark glyphs, which would vanish on the dark theme.
+ */
+function TypeIcon({ src, title, invertOnDark }: { src: string; title: string; invertOnDark?: boolean }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      aria-hidden="true"
+      title={title}
+      width={20}
+      height={20}
+      className={`h-5 w-5 flex-shrink-0 rounded-sm${invertOnDark ? " dark:invert" : ""}`}
+    />
+  );
 }
