@@ -178,8 +178,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: RhinoPackages.Web/public/icons/packages
-          key: package-icons-${{ github.run_id }}
-          restore-keys: package-icons-
+          # Bump the version when mirror-icons.mjs changes what it writes: cached
+          # files are never reprocessed.
+          key: package-icons-v2-${{ github.run_id }}
+          restore-keys: package-icons-v2-
 
       - name: Mirror package icons
         working-directory: ./RhinoPackages.Web

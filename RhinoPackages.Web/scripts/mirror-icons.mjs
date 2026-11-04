@@ -10,6 +10,10 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
+
+// Largest icon on the site is 56px (package page), so this is sharp at 2x.
+const maxIconSize = 112;
 
 const root = path.dirname(path.dirname(new URL(import.meta.url).pathname));
 const dataFile = path.join(root, "public", "data.json");
@@ -22,6 +26,22 @@ const known = fs.readdirSync(dir);
 // Same URL, same file: hashed names make reruns and the CI cache skip downloads.
 const byUrl = new Map();
 
+// Yak icons can be 1000px+ and hundreds of KB, shown at 40px. Keeps the format
+// so the file extension stays right. GIF (may be animated), SVG and ICO pass
+// through, as does anything sharp cannot read: a big icon beats no icon.
+async function shrink(buffer, ext) {
+  if (!["png", "jpg", "webp"].includes(ext)) return buffer;
+  try {
+    const { width, height } = await sharp(buffer).metadata();
+    if (width <= maxIconSize && height <= maxIconSize) return buffer;
+    const resized = await sharp(buffer).resize(maxIconSize, maxIconSize, { fit: "inside" }).toBuffer();
+    return resized.length < buffer.length ? resized : buffer;
+  } catch (e) {
+    console.warn(`icon not resized (${e.message})`);
+    return buffer;
+  }
+}
+
 async function mirror(url) {
   const hash = crypto.createHash("sha1").update(url).digest("hex").slice(0, 16);
   const cached = known.find((f) => f.startsWith(`${hash}.`));
@@ -30,7 +50,7 @@ async function mirror(url) {
   const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
   const ext = types[(res.headers.get("content-type") ?? "").split(";")[0].trim()];
   if (!res.ok || !ext) throw new Error(`${res.status} ${res.headers.get("content-type")}`);
-  fs.writeFileSync(path.join(dir, `${hash}.${ext}`), Buffer.from(await res.arrayBuffer()));
+  fs.writeFileSync(path.join(dir, `${hash}.${ext}`), await shrink(Buffer.from(await res.arrayBuffer()), ext));
   return `/icons/packages/${hash}.${ext}`;
 }
 
