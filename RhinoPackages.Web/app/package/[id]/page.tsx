@@ -10,6 +10,7 @@ import CopyButton from "@/app/_components/CopyButton";
 import Fact from "@/app/_components/Fact";
 import PackageIcon from "@/app/_components/PackageIcon";
 import TrendChart from "@/app/_components/TrendChart";
+import LiveDownloadCount, { LiveDownloadDelta } from "@/app/_components/LiveDownloadCount";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import {
   findPackage,
@@ -21,7 +22,6 @@ import {
   Distribution,
   Filters,
   Package,
-  compactNumber,
   formatDate,
   has,
   latestRelease,
@@ -296,7 +296,7 @@ export default function PackagePage({ params }: Params) {
       <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40 lg:grid-cols-4">
         <Fact
           label="Total downloads"
-          value={pkg.downloads.toLocaleString("en-US")}
+          value={<LiveDownloadCount id={pkg.id} fallback={pkg.downloads} />}
           hint={
             perDay !== null
               ? `~${perDay >= 10 ? Math.round(perDay).toLocaleString("en-US") : perDay.toFixed(1)}/day`
@@ -305,8 +305,12 @@ export default function PackagePage({ params }: Params) {
         />
         <Fact
           label="This week"
-          value={`+${(pkg.downloadsWeek ?? 0).toLocaleString("en-US")}`}
-          hint={`+${(pkg.downloadsMonth ?? 0).toLocaleString("en-US")} this month`}
+          value={<LiveDownloadDelta id={pkg.id} total={pkg.downloads} base={pkg.downloadsWeek ?? 0} prefix="+" />}
+          hint={
+            <>
+              <LiveDownloadDelta id={pkg.id} total={pkg.downloads} base={pkg.downloadsMonth ?? 0} prefix="+" /> this month
+            </>
+          }
         />
         <Fact
           label="Releases"
@@ -453,7 +457,7 @@ export default function PackagePage({ params }: Params) {
       {downloadHistory.length >= 2 && (
         <section aria-labelledby="trend" className="mt-8">
           <h2 id="trend" className="pkg-heading">Download trend</h2>
-          <TrendChart points={downloadHistory} />
+          <TrendChart points={downloadHistory} liveId={pkg.id} />
         </section>
       )}
 
@@ -638,7 +642,7 @@ function PackageLinks({ packages }: { packages: Package[] }) {
             <span className="min-w-0">
               <span className="break-long-words block text-sm font-semibold text-gray-900 dark:text-zinc-100">{other.id}</span>
               <span className="pkg-muted block">
-                {pluginKind(other)} · {compactNumber(other.downloads)} {other.downloads === 1 ? "download" : "downloads"}
+                {pluginKind(other)} · <LiveDownloadCount id={other.id} fallback={other.downloads} format="compact" suffix />
               </span>
             </span>
           </a>

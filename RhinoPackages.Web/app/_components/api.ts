@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Package, Status } from "./packageModel";
+import { useLiveDownloads, withLiveCounts } from "./liveDownloads";
 
 export * from "./packageModel";
 
@@ -32,5 +33,10 @@ export function useApi(initialCache: Package[] = []) {
     })();
   }, [initialCache.length]);
 
-  return { cache, status };
+  // Lay the live counts over the build-time data once they arrive, so every
+  // number, sort and stat on the page uses them.
+  const live = useLiveDownloads();
+  const packages = useMemo(() => withLiveCounts(cache, live), [cache, live]);
+
+  return { cache: packages, status };
 }

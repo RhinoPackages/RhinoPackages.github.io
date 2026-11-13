@@ -5,8 +5,9 @@ import Fact from "@/app/_components/Fact";
 import PackageIcon from "@/app/_components/PackageIcon";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
 import { authorPath, findAuthor, isIndexedAuthor, loadAuthors } from "@/app/_components/authors";
-import { Filters, Package, compactNumber, formatDate, has, latestRelease } from "@/app/_components/packageModel";
+import { Filters, Package, formatDate, has, latestRelease } from "@/app/_components/packageModel";
 import { joinWithAnd, packagePath, pluginKind, statusBadges, truncate } from "@/app/_components/packageInfo";
+import LiveDownloadCount from "@/app/_components/LiveDownloadCount";
 
 type Params = { params: { slug: string } };
 
@@ -183,7 +184,7 @@ export default function AuthorPage({ params }: Params) {
                           {status && <span className="pkg-muted font-normal"> · {status.label}</span>}
                         </span>
                         <span className="pkg-muted block">
-                          {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
+                          {pluginKind(pkg)} · <LiveDownloadCount id={pkg.id} fallback={pkg.downloads} format="compact" suffix />
                         </span>
                       </span>
                     </a>
