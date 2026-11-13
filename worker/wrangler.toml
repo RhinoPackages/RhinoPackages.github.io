@@ -1,0 +1,7 @@
+name = "rhinopackages-live"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Comma-separated origins allowed to read the counts from a browser.
+ALLOWED_ORIGINS = "https://rhinopackages.github.io,http://localhost:3000"

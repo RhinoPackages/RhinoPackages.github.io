@@ -195,6 +195,9 @@ jobs:
         working-directory: ./RhinoPackages.Web
         env:
           NEXT_PUBLIC_VERSION: ${{ env.TAG_NAME }}
+          # Cloudflare Worker serving live download counts (see worker/README.md).
+          # Unset: the site shows its build-time numbers only.
+          NEXT_PUBLIC_LIVE_DOWNLOADS_URL: ${{ vars.LIVE_DOWNLOADS_URL }}
         run: npx next build
 
       - name: Check static package pages

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import LetterBar from "@/app/_components/LetterBar";
 import { loadPackages } from "@/app/_components/packageData";
 import { packagePath, pluginKind } from "@/app/_components/packageInfo";
-import { Package, compactNumber } from "@/app/_components/packageModel";
+import { Package } from "@/app/_components/packageModel";
 import { openGraphDefaults, siteUrl, twitterDefaults } from "@/app/_components/seo";
+import LiveDownloadCount from "@/app/_components/LiveDownloadCount";
 
 export function generateMetadata(): Metadata {
   const count = loadPackages().length.toLocaleString("en-US");
@@ -76,7 +77,7 @@ export default function PackagesIndexPage() {
                 {/* The meta moves as one piece, so "downloads" is never left alone on a line. */}
                 <span className="pkg-muted">&nbsp;·</span>{" "}
                 <span className="pkg-muted whitespace-nowrap">
-                  {pluginKind(pkg)} · {compactNumber(pkg.downloads)} {pkg.downloads === 1 ? "download" : "downloads"}
+                  {pluginKind(pkg)} · <LiveDownloadCount id={pkg.id} fallback={pkg.downloads} format="compact" suffix />
                 </span>
               </li>
             ))}

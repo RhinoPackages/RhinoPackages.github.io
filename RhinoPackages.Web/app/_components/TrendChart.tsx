@@ -4,14 +4,19 @@ import { useState } from "react";
 import { nearestIndex, timePositions } from "./chart";
 import { formatDay } from "./format";
 import type { HistoryPoint } from "./packageModel";
+import { useLiveDownloads, withLiveToday } from "./liveDownloads";
 
 /**
  * A package's download history. The curve and the first-to-last caption are
  * in the exported HTML; pointing, touching or arrowing along the chart swaps
- * the caption for the figure on that day.
+ * the caption for the figure on that day. With `liveId`, today's point
+ * follows the live download count (see liveDownloads.ts).
  */
-export default function TrendChart({ points }: { points: HistoryPoint[] }) {
+export default function TrendChart({ points: recorded, liveId }: { points: HistoryPoint[]; liveId?: string }) {
   const [active, setActive] = useState<number | null>(null);
+  // The recorded daily history, with today's point taken from the live count.
+  const live = useLiveDownloads();
+  const points = withLiveToday(recorded, liveId ? live?.get(liveId) : undefined);
   const width = 600;
   const height = 80;
   const values = points.map((p) => p.downloads);
