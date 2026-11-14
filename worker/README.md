@@ -26,7 +26,7 @@ curl -s -H "Origin: https://rhinopackages.github.io" -D - https://rhinopackages-
 ```
 
 Then add it to the repository as an Actions **variable** (not a secret)
-named `LIVE_DOWNLOADS_URL`, set to the full `/downloads` URL. The deploy
+named `LIVE_DOWNLOADS_URL`, set to the worker URL (with or without `/downloads`). The deploy
 workflow passes it to the site build as `NEXT_PUBLIC_LIVE_DOWNLOADS_URL`.
 Without it the site simply shows its build-time numbers.
 

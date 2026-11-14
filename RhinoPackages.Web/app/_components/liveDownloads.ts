@@ -13,7 +13,23 @@ import type { HistoryPoint, Package } from "./packageModel";
  * count only adds or refreshes "today". Without the variable, or when the
  * worker cannot be reached, the build-time numbers stand.
  */
-const endpoint = process.env.NEXT_PUBLIC_LIVE_DOWNLOADS_URL;
+const endpoint = liveEndpoint(process.env.NEXT_PUBLIC_LIVE_DOWNLOADS_URL);
+
+/**
+ * The worker's /downloads URL. Accepts either that URL or the worker's bare
+ * address (https://<name>.<account>.workers.dev), which answers 404 at "/".
+ */
+export function liveEndpoint(configured: string | undefined): string | undefined {
+  const value = configured?.trim();
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.pathname === "/" || url.pathname === "") url.pathname = "/downloads";
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
 
 export type LiveDownloads = Map<string, number>;
 
