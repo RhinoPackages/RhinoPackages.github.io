@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: `${siteUrl}/`,
     title: "Rhino Packages — Browse & Install 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
-      "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse over 1,000 packages, filter by platform and version, install with one click.",
+      "Every Rhino 3D and Grasshopper plugin on Yak in one directory. Browse over 1,000 packages, filter by platform and version, install with one click.",
   },
 };
 

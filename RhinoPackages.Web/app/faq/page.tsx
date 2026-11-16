@@ -42,7 +42,7 @@ function buildQa(packageCount: number): Qa[] {
     {
       question: "What is Rhino Packages?",
       answer: [
-        `Rhino Packages is the most comprehensive directory of Rhino 3D and Grasshopper plugins. It currently indexes ${packageCount.toLocaleString("en-US")} packages from the Yak package manager with search, filtering, version history, and one-click install links.`,
+        `Rhino Packages is a directory of Rhino 3D and Grasshopper plugins. It currently indexes ${packageCount.toLocaleString("en-US")} packages, every package on the Yak package manager, with search, filtering, version history, and one-click install links.`,
       ],
     },
     {

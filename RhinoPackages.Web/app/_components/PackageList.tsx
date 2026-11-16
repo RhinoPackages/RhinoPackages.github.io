@@ -365,6 +365,10 @@ const PackageCard = memo(function PackageCard({
   ownerName: string | undefined;
   authorByName: Map<string, AuthorRef>;
 }) {
+  // rhino:// does nothing on a machine without Rhino and the browser says
+  // nothing either. After a click, point to the hand-install routes.
+  const [installTried, setInstallTried] = useState(false);
+
   const onToggle = () => {
     if (isExpanded) {
       // Collapsing removes the quick view's height. If the reader has scrolled
@@ -520,9 +524,10 @@ const PackageCard = memo(function PackageCard({
         {/* rhino:// cannot run on a phone, so Install starts at md. */}
         <a
           href={link}
+          onClick={() => setInstallTried(true)}
           aria-label={`Install ${pkg.id}`}
           title={`Install ${pkg.id}`}
-          className="hidden flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:inline-flex"
+          className="hidden flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-[background-color,box-shadow] hover:bg-gray-50 hover:shadow active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:focus-visible:ring-brand-400 md:inline-flex"
         >
           <ArrowDownTrayIcon className="h-4 w-4 text-gray-500 dark:text-zinc-400" aria-hidden="true" />
           Install
@@ -540,10 +545,20 @@ const PackageCard = memo(function PackageCard({
         >
           <ChevronDownIcon
             aria-hidden="true"
-            className={`h-5 w-5 text-gray-500 transition-transform duration-300 dark:text-zinc-400 ${isExpanded ? "rotate-180" : ""
+            className={`h-5 w-5 text-gray-500 transition-transform duration-300 motion-reduce:transition-none dark:text-zinc-400 ${isExpanded ? "rotate-180" : ""
               }`}
           />
         </button>
+      </div>
+      <div aria-live="polite">
+        {installTried && (
+          <p className="mt-2 hidden text-xs text-gray-500 dark:text-zinc-400 md:block">
+            Nothing opened?{" "}
+            <a href={`${packagePath(pkg.id)}#install`} className="pkg-link">
+              Get the .yak file or terminal command →
+            </a>
+          </p>
+        )}
       </div>
       {hasDescription(pkg) ? (
         <p className={`break-long-words mt-3 min-w-0 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-zinc-300 ${isExpanded ? "" : "line-clamp-2"}`}>
@@ -566,7 +581,7 @@ const PackageCard = memo(function PackageCard({
           the detail, the release history and the install help. */}
       <div
         id={`package-details-${pkg.id}`}
-        className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
+        className={`grid transition-[grid-template-rows,margin-top,opacity,visibility] duration-300 ease-in-out motion-reduce:transition-none ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
           }`}
       >
         {/* The side padding keeps the focus rings of the chips and buttons
@@ -598,7 +613,7 @@ const PackageCard = memo(function PackageCard({
                     );
                   })}
                   {keywords.length > shownKeywords.length && (
-                    <a href={`${packagePath(pkg.id)}#keywords`} className="pkg-link text-xs font-medium">
+                    <a href={`${packagePath(pkg.id)}#keywords`} className="pkg-link py-1.5 text-xs font-medium">
                       All {keywords.length.toLocaleString("en-US")} keywords →
                     </a>
                   )}
@@ -616,7 +631,7 @@ const PackageCard = memo(function PackageCard({
               </p>
               <a
                 href={packagePath(pkg.id)}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30 md:w-auto"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-white/30 md:w-auto"
               >
                 Full details →
               </a>

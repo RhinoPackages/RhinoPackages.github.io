@@ -25,7 +25,7 @@ export default function CopyButton({ text, label, ariaLabel }: { text: string; l
         type="button"
         onClick={copy}
         aria-label={ariaLabel}
-        className="inline-flex flex-none items-center gap-1.5 rounded-md align-middle bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
+        className="inline-flex flex-none items-center gap-1.5 rounded-md align-middle bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400"
       >
         {copied ? (
           <CheckIcon className="h-3.5 w-3.5 text-green-600 dark:text-green-500" aria-hidden="true" />

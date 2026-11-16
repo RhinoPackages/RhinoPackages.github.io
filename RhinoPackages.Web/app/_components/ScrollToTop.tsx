@@ -22,9 +22,10 @@ export default function ScrollToTop() {
   }, []);
 
   const scrollToTop = () => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({
       top: 0,
-      behavior: "smooth",
+      behavior: reduceMotion ? "auto" : "smooth",
     });
 
     // Proactively restore focus to main content to prevent focus drop
@@ -34,7 +35,7 @@ export default function ScrollToTop() {
 
   return (
     <div
-      className={`scroll-to-top fixed bottom-6 right-6 z-50 transition-all duration-300 ease-in-out ${
+      className={`scroll-to-top fixed bottom-6 right-6 z-50 transition-[opacity,transform,visibility] duration-300 ease-in-out motion-reduce:transition-none ${
         isVisible ? "visible translate-y-0 opacity-100" : "invisible translate-y-4 opacity-0"
       }`}
     >
@@ -43,7 +44,7 @@ export default function ScrollToTop() {
         onClick={scrollToTop}
         aria-label="Scroll to top"
         title="Scroll to top"
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white shadow-md transition-all hover:bg-brand-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-offset-zinc-950"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white shadow-md transition-[background-color,box-shadow] hover:bg-brand-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-500 dark:focus-visible:ring-offset-zinc-950"
       >
         <ArrowUpIcon className="h-5 w-5" aria-hidden="true" />
       </button>

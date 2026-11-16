@@ -50,11 +50,11 @@ html:has(body[data-sheet="open"]) {
   }
 
   .pkg-button {
-    @apply inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400;
+    @apply inline-flex items-center gap-1.5 rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:focus-visible:ring-brand-400;
   }
 
   .pkg-label {
-    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400;
+    @apply text-xs font-medium text-gray-500 dark:text-zinc-400;
   }
 
   /* Every heading that uses this is also a link target (#install, #versions…),

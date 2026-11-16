@@ -160,7 +160,7 @@ export default function StatsPageClient({
   if (status.isLoading && cache.length === 0) {
     return (
       <div
-        className="flex min-h-[50vh] flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-zinc-700 dark:bg-zinc-900/40"
+        className="flex min-h-screen flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-zinc-700 dark:bg-zinc-900/40"
         aria-live="polite"
         aria-busy="true"
       >
@@ -211,13 +211,13 @@ export default function StatsPageClient({
         </h2>
         <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatTile label="Packages" value={stats.totalPackages.toLocaleString("en-US")} />
-          <StatTile label="Total Downloads" value={stats.totalDownloads.toLocaleString("en-US")} />
+          <StatTile label="Total downloads" value={stats.totalDownloads.toLocaleString("en-US")} />
           <StatTile
-            label="Downloads / Week"
+            label="Downloads / week"
             value={stats.weeklyDownloads > 0 ? stats.weeklyDownloads.toLocaleString("en-US") : "—"}
             accent
           />
-          <StatTile label="New This Month" value={stats.newThisMonth.length.toLocaleString("en-US")} />
+          <StatTile label="New this month" value={stats.newThisMonth.length.toLocaleString("en-US")} />
         </dl>
       </section>
 
@@ -226,9 +226,9 @@ export default function StatsPageClient({
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2
             id="stats-distribution"
-            className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+            className="text-sm font-semibold text-gray-700 dark:text-zinc-200"
           >
-            Ecosystem Breakdown
+            Ecosystem breakdown
           </h2>
           <div
             role="group"
@@ -254,7 +254,7 @@ export default function StatsPageClient({
         </div>
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <BarSection
-            title="Plugin Type"
+            title="Plugin type"
             weight={weight}
             total={distTotals}
             rows={[
@@ -264,7 +264,7 @@ export default function StatsPageClient({
             ]}
           />
           <BarSection
-            title="Platform Support"
+            title="Platform support"
             weight={weight}
             total={distTotals}
             rows={[
@@ -274,7 +274,7 @@ export default function StatsPageClient({
             ]}
           />
           <BarSection
-            title="Rhino Version Support"
+            title="Rhino version support"
             weight={weight}
             total={distTotals}
             note={`Rhino 8 ready: ${share(stats.dist.rhino8.count, stats.totalPackages)}% of packages · ${share(stats.dist.rhino8.downloads, stats.totalDownloads)}% of downloads`}
@@ -293,9 +293,9 @@ export default function StatsPageClient({
         <section aria-labelledby="stats-growth" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
           <h2
             id="stats-growth"
-            className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+            className="mb-2 text-sm font-semibold text-gray-700 dark:text-zinc-200"
           >
-            Directory Growth
+            Directory growth
           </h2>
           <LineChart
             values={growth.values}
@@ -313,9 +313,9 @@ export default function StatsPageClient({
         <section aria-labelledby="stats-totals" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
           <h2
             id="stats-totals"
-            className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+            className="mb-2 text-sm font-semibold text-gray-700 dark:text-zinc-200"
           >
-            Total Downloads Over Time
+            Total downloads over time
           </h2>
           <LineChart
             values={totals.map((t) => t.downloads)}
@@ -334,9 +334,9 @@ export default function StatsPageClient({
           <div className="flex flex-col gap-0.5">
             <h2
               id="stats-authors"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+              className="text-sm font-semibold text-gray-700 dark:text-zinc-200"
             >
-              Top Authors by Downloads
+              Top authors by downloads
             </h2>
             <span className="text-xs text-gray-500 dark:text-zinc-400">
               Published and credited packages combined
@@ -414,9 +414,9 @@ export default function StatsPageClient({
             <div className="flex flex-col gap-0.5">
               <h2
                 id="stats-movers"
-                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+                className="text-sm font-semibold text-gray-700 dark:text-zinc-200"
               >
-                Weekly Movers
+                Weekly movers
               </h2>
               <span className="text-xs text-gray-500 dark:text-zinc-400">
                 Most downloads in the last 7 days
@@ -487,9 +487,9 @@ export default function StatsPageClient({
             <div className="flex flex-col gap-0.5">
               <h2
                 id="stats-rising"
-                className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+                className="text-sm font-semibold text-gray-700 dark:text-zinc-200"
               >
-                Rising Stars
+                Rising stars
               </h2>
               <span className="text-xs text-gray-500 dark:text-zinc-400">
                 Highest share of lifetime downloads earned this week
@@ -558,9 +558,9 @@ export default function StatsPageClient({
         <section aria-labelledby="stats-new">
           <h2
             id="stats-new"
-            className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+            className="mb-3 text-sm font-semibold text-gray-700 dark:text-zinc-200"
           >
-            New This Month ({stats.newThisMonth.length.toLocaleString("en-US")})
+            New this month ({stats.newThisMonth.length.toLocaleString("en-US")})
           </h2>
           <RecentList packages={stats.newThisMonth.slice(0, 15)} dateOf={(pkg) => pkg.firstReleased!} />
           {stats.newThisMonth.length > 15 && (
@@ -582,9 +582,9 @@ export default function StatsPageClient({
           <div className="mb-3 flex flex-col gap-0.5">
             <h2
               id="stats-updated"
-              className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400"
+              className="text-sm font-semibold text-gray-700 dark:text-zinc-200"
             >
-              Updated This Month ({stats.updatedThisMonthCount.toLocaleString("en-US")})
+              Updated this month ({stats.updatedThisMonthCount.toLocaleString("en-US")})
             </h2>
             <span className="text-xs text-gray-500 dark:text-zinc-400">
               Not counting the new packages above
@@ -608,7 +608,7 @@ function RecentList({ packages, dateOf }: { packages: Package[]; dateOf: (pkg: P
         <li key={pkg.id}>
           <a
             href={packagePath(pkg.id)}
-            className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
+            className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-[border-color,box-shadow] hover:border-brand-300 hover:shadow dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-brand-700"
           >
             <span className="flex min-w-0 items-center gap-2">
               <PackageThumb pkg={pkg} />
@@ -817,7 +817,7 @@ function TableSearch({
 function StatTile({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-      <dt className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+      <dt className="text-xs font-medium text-gray-500 dark:text-zinc-400">
         {label}
       </dt>
       <dd className={`text-xl font-bold ${accent ? "text-brand-600 dark:text-brand-400" : "text-gray-900 dark:text-zinc-100"}`}>
@@ -844,7 +844,7 @@ function BarSection({
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/40">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-200">
         {title}
       </h3>
       {note && <p className="mb-3 mt-1 text-xs text-gray-500 dark:text-zinc-400">{note}</p>}
@@ -857,12 +857,12 @@ function BarSection({
               <div className="mb-1 flex items-center justify-between text-sm">
                 <span className="text-gray-700 dark:text-zinc-300">{row.label}</span>
                 <span className="tabular-nums text-gray-500 dark:text-zinc-400">
-                  {weight === "downloads" ? compactNumber(value) : value.toLocaleString("en-US")} · {percent}%
+                  {weight === "downloads" ? compactNumber(value) : value.toLocaleString("en-US")} · {percent === 0 && value > 0 ? "<1" : percent}%
                 </span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
                 <div
-                  className="h-full rounded-full bg-brand-500 transition-all duration-300 dark:bg-brand-600"
+                  className="h-full rounded-full bg-brand-500 transition-[width] duration-300 motion-reduce:transition-none dark:bg-brand-600"
                   style={{ width: `${percent}%` }}
                 />
               </div>

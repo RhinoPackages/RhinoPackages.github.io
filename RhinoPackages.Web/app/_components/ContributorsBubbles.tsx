@@ -77,7 +77,7 @@ export default async function ContributorsBubbles() {
 
   return (
     <div className="mt-4">
-      <p id="contributors-heading" className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+      <p id="contributors-heading" className="mb-2 text-xs font-medium text-gray-500 dark:text-zinc-400">
         Site contributors
       </p>
       <ul aria-labelledby="contributors-heading" className="flex flex-wrap justify-center gap-2">
@@ -89,7 +89,7 @@ export default async function ContributorsBubbles() {
               rel="noopener noreferrer"
               title={`${contributor.login} (${contributor.contributions} contributions)`}
               aria-label={`GitHub profile of ${contributor.login} (opens in a new tab)`}
-              className="block rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-brand-400 dark:focus-visible:ring-offset-zinc-950"
+              className="block rounded-full transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-brand-400 dark:focus-visible:ring-offset-zinc-950"
             >
               <Image
                 src={getSizedAvatarUrl(contributor.avatar_url, 56)}

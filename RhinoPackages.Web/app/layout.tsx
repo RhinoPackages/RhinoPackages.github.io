@@ -29,7 +29,7 @@ const structuredData = {
       alternateName: ["RhinoPackages", "Rhino Plugin Directory", "Grasshopper Plugin Directory"],
       url: `${siteUrl}/`,
       description:
-        "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse, search, and install over 1,000 packages from the Yak package manager. Filter by platform, Rhino version, and plugin type.",
+        "Every Rhino 3D and Grasshopper plugin on the Yak package manager, in one directory. Browse, search, and install over 1,000 packages. Filter by platform, Rhino version, and plugin type.",
       inLanguage: "en-US",
       publisher: {
         "@id": `${siteUrl}/#organization`,
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     template: "%s | Rhino Packages",
   },
   description:
-    "Browse, search, and install over 1,000 Rhino 3D and Grasshopper plugins. The most comprehensive Rhino plugin directory — filter by platform, Rhino version, and type. Data is checked every 3 hours against the Yak package manager.",
+    "Browse, search, and install over 1,000 Rhino 3D and Grasshopper plugins. Every package from Yak in one directory — filter by platform, Rhino version, and type. Data is checked every 3 hours against the Yak package manager.",
   keywords: [
     "Rhino 3D plugins",
     "Grasshopper plugins",
@@ -105,13 +105,13 @@ export const metadata: Metadata = {
     url: siteUrl,
     title: "Rhino Packages — Browse & Install 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
-      "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Browse over 1,000 packages, filter by platform and version, install with one click.",
+      "Every Rhino 3D and Grasshopper plugin on Yak in one directory. Browse over 1,000 packages, filter by platform and version, install with one click.",
   },
   twitter: {
     ...twitterDefaults,
     title: "Rhino Packages — 1,000+ Rhino 3D & Grasshopper Plugins",
     description:
-      "The most comprehensive directory of Rhino 3D and Grasshopper plugins. Search, filter, and install from the Yak package manager.",
+      "Every Rhino 3D and Grasshopper plugin on Yak in one directory. Search, filter, and install.",
   },
   robots: {
     index: true,
