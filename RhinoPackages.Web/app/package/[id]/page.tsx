@@ -420,6 +420,37 @@ export default function PackagePage({ params }: Params) {
         <p className="mt-2 text-xs text-gray-500 dark:text-zinc-400">Restart Rhino once the install finishes.</p>
       </section>
 
+      {/* Download trend */}
+      {downloadHistory.length >= 2 && (
+        <section aria-labelledby="trend" className="mt-8">
+          <h2 id="trend" className="pkg-heading">Download trend</h2>
+          <TrendChart points={downloadHistory} liveId={pkg.id} />
+        </section>
+      )}
+
+      {/* Version history */}
+      <section aria-labelledby="versions" className="mt-8">
+        <h2 id="versions" className="pkg-heading">{pkg.id} version history</h2>
+        {versionRows.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-500 dark:text-zinc-400">No version history available.</p>
+        ) : (
+          <>
+            <VersionTable packageId={pkg.id} rows={versionRows.slice(0, visibleVersionRows)} />
+            {versionRows.length > visibleVersionRows && (
+              <details className="group mt-1">
+                {/* The label follows the state; both ship in the HTML. */}
+                <summary className="pkg-link cursor-pointer py-2 text-sm">
+                  <span className="group-open:hidden">Show older releases</span>
+                  <span className="hidden group-open:inline">Hide older releases</span>
+                </summary>
+                <VersionTable packageId={pkg.id} rows={versionRows.slice(visibleVersionRows)} continued />
+              </details>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Other packages come after everything about this one. */}
       {moreBy.length > 0 && (
         <section aria-labelledby="same-owner" className="mt-10">
           <h2 id="same-owner" className="pkg-heading">
@@ -452,36 +483,6 @@ export default function PackagePage({ params }: Params) {
           <PackageLinks packages={related} />
         </section>
       )}
-
-      {/* Download trend */}
-      {downloadHistory.length >= 2 && (
-        <section aria-labelledby="trend" className="mt-8">
-          <h2 id="trend" className="pkg-heading">Download trend</h2>
-          <TrendChart points={downloadHistory} liveId={pkg.id} />
-        </section>
-      )}
-
-      {/* Version history */}
-      <section aria-labelledby="versions" className="mt-8">
-        <h2 id="versions" className="pkg-heading">{pkg.id} version history</h2>
-        {versionRows.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500 dark:text-zinc-400">No version history available.</p>
-        ) : (
-          <>
-            <VersionTable packageId={pkg.id} rows={versionRows.slice(0, visibleVersionRows)} />
-            {versionRows.length > visibleVersionRows && (
-              <details className="group mt-1">
-                {/* The label follows the state; both ship in the HTML. */}
-                <summary className="pkg-link cursor-pointer py-2 text-sm">
-                  <span className="group-open:hidden">Show older releases</span>
-                  <span className="hidden group-open:inline">Hide older releases</span>
-                </summary>
-                <VersionTable packageId={pkg.id} rows={versionRows.slice(visibleVersionRows)} continued />
-              </details>
-            )}
-          </>
-        )}
-      </section>
     </article>
   );
 }
@@ -521,10 +522,10 @@ function Code({ children }: { children: React.ReactNode }) {
 
 function DistributionLinks({ id, distributions }: { id?: string; distributions: Distribution[] }) {
   return (
-    <ul id={id} className="mt-2 flex scroll-mt-4 flex-col gap-1.5">
+    <ul id={id} className="mt-2 flex scroll-mt-4 flex-col gap-0.5">
       {distributions.map((distribution) => (
         <li key={distribution.url} className="text-sm">
-          <a href={distribution.url} download={distribution.filename} className="pkg-link break-all">
+          <a href={distribution.url} download={distribution.filename} className="pkg-link inline-block break-all py-1">
             {distribution.filename}
           </a>
           <span className="pkg-muted ml-2">{formatDistributionTarget(distribution)}</span>
@@ -565,7 +566,7 @@ function VersionTable({
           <col className="hidden md:table-column md:w-24" />
         </colgroup>
         <thead
-          className={`bg-gray-100 text-xs font-medium uppercase text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400 ${
+          className={`bg-gray-100 text-xs font-medium text-gray-600 dark:bg-zinc-800/50 dark:text-zinc-400 ${
             continued ? "sr-only" : ""
           }`}
         >

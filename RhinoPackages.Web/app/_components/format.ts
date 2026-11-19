@@ -3,8 +3,14 @@
 // Kept free of hooks so server components can use it too.
 export const TIME_ZONE = "America/New_York";
 
+// "Jul 4, 2026": a numeric "7/4/2026" reads as 7 April outside the US.
 export function formatDate(value: string | number | Date) {
-  return new Date(value).toLocaleDateString("en-US", { timeZone: TIME_ZONE });
+  return new Date(value).toLocaleDateString("en-US", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /**
@@ -16,10 +22,14 @@ export function formatDay(day: string) {
   return formatDate(`${day}T12:00:00Z`);
 }
 
-/** A month key ("2017-06") as "6/2017": formatDate()'s numeric style, without the day. */
+/** A month key ("2017-06") as "Jun 2017": formatDate()'s style, without the day. */
 export function formatMonth(key: string) {
   const [year, month] = key.split("-").map(Number);
-  return `${month}/${year}`;
+  return new Date(Date.UTC(year, month - 1, 15)).toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+  });
 }
 
 export function formatDateTime(value: string | number | Date) {
